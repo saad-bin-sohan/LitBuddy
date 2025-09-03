@@ -323,10 +323,10 @@ const Chat = () => {
         {/* --- Messages --- */}
         <div className="chat-messages" ref={scrollRef}>
           {loading ? (
-            <div className="empty-state">Loading messages…</div>
+            <div className="loading-messages">Loading messages…</div>
           ) : messages.length === 0 ? (
             <div className="empty-state">
-              No messages yet. Say hello 👋
+              <span>No messages yet. Say hello 👋</span>
             </div>
           ) : (
             messages.map((m, idx) => {
@@ -341,7 +341,7 @@ const Chat = () => {
                   className={`message-container ${mine ? 'mine' : 'theirs'}`}
                 >
                   <div className="message-avatar">
-                    <Avatar size={36} name={mine ? 'You' : sender.name} />
+                    <Avatar size={mine ? 36 : 36} name={mine ? 'You' : sender.name} />
                   </div>
 
                   <div className="message-content">
@@ -362,6 +362,7 @@ const Chat = () => {
                           className="action-button" 
                           title="Copy message"
                           onClick={() => copyToClipboard(m.text || '')}
+                          aria-label="Copy message to clipboard"
                         >
                           📋
                         </button>
@@ -372,6 +373,7 @@ const Chat = () => {
                               className="action-button"
                               title="Quick report message"
                               onClick={() => openReportModalForMessage(sender.id, m._id, m.text)}
+                              aria-label="Report this message"
                             >
                               🚩
                             </button>
@@ -402,12 +404,14 @@ const Chat = () => {
             onKeyPress={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
             disabled={chatMeta.status !== 'active'}
             rows="1"
+            aria-label="Type your message"
           />
 
           <Button 
             type="submit" 
             className="send-button"
             disabled={chatMeta.status !== 'active' || !newMessage.trim()}
+            aria-label="Send message"
           >
             Send
           </Button>
