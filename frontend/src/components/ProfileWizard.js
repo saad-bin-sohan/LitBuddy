@@ -1,5 +1,5 @@
 // frontend/src/pages/ProfileWizard.js
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useCallback } from 'react';
 import { updateProfile } from '../api/profileApi';
 import { AuthContext } from '../contexts/AuthContext';
 import LocationPicker from './LocationPicker';
@@ -58,16 +58,16 @@ const ProfileWizard = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  // Basic fields - Fixed to use functional update
-  const handleBasicChange = (e) => {
+  // Basic fields - Memoized with useCallback
+  const handleBasicChange = useCallback((e) => {
     const { name, value } = e.target;
     setForm(prevForm => ({ ...prevForm, [name]: value }));
-  };
+  }, []);
 
-  // Location updates
-  const handleLocationChange = (loc) => {
-    setForm({ ...form, location: { ...form.location, ...loc } });
-  };
+  // Location updates - Memoized with useCallback
+  const handleLocationChange = useCallback((loc) => {
+    setForm(prevForm => ({ ...prevForm, location: { ...prevForm.location, ...loc } }));
+  }, []);
 
   const persistLocationNow = async (loc) => {
     setSaving(true);
@@ -105,26 +105,29 @@ const ProfileWizard = () => {
     }
   };
 
-  // Photos
-  const handlePhotoSelected = async (e) => {
+  // Photos - Memoized with useCallback
+  const handlePhotoSelected = useCallback(async (e) => {
     const files = Array.from(e.target.files).slice(0, 6 - form.profilePhotos.length);
     const dataUrls = await Promise.all(files.map((f) => fileToDataUrl(f)));
-    setForm({ ...form, profilePhotos: [...form.profilePhotos, ...dataUrls] });
-  };
-  const removePhoto = (index) => {
-    const arr = [...form.profilePhotos];
-    arr.splice(index, 1);
-    setForm({ ...form, profilePhotos: arr });
-  };
+    setForm(prevForm => ({ ...prevForm, profilePhotos: [...prevForm.profilePhotos, ...dataUrls] }));
+  }, [form.profilePhotos.length]);
 
-  // Favorites - Fixed to use functional update
-  const handleFavoritesChange = (e) => {
+  const removePhoto = useCallback((index) => {
+    setForm(prevForm => {
+      const arr = [...prevForm.profilePhotos];
+      arr.splice(index, 1);
+      return { ...prevForm, profilePhotos: arr };
+    });
+  }, []);
+
+  // Favorites - Memoized with useCallback
+  const handleFavoritesChange = useCallback((e) => {
     const { name, value } = e.target;
     setForm(prevForm => ({ ...prevForm, [name]: value }));
-  };
+  }, []);
 
-  // Preferences & answers - Fixed to use functional update
-  const togglePreference = (bucket, value) => {
+  // Preferences & answers - Memoized with useCallback
+  const togglePreference = useCallback((bucket, value) => {
     setForm(prevForm => {
       const cur = new Set(prevForm.preferences[bucket] || []);
       cur.has(value) ? cur.delete(value) : cur.add(value);
@@ -133,15 +136,15 @@ const ProfileWizard = () => {
         preferences: { ...prevForm.preferences, [bucket]: Array.from(cur) },
       };
     });
-  };
+  }, []);
 
-  const handleAnswerChange = (idx, value) => {
+  const handleAnswerChange = useCallback((idx, value) => {
     setForm(prevForm => {
       const arr = [...prevForm.answers];
       arr[idx] = { ...arr[idx], answer: value };
       return { ...prevForm, answers: arr };
     });
-  };
+  }, []);
 
   // Save all data
   const handleSave = async () => {
