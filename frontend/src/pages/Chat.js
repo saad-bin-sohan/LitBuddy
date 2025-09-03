@@ -72,11 +72,22 @@ const Chat = () => {
     (async () => {
       try {
         const data = await getChatMessages(chatId);
-        const msgs = Array.isArray(data) ? data : (data.messages || []);
         if (!mounted) return;
-        setMessages(msgs || []);
-        if (data.chatMeta) setChatMeta((cm) => ({ ...cm, ...data.chatMeta }));
-        else if (data.meta) setChatMeta((cm) => ({ ...cm, ...data.meta }));
+
+        // Handle the response structure from your backend
+        if (data.messages) {
+          setMessages(data.messages);
+        }
+        if (data.status || data.pausedBy || data.pausedAt) {
+          setChatMeta((cm) => ({ 
+            ...cm, 
+            status: data.status || cm.status,
+            pausedBy: data.pausedBy || cm.pausedBy,
+            pausedAt: data.pausedAt ? new Date(data.pausedAt) : cm.pausedAt,
+            participants: data.participants || cm.participants,
+            name: data.name || cm.name
+          }));
+        }
       } catch (err) {
         if (mounted) setStatusMessage(err.message || 'Failed to load messages');
       } finally {

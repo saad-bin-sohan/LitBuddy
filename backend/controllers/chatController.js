@@ -110,7 +110,15 @@ const resumeChat = asyncHandler(async (req, res) => {
 const getChatMessages = asyncHandler(async (req, res) => {
   try {
     const chatData = await chatService.getChatForUser(req.user._id, req.params.chatId);
-    res.json(chatData);
+    // Ensure consistent response structure
+    res.json({
+      messages: chatData.messages || [],
+      status: chatData.status,
+      pausedBy: chatData.pausedBy,
+      pausedAt: chatData.pausedAt,
+      participants: chatData.participants,
+      name: chatData.name || `Chat with ${chatData.otherParticipant?.name || 'User'}`
+    });
   } catch (err) {
     if (err && err.status) {
       return res.status(err.status).json({ message: err.message });

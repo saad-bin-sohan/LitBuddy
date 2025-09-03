@@ -120,9 +120,11 @@ export const resumeChat = async (chatId) => {
  * GET /api/chat/:chatId
  * Your Chat page expects an array (messages), so we return `data`
  */
+// Add this function to your chatApi.js
 export const getChatMessages = async (chatId) => {
   const res = await fetch(`${API_URL}/chat/${chatId}`, {
-    credentials: 'include', // Use cookies instead of Authorization header
+    method: 'GET',
+    credentials: 'include',
   });
   const data = await parseJsonSafe(res);
   if (!res.ok) {
@@ -131,8 +133,5 @@ export const getChatMessages = async (chatId) => {
     err.body = data;
     throw err;
   }
-  // If server returns {messages: [...]}, unwrap it
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data.messages)) return data.messages;
-  return [];
+  return data;
 };
