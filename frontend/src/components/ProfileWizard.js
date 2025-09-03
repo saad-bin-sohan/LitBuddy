@@ -1,5 +1,5 @@
 // frontend/src/pages/ProfileWizard.js
-import React, { useState, useContext, useCallback, useMemo } from 'react';
+import React, { useState, useContext, useCallback, useMemo, useRef, useEffect } from 'react';
 import { updateProfile } from '../api/profileApi';
 import { AuthContext } from '../contexts/AuthContext';
 import LocationPicker from './LocationPicker';
