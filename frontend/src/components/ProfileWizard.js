@@ -1,5 +1,5 @@
 // frontend/src/pages/ProfileWizard.js
-import React, { useState, useContext, useCallback } from 'react';
+import React, { useState, useContext, useCallback, useMemo } from 'react';
 import { updateProfile } from '../api/profileApi';
 import { AuthContext } from '../contexts/AuthContext';
 import LocationPicker from './LocationPicker';
@@ -30,7 +30,8 @@ const ProfileWizard = () => {
   const { user, setUser, refreshUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
+  // Memoize the user data to prevent unnecessary re-renders
+  const userData = useMemo(() => ({
     displayName: user?.displayName || user?.name || '',
     bio: user?.bio || '',
     quote: user?.quote || '',
@@ -50,7 +51,9 @@ const ProfileWizard = () => {
       countryName: user?.location?.countryName || '',
       preferredSearchRadiusKm: user?.location?.preferredSearchRadiusKm ?? 25,
     },
-  });
+  }), [user]);
+
+  const [form, setForm] = useState(userData);
 
   const totalSteps = 6;
   const [step, setStep] = useState(1);
@@ -58,11 +61,25 @@ const ProfileWizard = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  // Basic fields - Fixed to use functional update
-  const handleBasicChange = (e) => {
+  // Ref to track the currently focused element
+  const focusedElementRef = useRef(null);
+
+  // Effect to restore focus after re-renders
+  useEffect(() => {
+    if (focusedElementRef.current) {
+      focusedElementRef.current.focus();
+      // Reset the ref after focusing
+      focusedElementRef.current = null;
+    }
+  });
+
+  // Enhanced change handlers that preserve focus
+  const handleBasicChange = useCallback((e) => {
     const { name, value } = e.target;
+    // Store reference to the focused element
+    focusedElementRef.current = e.target;
     setForm(prevForm => ({ ...prevForm, [name]: value }));
-  };
+  }, []);
 
   // Location updates - Memoized with useCallback
   const handleLocationChange = useCallback((loc) => {
@@ -123,11 +140,13 @@ const ProfileWizard = () => {
     });
   }, []);
 
-  // Favorites - Fixed to use functional update
-  const handleFavoritesChange = (e) => {
+  // Enhanced change handlers that preserve focus
+  const handleFavoritesChange = useCallback((e) => {
     const { name, value } = e.target;
+    // Store reference to the focused element
+    focusedElementRef.current = e.target;
     setForm(prevForm => ({ ...prevForm, [name]: value }));
-  };
+  }, []);
 
   // Preferences & answers - Fixed to use functional update
   const togglePreference = (bucket, value) => {
@@ -141,13 +160,15 @@ const ProfileWizard = () => {
     });
   };
 
-  const handleAnswerChange = (idx, value) => {
+  const handleAnswerChange = useCallback((idx, value) => {
+    // Store reference to the currently focused element
+    focusedElementRef.current = document.activeElement;
     setForm(prevForm => {
       const arr = [...prevForm.answers];
       arr[idx] = { ...arr[idx], answer: value };
       return { ...prevForm, answers: arr };
     });
-  };
+  }, []);
 
   // Save all data
   const handleSave = async () => {
