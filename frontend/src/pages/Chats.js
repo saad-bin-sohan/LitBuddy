@@ -56,16 +56,21 @@ const Chats = () => {
   return (
     <main className="container">
       <div className="chats-header">
-        <h2>Your Conversations</h2>
+        <div className="chats-title-section">
+          <h2>Your Conversations</h2>
+          <p className="chats-subtitle">Manage and continue your ongoing chats</p>
+        </div>
         {chats.length > 0 && (
           <div className="chats-count">
             <span className="count-badge">{chats.length}</span>
+            <span className="count-label">active chats</span>
           </div>
         )}
       </div>
 
       {error && (
         <div className="status-message error">
+          <span className="error-icon">❌</span>
           <p>{error}</p>
         </div>
       )}
@@ -77,8 +82,13 @@ const Chats = () => {
               <div className="empty-icon">💬</div>
               <h3>No conversations yet</h3>
               <p className="muted">
-                Start matching with people to begin conversations!
+                Start matching with people to begin meaningful conversations!
               </p>
+              <div className="empty-actions">
+                <Button variant="primary" onClick={() => navigate('/matches')}>
+                  🎯 Find Matches
+                </Button>
+              </div>
             </div>
           </Card>
         ) : (
@@ -87,11 +97,12 @@ const Chats = () => {
             const lastMessage = c.lastMessage?.text || (c.messages && c.messages.length ? c.messages[c.messages.length - 1].text : '');
             const isActive = c.status === 'active';
             const unreadCount = c.unreadCount || 0;
+            const lastActivity = c.updatedAt || c.lastMessage?.timestamp;
 
             return (
               <Card 
                 key={c._id} 
-                className={`chat-item ${!isActive ? 'paused' : ''}`} 
+                className={`chat-item ${!isActive ? 'paused' : ''} ${unreadCount > 0 ? 'has-unread' : ''}`} 
                 onClick={() => navigate(`/chat/${c._id}`)}
               >
                 <div className="chat-item-content">
@@ -99,24 +110,38 @@ const Chats = () => {
                     <Avatar 
                       src={other?.profilePhoto} 
                       name={other?.name || other?.displayName || 'User'} 
-                      size={56} 
+                      size={60} 
                     />
-                    {!isActive && <div className="status-indicator paused" title="Chat is paused" />}
-                    {isActive && <div className="status-indicator active" title="Chat is active" />}
+                    <div className={`status-indicator ${isActive ? 'active' : 'paused'}`} 
+                         title={isActive ? 'Chat is active' : 'Chat is paused'}>
+                      {isActive ? '🟢' : '⏸️'}
+                    </div>
+                    {unreadCount > 0 && (
+                      <div className="unread-indicator" title={`${unreadCount} unread messages`}>
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </div>
+                    )}
                   </div>
 
                   <div className="chat-details">
                     <div className="chat-header-row">
                       <div className="chat-participant">
                         <h4>{other?.displayName || other?.name || 'Unknown User'}</h4>
-                        {!isActive && <span className="status-text">Paused</span>}
+                        <div className="participant-meta">
+                          {!isActive && <span className="status-text">⏸️ Paused</span>}
+                          {other?.location && (
+                            <span className="location-text"> {other.location}</span>
+                          )}
+                        </div>
                       </div>
                       <div className="chat-meta">
                         <div className="last-message-time">
-                          {formatLastMessageTime(c.updatedAt)}
+                          {formatLastMessageTime(lastActivity)}
                         </div>
                         {unreadCount > 0 && (
-                          <div className="unread-badge">{unreadCount}</div>
+                          <div className="unread-badge">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -125,6 +150,12 @@ const Chats = () => {
                       <p className="message-preview">
                         {truncateMessage(lastMessage)}
                       </p>
+                      {!isActive && (
+                        <div className="pause-notice">
+                          <span className="pause-icon">⏸️</span>
+                          This conversation is currently paused
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

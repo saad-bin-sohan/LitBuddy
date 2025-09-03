@@ -279,36 +279,59 @@ const Chat = () => {
   return (
     <main className="container">
       <div className="chat-container">
-        {/* --- Header --- */}
+        {/* --- Enhanced Header --- */}
         <div className="chat-header">
           <div className="chat-title">
-            <Avatar size={44} name={chatMeta?.name || 'Conversation'} />
-            <div>
+            <Avatar size={48} name={chatMeta?.name || 'Conversation'} />
+            <div className="chat-title-content">
               <div className={`chat-name ${chatMeta.status === 'paused' ? 'paused' : ''}`}>
                 {chatMeta?.name || 'Conversation'}
               </div>
               <div className={`chat-status ${chatMeta.status === 'paused' ? 'paused' : ''}`}>
-                {chatMeta.status === 'paused' ? 'Paused' : 'Active'}
-                {chatMeta.pausedAt ? ` — paused at ${new Date(chatMeta.pausedAt).toLocaleString()}` : ''}
+                {chatMeta.status === 'paused' ? (
+                  <>
+                    <span className="status-dot paused"></span>
+                    Paused
+                    {chatMeta.pausedAt && (
+                      <span className="pause-time">
+                        — {new Date(chatMeta.pausedAt).toLocaleString()}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <span className="status-dot active"></span>
+                    Active
+                  </>
+                )}
               </div>
             </div>
           </div>
 
           <div className="chat-controls">
             <div className={`status-badge ${chatMeta.status}`}>
-              {String(chatMeta.status || '').toUpperCase()}
+              {chatMeta.status === 'active' ? '🟢 Active' : '⏸️ Paused'}
             </div>
 
-            <Button variant="ghost" onClick={handlePauseToggle} aria-pressed={chatMeta.status === 'paused'}>
-              {chatMeta.status === 'active' ? 'Pause Chat' : 'Resume Chat'}
+            <Button 
+              variant="ghost" 
+              onClick={handlePauseToggle} 
+              aria-pressed={chatMeta.status === 'paused'}
+              className="control-button"
+            >
+              {chatMeta.status === 'active' ? '⏸️ Pause' : '▶️ Resume'}
             </Button>
 
             {partnerId && (
               <div className="report-controls">
-                <ReportButton reportedUserId={partnerId} title="Report conversation participant (full form)" />
+                <ReportButton 
+                  reportedUserId={partnerId} 
+                  title="Report conversation participant (full form)" 
+                  className="report-button"
+                />
                 <button
                   type="button"
-                  className="action-button"
+                  className="action-button quick-report"
                   title="Quick report participant"
                   aria-label="Quick report participant"
                   onClick={() => openReportModalForUser(partnerId)}
@@ -320,19 +343,27 @@ const Chat = () => {
           </div>
         </div>
 
-        {/* --- Messages --- */}
+        {/* --- Enhanced Messages --- */}
         <div className="chat-messages" ref={scrollRef}>
           {loading ? (
-            <div className="empty-state">Loading messages…</div>
+            <div className="empty-state loading">
+              <div className="loading-spinner"></div>
+              <p>Loading messages…</p>
+            </div>
           ) : messages.length === 0 ? (
             <div className="empty-state">
-              No messages yet. Say hello 👋
+              <div className="empty-icon">💬</div>
+              <h3>Start the conversation!</h3>
+              <p>Send your first message to begin chatting</p>
             </div>
           ) : (
             messages.map((m, idx) => {
               const sender = formatSender(m);
               const mine = sender.id && String(sender.id) === String(user?._id);
-              const ts = m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+              const ts = m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              }) : '';
               const msgKey = m._id || `msg-${idx}`;
 
               return (
@@ -341,7 +372,11 @@ const Chat = () => {
                   className={`message-container ${mine ? 'mine' : 'theirs'}`}
                 >
                   <div className="message-avatar">
-                    <Avatar size={36} name={mine ? 'You' : sender.name} />
+                    <Avatar 
+                      size={40} 
+                      name={mine ? 'You' : sender.name}
+                      className={mine ? 'avatar-mine' : 'avatar-theirs'}
+                    />
                   </div>
 
                   <div className="message-content">
@@ -354,34 +389,37 @@ const Chat = () => {
                         {m.text}
                       </div>
 
-                      <div className="message-time">{ts}</div>
-
-                      <div className="message-actions">
-                        <button 
-                          type="button" 
-                          className="action-button" 
-                          title="Copy message"
-                          onClick={() => copyToClipboard(m.text || '')}
-                        >
-                          📋
-                        </button>
-                        {sender.id && String(sender.id) !== String(user?._id) && (
-                          <>
-                            <button
-                              type="button"
-                              className="action-button"
-                              title="Quick report message"
-                              onClick={() => openReportModalForMessage(sender.id, m._id, m.text)}
-                            >
-                              🚩
-                            </button>
-                            <ReportButton 
-                              reportedUserId={sender.id} 
-                              messageId={m._id} 
-                              title="Report message (full form)" 
-                            />
-                          </>
-                        )}
+                      <div className="message-footer">
+                        <div className="message-time">{ts}</div>
+                        
+                        <div className="message-actions">
+                          <button 
+                            type="button" 
+                            className="action-button copy-btn" 
+                            title="Copy message"
+                            onClick={() => copyToClipboard(m.text || '')}
+                          >
+                            📋
+                          </button>
+                          {sender.id && String(sender.id) !== String(user?._id) && (
+                            <>
+                              <button
+                                type="button"
+                                className="action-button report-btn"
+                                title="Quick report message"
+                                onClick={() => openReportModalForMessage(sender.id, m._id, m.text)}
+                              >
+                                🚩
+                              </button>
+                              <ReportButton 
+                                reportedUserId={sender.id} 
+                                messageId={m._id} 
+                                title="Report message (full form)" 
+                                className="report-button-inline"
+                              />
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -391,35 +429,52 @@ const Chat = () => {
           )}
         </div>
 
-        {/* --- Composer --- */}
+        {/* --- Enhanced Composer --- */}
         <form className="message-composer" onSubmit={handleSend}>
-          <textarea
-            ref={messageInputRef}
-            className="message-input"
-            placeholder={chatMeta.status === 'active' ? 'Type a message…' : 'Conversation is paused'}
-            value={newMessage}
-            onChange={handleInputChange}
-            onKeyPress={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-            disabled={chatMeta.status !== 'active'}
-            rows="1"
-          />
+          <div className="composer-input-wrapper">
+            <textarea
+              ref={messageInputRef}
+              className="message-input"
+              placeholder={chatMeta.status === 'active' ? 'Type your message here...' : 'Conversation is paused'}
+              value={newMessage}
+              onChange={handleInputChange}
+              onKeyPress={(e) => { 
+                if (e.key === 'Enter' && !e.shiftKey) { 
+                  e.preventDefault(); 
+                  handleSend(); 
+                } 
+              }}
+              disabled={chatMeta.status !== 'active'}
+              rows="1"
+            />
+            {chatMeta.status !== 'active' && (
+              <div className="composer-disabled-overlay">
+                <span>⏸️ Chat is paused</span>
+              </div>
+            )}
+          </div>
 
           <Button 
             type="submit" 
             className="send-button"
             disabled={chatMeta.status !== 'active' || !newMessage.trim()}
           >
+            <span className="send-icon">💬</span>
             Send
           </Button>
         </form>
 
+        {/* --- Enhanced Status Message --- */}
         {statusMessage && (
           <div className={`status-message ${statusMessage.includes('Failed') ? 'error' : 'success'}`} role="status" aria-live="polite">
+            <span className="status-icon">
+              {statusMessage.includes('Failed') ? '❌' : '✅'}
+            </span>
             {statusMessage}
           </div>
         )}
 
-        {/* --- Inline Report Modal --- */}
+        {/* --- Enhanced Report Modal --- */}
         {reportModalOpen && (
           <div
             role="dialog"
@@ -432,7 +487,7 @@ const Chat = () => {
             <div className="report-modal-content">
               <div className="report-modal-header">
                 <h3>
-                  {reportTarget.mode === 'message' ? 'Report Message' : 'Report User'}
+                  {reportTarget.mode === 'message' ? '🚩 Report Message' : '🚩 Report User'}
                 </h3>
                 <button 
                   type="button" 
