@@ -14,7 +14,7 @@ const Footer = () => {
           {/* Brand Section */}
           <div className="footer-brand">
             <div className="footer-logo">
-              <div className="footer-logo-icon">📚</div>
+              <img src="/logo.png" alt="LitBuddy Logo" className="footer-logo-image" />
               <div className="footer-logo-text">
                 <div className="footer-brand-name">LitBuddy</div>
                 <div className="footer-brand-tagline">Connect through the love of reading</div>

@@ -95,7 +95,7 @@ const Navbar = () => {
         <div className="nav-brand">
           <Link to="/" className="brand-link">
             <div className="brand-logo">
-              <div className="logo-icon">📚</div>
+              <img src="/logo.png" alt="LitBuddy Logo" className="logo-image" />
               <div className="logo-glow"></div>
             </div>
             <div className="brand-text">
@@ -256,7 +256,7 @@ const Navbar = () => {
         <div className="mobile-menu" ref={mobileMenuRef}>
           <div className="mobile-menu-header">
             <div className="mobile-brand">
-              <div className="mobile-logo">📚</div>
+              <img src="/logo.png" alt="LitBuddy Logo" className="mobile-logo-image" />
               <span>LitBuddy</span>
             </div>
           </div>
