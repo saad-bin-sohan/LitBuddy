@@ -30,8 +30,8 @@ const ProfileWizard = () => {
   const { user, setUser, refreshUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // Memoize the user data to prevent unnecessary re-renders
-  const userData = useMemo(() => ({
+  // Initialize userData directly
+  const initialUserData = {
     displayName: user?.displayName || user?.name || '',
     bio: user?.bio || '',
     quote: user?.quote || '',
@@ -51,9 +51,10 @@ const ProfileWizard = () => {
       countryName: user?.location?.countryName || '',
       preferredSearchRadiusKm: user?.location?.preferredSearchRadiusKm ?? 25,
     },
-  }), [user]);
+  };
 
-  const [form, setForm] = useState(userData);
+  // Use initialUserData to initialize form state
+  const [form, setForm] = useState(initialUserData);
 
   // Focus management
   const [focusedField, setFocusedField] = useState(null);
@@ -63,15 +64,13 @@ const ProfileWizard = () => {
   useEffect(() => {
     if (focusedField && inputRefs.current[focusedField]) {
       const input = inputRefs.current[focusedField];
-      // Use setTimeout to ensure the DOM is updated
       setTimeout(() => {
         input.focus();
-        // Move cursor to end of text
         const length = input.value.length;
         input.setSelectionRange(length, length);
       }, 0);
     }
-  }, [form, focusedField]);
+  }, [focusedField]); // Remove dependency on `form`
 
   const totalSteps = 6;
   const [step, setStep] = useState(1);
