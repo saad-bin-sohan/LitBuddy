@@ -4,11 +4,15 @@
   "framework": "create-react-app",
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "https://litbuddy.onrender.com/api/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
   "env": {
-    "REACT_APP_BACKEND_URL": "https://litbuddy.onrender.com"
+    "REACT_APP_BACKEND_URL": "/api"
   }
 }

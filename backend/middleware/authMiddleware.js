@@ -27,7 +27,7 @@ const mask = (s) => (typeof s === 'string' ? `${s.slice(0, 8)}...len=${s.length}
 const cookieClearOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: 'Strict',
+  sameSite: 'None',
   path: '/',
 };
 
