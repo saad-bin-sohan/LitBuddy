@@ -1620,6 +1620,7 @@ a:hover { color: var(--color-primary-hover); }
 .message-input:focus {
   border-color: var(--color-primary);
   box-shadow: var(--focus-ring);
+  background: var(--color-surface);
 }
 
 .message-input:disabled {
@@ -3192,6 +3193,7 @@ a:hover { color: var(--color-primary-hover); }
   margin-bottom: var(--space-20);
   position: relative;
   clear: both;
+  align-items: flex-end;
 }
 
 /* My messages - Right aligned */
@@ -3235,7 +3237,7 @@ a:hover { color: var(--color-primary-hover); }
   width: 100%;
 }
 
-/* My message bubble styling */
+/* My message bubble styling - Right side */
 .message-bubble.mine {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
   color: var(--color-btn-primary-text);
@@ -3245,7 +3247,7 @@ a:hover { color: var(--color-primary-hover); }
   text-align: left;
 }
 
-/* Speech bubble tail for my messages */
+/* Speech bubble tail for my messages - Right side */
 .message-bubble.mine::after {
   content: '';
   position: absolute;
@@ -3258,7 +3260,7 @@ a:hover { color: var(--color-primary-hover); }
   z-index: 1;
 }
 
-/* Their message bubble styling */
+/* Their message bubble styling - Left side */
 .message-bubble.theirs {
   background: var(--color-surface);
   color: var(--color-text);
@@ -3269,7 +3271,7 @@ a:hover { color: var(--color-primary-hover); }
   text-align: left;
 }
 
-/* Speech bubble tail for their messages */
+/* Speech bubble tail for their messages - Left side */
 .message-bubble.theirs::after {
   content: '';
   position: absolute;
@@ -3281,6 +3283,7 @@ a:hover { color: var(--color-primary-hover); }
   border-bottom: 8px solid transparent;
   z-index: 1;
 }
+
 /* Message Sender Name */
 .message-sender {
   font-size: var(--font-size-xs);

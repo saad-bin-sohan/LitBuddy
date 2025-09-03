@@ -340,10 +340,14 @@ const Chat = () => {
                   key={msgKey}
                   className={`message-container ${mine ? 'mine' : 'theirs'}`}
                 >
-                  <div className="message-avatar">
-                    <Avatar size={mine ? 36 : 36} name={mine ? 'You' : sender.name} />
-                  </div>
+                  {/* Avatar - Only show for their messages, positioned to the left */}
+                  {!mine && (
+                    <div className="message-avatar">
+                      <Avatar size={36} name={sender.name} />
+                    </div>
+                  )}
 
+                  {/* Message content wrapper */}
                   <div className="message-content">
                     <div className={`message-bubble ${mine ? 'mine' : 'theirs'}`}>
                       <div className="message-sender">
@@ -387,6 +391,13 @@ const Chat = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Avatar - Only show for my messages, positioned to the right */}
+                  {mine && (
+                    <div className="message-avatar">
+                      <Avatar size={36} name="You" />
+                    </div>
+                  )}
                 </div>
               );
             })
