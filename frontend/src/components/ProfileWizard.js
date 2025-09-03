@@ -55,29 +55,34 @@ const ProfileWizard = () => {
 
   const [form, setForm] = useState(userData);
 
+  // Focus management
+  const [focusedField, setFocusedField] = useState(null);
+  const inputRefs = useRef({});
+
+  // Restore focus after re-renders
+  useEffect(() => {
+    if (focusedField && inputRefs.current[focusedField]) {
+      const input = inputRefs.current[focusedField];
+      // Use setTimeout to ensure the DOM is updated
+      setTimeout(() => {
+        input.focus();
+        // Move cursor to end of text
+        const length = input.value.length;
+        input.setSelectionRange(length, length);
+      }, 0);
+    }
+  }, [form, focusedField]);
+
   const totalSteps = 6;
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  // Ref to track the currently focused element
-  const focusedElementRef = useRef(null);
-
-  // Effect to restore focus after re-renders
-  useEffect(() => {
-    if (focusedElementRef.current) {
-      focusedElementRef.current.focus();
-      // Reset the ref after focusing
-      focusedElementRef.current = null;
-    }
-  });
-
-  // Enhanced change handlers that preserve focus
+  // Enhanced change handlers that track focus
   const handleBasicChange = useCallback((e) => {
     const { name, value } = e.target;
-    // Store reference to the focused element
-    focusedElementRef.current = e.target;
+    setFocusedField(name);
     setForm(prevForm => ({ ...prevForm, [name]: value }));
   }, []);
 
@@ -140,11 +145,10 @@ const ProfileWizard = () => {
     });
   }, []);
 
-  // Enhanced change handlers that preserve focus
+  // Enhanced change handlers that track focus
   const handleFavoritesChange = useCallback((e) => {
     const { name, value } = e.target;
-    // Store reference to the focused element
-    focusedElementRef.current = e.target;
+    setFocusedField(name);
     setForm(prevForm => ({ ...prevForm, [name]: value }));
   }, []);
 
@@ -161,8 +165,7 @@ const ProfileWizard = () => {
   };
 
   const handleAnswerChange = useCallback((idx, value) => {
-    // Store reference to the currently focused element
-    focusedElementRef.current = document.activeElement;
+    setFocusedField(`answer-${idx}`);
     setForm(prevForm => {
       const arr = [...prevForm.answers];
       arr[idx] = { ...arr[idx], answer: value };
@@ -229,7 +232,7 @@ const ProfileWizard = () => {
     }
   };
 
-  // Steps with proper styling
+  // Update Step1 to include refs
   const Step1 = () => (
     <div style={{
       border: '1px solid #ddd',
@@ -243,6 +246,7 @@ const ProfileWizard = () => {
       <div style={{ marginBottom: '15px' }}>
         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Display Name</label>
         <input 
+          ref={el => inputRefs.current.displayName = el}
           name="displayName" 
           value={form.displayName} 
           onChange={handleBasicChange}
@@ -258,6 +262,7 @@ const ProfileWizard = () => {
       <div style={{ marginBottom: '15px' }}>
         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Bio</label>
         <textarea 
+          ref={el => inputRefs.current.bio = el}
           name="bio" 
           value={form.bio} 
           onChange={handleBasicChange}
@@ -275,6 +280,7 @@ const ProfileWizard = () => {
       <div style={{ marginBottom: '15px' }}>
         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Favorite Quote</label>
         <input 
+          ref={el => inputRefs.current.quote = el}
           name="quote" 
           value={form.quote} 
           onChange={handleBasicChange}
@@ -362,6 +368,7 @@ const ProfileWizard = () => {
     </div>
   );
 
+  // Update Step4 to include refs
   const Step4 = () => (
     <div style={{
       border: '1px solid #ddd',
@@ -375,6 +382,7 @@ const ProfileWizard = () => {
       <div style={{ marginBottom: '15px' }}>
         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Favorite Books (comma-separated)</label>
         <input 
+          ref={el => inputRefs.current.favoriteBooks = el}
           name="favoriteBooks" 
           value={form.favoriteBooks} 
           onChange={handleFavoritesChange}
@@ -390,6 +398,7 @@ const ProfileWizard = () => {
       <div style={{ marginBottom: '15px' }}>
         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Favorite Songs (comma-separated)</label>
         <input 
+          ref={el => inputRefs.current.favoriteSongs = el}
           name="favoriteSongs" 
           value={form.favoriteSongs} 
           onChange={handleFavoritesChange}
@@ -405,6 +414,7 @@ const ProfileWizard = () => {
     </div>
   );
 
+  // Update Step5 to include refs for answers
   const Step5 = () => (
     <div style={{
       border: '1px solid #ddd',
@@ -447,6 +457,7 @@ const ProfileWizard = () => {
           <div key={a.questionId} style={{ marginBottom: '15px' }}>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>{a.question}</label>
             <input 
+              ref={el => inputRefs.current[`answer-${i}`] = el}
               value={a.answer || ''} 
               onChange={(e) => handleAnswerChange(i, e.target.value)}
               style={{
