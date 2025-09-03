@@ -26,6 +26,286 @@ const StepIndicator = ({ step, total }) => (
   </div>
 );
 
+const Step1 = ({ form, handleBasicChange }) => (
+  <div style={{
+    border: '1px solid #ddd',
+    borderRadius: '8px',
+    padding: '20px',
+    marginBottom: '20px',
+    backgroundColor: '#fff',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+  }}>
+    <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Basic Info</h3>
+    <div style={{ marginBottom: '15px' }}>
+      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Display Name</label>
+      <input 
+        name="displayName" 
+        value={form.displayName} 
+        onChange={handleBasicChange}
+        style={{
+          width: '100%',
+          padding: '10px',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          fontSize: '16px'
+        }}
+      />
+    </div>
+    <div style={{ marginBottom: '15px' }}>
+      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Bio</label>
+      <textarea 
+        name="bio" 
+        value={form.bio} 
+        onChange={handleBasicChange}
+        style={{
+          width: '100%',
+          padding: '10px',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          fontSize: '16px',
+          minHeight: '100px',
+          resize: 'vertical'
+        }}
+      />
+    </div>
+    <div style={{ marginBottom: '15px' }}>
+      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Favorite Quote</label>
+      <input 
+        name="quote" 
+        value={form.quote} 
+        onChange={handleBasicChange}
+        style={{
+          width: '100%',
+          padding: '10px',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          fontSize: '16px'
+        }}
+      />
+    </div>
+  </div>
+);
+
+const Step2 = ({ form, handleLocationChange, persistLocationNow }) => (
+  <div style={{
+    border: '1px solid #ddd',
+    borderRadius: '8px',
+    padding: '20px',
+    marginBottom: '20px',
+    backgroundColor: '#fff',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+  }}>
+    <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Location</h3>
+    <LocationPicker
+      value={form.location}
+      onChange={handleLocationChange}
+      onPersist={persistLocationNow}
+    />
+    <p style={{ fontSize: 12, color: '#666', marginTop: 8 }}>
+      Tip: Click "Save location to profile" to persist immediately. Otherwise it will be saved when you finish the wizard.
+    </p>
+  </div>
+);
+
+const Step3 = ({ form, handlePhotoSelected, removePhoto }) => (
+  <div style={{
+    border: '1px solid #ddd',
+    borderRadius: '8px',
+    padding: '20px',
+    marginBottom: '20px',
+    backgroundColor: '#fff',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+  }}>
+    <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Upload Photos (up to 6)</h3>
+    <input 
+      type="file" 
+      accept="image/*" 
+      onChange={handlePhotoSelected} 
+      multiple 
+      style={{
+        width: '100%',
+        padding: '10px',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        fontSize: '16px'
+      }}
+    />
+    <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+      {form.profilePhotos.map((src, i) => (
+        <div key={i} style={{ position: 'relative' }}>
+          <img src={src} alt={`p${i}`} style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 8 }} />
+          <button 
+            type="button" 
+            onClick={() => removePhoto(i)} 
+            style={{ 
+              position: 'absolute', 
+              top: 4, 
+              right: 4,
+              background: 'red',
+              color: 'white',
+              border: 'none',
+              borderRadius: '50%',
+              width: '24px',
+              height: '24px',
+              cursor: 'pointer'
+            }}
+          >
+            ×
+          </button>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const Step4 = ({ form, handleFavoritesChange }) => (
+  <div style={{
+    border: '1px solid #ddd',
+    borderRadius: '8px',
+    padding: '20px',
+    marginBottom: '20px',
+    backgroundColor: '#fff',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+  }}>
+    <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Favorites</h3>
+    <div style={{ marginBottom: '15px' }}>
+      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Favorite Books (comma-separated)</label>
+      <input 
+        name="favoriteBooks" 
+        value={form.favoriteBooks} 
+        onChange={handleFavoritesChange}
+        style={{
+          width: '100%',
+          padding: '10px',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          fontSize: '16px'
+        }}
+      />
+    </div>
+    <div style={{ marginBottom: '15px' }}>
+      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Favorite Songs (comma-separated)</label>
+      <input 
+        name="favoriteSongs" 
+        value={form.favoriteSongs} 
+        onChange={handleFavoritesChange}
+        style={{
+          width: '100%',
+          padding: '10px',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          fontSize: '16px'
+        }}
+      />
+    </div>
+  </div>
+);
+
+const Step5 = ({ form, togglePreference, handleAnswerChange }) => (
+  <div style={{
+    border: '1px solid #ddd',
+    borderRadius: '8px',
+    padding: '20px',
+    marginBottom: '20px',
+    backgroundColor: '#fff',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+  }}>
+    <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Preferences & Questions</h3>
+    <div style={{ marginBottom: '12px' }}>
+      <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Book Preferences</p>
+      {['Fiction','Non-fiction','Sci-fi','Romance','Mystery','Poetry'].map((t) => (
+        <label key={t} style={{ marginRight: 8, display: 'inline-block', marginBottom: '8px' }}>
+          <input 
+            type="checkbox"
+            checked={form.preferences.books?.includes(t)}
+            onChange={() => togglePreference('books', t)}
+            style={{ marginRight: '5px' }}
+          /> {t}
+        </label>
+      ))}
+    </div>
+    <div style={{ marginBottom: '12px' }}>
+      <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Music Preferences</p>
+      {['Pop','Rock','Classical','Jazz','Electronic','Indie'].map((t) => (
+        <label key={t} style={{ marginRight: 8, display: 'inline-block', marginBottom: '8px' }}>
+          <input 
+            type="checkbox"
+            checked={form.preferences.music?.includes(t)}
+            onChange={() => togglePreference('music', t)}
+            style={{ marginRight: '5px' }}
+          /> {t}
+        </label>
+      ))}
+    </div>
+    <div>
+      <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Short Questions</p>
+      {form.answers.map((a, i) => (
+        <div key={a.questionId} style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>{a.question}</label>
+          <input 
+            value={a.answer || ''} 
+            onChange={(e) => handleAnswerChange(i, e.target.value)}
+            style={{
+              width: '100%',
+              padding: '10px',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              fontSize: '16px'
+            }}
+          />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const Step6 = ({ form }) => (
+  <div style={{
+    border: '1px solid #ddd',
+    borderRadius: '8px',
+    padding: '20px',
+    marginBottom: '20px',
+    backgroundColor: '#fff',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+  }}>
+    <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Review & Submit</h3>
+    <p><strong>Display Name:</strong> {form.displayName}</p>
+    <p><strong>Bio:</strong> {form.bio}</p>
+    <p><strong>Quote:</strong> {form.quote}</p>
+    <div style={{
+      border: '1px solid #eee',
+      borderRadius: '6px',
+      padding: '15px',
+      marginTop: 8,
+      backgroundColor: '#f9f9f9'
+    }}>
+      <h4 style={{ marginTop: 0 }}>Location</h4>
+      <p><strong>City:</strong> {form.location.cityName || '-'}</p>
+      <p><strong>Country:</strong> {form.location.countryName || '-'}</p>
+      <p><strong>Coordinates:</strong> {form.location.lat ?? '-'}, {form.location.lng ?? '-'}</p>
+      <p><strong>Radius:</strong> {form.location.preferredSearchRadiusKm} km</p>
+    </div>
+    <div><strong>Photos:</strong></div>
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      {form.profilePhotos.map((src, i) => (
+        <img key={i} src={src} alt={`rev-${i}`} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 6 }} />
+      ))}
+    </div>
+    <p><strong>Favorite Books:</strong> {form.favoriteBooks}</p>
+    <p><strong>Favorite Songs:</strong> {form.favoriteSongs}</p>
+    <p><strong>Preferences - Books:</strong> {form.preferences.books.join(', ')}</p>
+    <p><strong>Preferences - Music:</strong> {form.preferences.music.join(', ')}</p>
+    <div>
+      <strong>Answers:</strong>
+      <ul>
+        {form.answers.map((a) => (
+          <li key={a.questionId}><strong>{a.question}:</strong> {a.answer}</li>
+        ))}
+      </ul>
+    </div>
+  </div>
+);
+
 const ProfileWizard = () => {
   const { user, setUser, refreshUser } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -207,286 +487,6 @@ const ProfileWizard = () => {
     }
   };
 
-  const Step1 = () => (
-    <div style={{
-      border: '1px solid #ddd',
-      borderRadius: '8px',
-      padding: '20px',
-      marginBottom: '20px',
-      backgroundColor: '#fff',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-    }}>
-      <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Basic Info</h3>
-      <div style={{ marginBottom: '15px' }}>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Display Name</label>
-        <input 
-          name="displayName" 
-          value={form.displayName} 
-          onChange={handleBasicChange}
-          style={{
-            width: '100%',
-            padding: '10px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            fontSize: '16px'
-          }}
-        />
-      </div>
-      <div style={{ marginBottom: '15px' }}>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Bio</label>
-        <textarea 
-          name="bio" 
-          value={form.bio} 
-          onChange={handleBasicChange}
-          style={{
-            width: '100%',
-            padding: '10px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            fontSize: '16px',
-            minHeight: '100px',
-            resize: 'vertical'
-          }}
-        />
-      </div>
-      <div style={{ marginBottom: '15px' }}>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Favorite Quote</label>
-        <input 
-          name="quote" 
-          value={form.quote} 
-          onChange={handleBasicChange}
-          style={{
-            width: '100%',
-            padding: '10px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            fontSize: '16px'
-          }}
-        />
-      </div>
-    </div>
-  );
-
-  const Step2 = () => (
-    <div style={{
-      border: '1px solid #ddd',
-      borderRadius: '8px',
-      padding: '20px',
-      marginBottom: '20px',
-      backgroundColor: '#fff',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-    }}>
-      <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Location</h3>
-      <LocationPicker
-        value={form.location}
-        onChange={handleLocationChange}
-        onPersist={persistLocationNow}
-      />
-      <p style={{ fontSize: 12, color: '#666', marginTop: 8 }}>
-        Tip: Click "Save location to profile" to persist immediately. Otherwise it will be saved when you finish the wizard.
-      </p>
-    </div>
-  );
-
-  const Step3 = () => (
-    <div style={{
-      border: '1px solid #ddd',
-      borderRadius: '8px',
-      padding: '20px',
-      marginBottom: '20px',
-      backgroundColor: '#fff',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-    }}>
-      <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Upload Photos (up to 6)</h3>
-      <input 
-        type="file" 
-        accept="image/*" 
-        onChange={handlePhotoSelected} 
-        multiple 
-        style={{
-          width: '100%',
-          padding: '10px',
-          border: '1px solid #ccc',
-          borderRadius: '4px',
-          fontSize: '16px'
-        }}
-      />
-      <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-        {form.profilePhotos.map((src, i) => (
-          <div key={i} style={{ position: 'relative' }}>
-            <img src={src} alt={`p${i}`} style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 8 }} />
-            <button 
-              type="button" 
-              onClick={() => removePhoto(i)} 
-              style={{ 
-                position: 'absolute', 
-                top: 4, 
-                right: 4,
-                background: 'red',
-                color: 'white',
-                border: 'none',
-                borderRadius: '50%',
-                width: '24px',
-                height: '24px',
-                cursor: 'pointer'
-              }}
-            >
-              ×
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const Step4 = () => (
-    <div style={{
-      border: '1px solid #ddd',
-      borderRadius: '8px',
-      padding: '20px',
-      marginBottom: '20px',
-      backgroundColor: '#fff',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-    }}>
-      <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Favorites</h3>
-      <div style={{ marginBottom: '15px' }}>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Favorite Books (comma-separated)</label>
-        <input 
-          name="favoriteBooks" 
-          value={form.favoriteBooks} 
-          onChange={handleFavoritesChange}
-          style={{
-            width: '100%',
-            padding: '10px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            fontSize: '16px'
-          }}
-        />
-      </div>
-      <div style={{ marginBottom: '15px' }}>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Favorite Songs (comma-separated)</label>
-        <input 
-          name="favoriteSongs" 
-          value={form.favoriteSongs} 
-          onChange={handleFavoritesChange}
-          style={{
-            width: '100%',
-            padding: '10px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            fontSize: '16px'
-          }}
-        />
-      </div>
-    </div>
-  );
-
-  const Step5 = () => (
-    <div style={{
-      border: '1px solid #ddd',
-      borderRadius: '8px',
-      padding: '20px',
-      marginBottom: '20px',
-      backgroundColor: '#fff',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-    }}>
-      <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Preferences & Questions</h3>
-      <div style={{ marginBottom: '12' }}>
-        <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Book Preferences</p>
-        {['Fiction','Non-fiction','Sci-fi','Romance','Mystery','Poetry'].map((t) => (
-          <label key={t} style={{ marginRight: 8, display: 'inline-block', marginBottom: '8px' }}>
-            <input 
-              type="checkbox"
-              checked={form.preferences.books?.includes(t)}
-              onChange={() => togglePreference('books', t)}
-              style={{ marginRight: '5px' }}
-            /> {t}
-          </label>
-        ))}
-      </div>
-      <div style={{ marginBottom: '12' }}>
-        <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Music Preferences</p>
-        {['Pop','Rock','Classical','Jazz','Electronic','Indie'].map((t) => (
-          <label key={t} style={{ marginRight: 8, display: 'inline-block', marginBottom: '8px' }}>
-            <input 
-              type="checkbox"
-              checked={form.preferences.music?.includes(t)}
-              onChange={() => togglePreference('music', t)}
-              style={{ marginRight: '5px' }}
-            /> {t}
-          </label>
-        ))}
-      </div>
-      <div>
-        <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Short Questions</p>
-        {form.answers.map((a, i) => (
-          <div key={a.questionId} style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>{a.question}</label>
-            <input 
-              value={a.answer || ''} 
-              onChange={(e) => handleAnswerChange(i, e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                fontSize: '16px'
-              }}
-            />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const Step6 = () => (
-    <div style={{
-      border: '1px solid #ddd',
-      borderRadius: '8px',
-      padding: '20px',
-      marginBottom: '20px',
-      backgroundColor: '#fff',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-    }}>
-      <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Review & Submit</h3>
-      <p><strong>Display Name:</strong> {form.displayName}</p>
-      <p><strong>Bio:</strong> {form.bio}</p>
-      <p><strong>Quote:</strong> {form.quote}</p>
-      <div style={{
-        border: '1px solid #eee',
-        borderRadius: '6px',
-        padding: '15px',
-        marginTop: 8,
-        backgroundColor: '#f9f9f9'
-      }}>
-        <h4 style={{ marginTop: 0 }}>Location</h4>
-        <p><strong>City:</strong> {form.location.cityName || '-'}</p>
-        <p><strong>Country:</strong> {form.location.countryName || '-'}</p>
-        <p><strong>Coordinates:</strong> {form.location.lat ?? '-'}, {form.location.lng ?? '-'}</p>
-        <p><strong>Radius:</strong> {form.location.preferredSearchRadiusKm} km</p>
-      </div>
-      <div><strong>Photos:</strong></div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {form.profilePhotos.map((src, i) => (
-          <img key={i} src={src} alt={`rev-${i}`} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 6 }} />
-        ))}
-      </div>
-      <p><strong>Favorite Books:</strong> {form.favoriteBooks}</p>
-      <p><strong>Favorite Songs:</strong> {form.favoriteSongs}</p>
-      <p><strong>Preferences - Books:</strong> {form.preferences.books.join(', ')}</p>
-      <p><strong>Preferences - Music:</strong> {form.preferences.music.join(', ')}</p>
-      <div>
-        <strong>Answers:</strong>
-        <ul>
-          {form.answers.map((a) => (
-            <li key={a.questionId}><strong>{a.question}:</strong> {a.answer}</li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-
   const canNext = () => step !== 1 || form.displayName.trim().length > 0;
 
   return (
@@ -495,12 +495,12 @@ const ProfileWizard = () => {
       {message && <p style={{ color: 'green' }}>{message}</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
-      {step === 1 && <Step1 />}
-      {step === 2 && <Step2 />}
-      {step === 3 && <Step3 />}
-      {step === 4 && <Step4 />}
-      {step === 5 && <Step5 />}
-      {step === 6 && <Step6 />}
+      {step === 1 && <Step1 form={form} handleBasicChange={handleBasicChange} />}
+      {step === 2 && <Step2 form={form} handleLocationChange={handleLocationChange} persistLocationNow={persistLocationNow} />}
+      {step === 3 && <Step3 form={form} handlePhotoSelected={handlePhotoSelected} removePhoto={removePhoto} />}
+      {step === 4 && <Step4 form={form} handleFavoritesChange={handleFavoritesChange} />}
+      {step === 5 && <Step5 form={form} togglePreference={togglePreference} handleAnswerChange={handleAnswerChange} />}
+      {step === 6 && <Step6 form={form} />}
 
       <div style={{ marginTop: 16 }}>
         {step > 1 && (
