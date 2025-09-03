@@ -91,11 +91,14 @@ const ProfileWizard = () => {
 
       const updated = await updateProfile(payload);
 
-      // Apply the updated location into local form and auth state
+      // ONLY update the local form state - don't update the global user context
       setForm((prev) => ({ ...prev, location: updated.location || payload.location }));
-      setUser(updated);
-      try { localStorage.setItem('user', JSON.stringify(updated)); } catch (_) {}
-      if (typeof refreshUser === 'function') await refreshUser();
+      
+      // Remove these lines that cause re-renders:
+      // setUser(updated);
+      // try { localStorage.setItem('user', JSON.stringify(updated)); } catch (_) {}
+      // if (typeof refreshUser === 'function') await refreshUser();
+      
       setMessage('Location saved successfully.');
     } catch (err) {
       console.error('persistLocationNow error', err);
