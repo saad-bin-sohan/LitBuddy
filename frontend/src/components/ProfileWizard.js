@@ -58,8 +58,11 @@ const ProfileWizard = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  // Basic fields
-  const handleBasicChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  // Basic fields - Fixed to use functional update
+  const handleBasicChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prevForm => ({ ...prevForm, [name]: value }));
+  };
 
   // Location updates
   const handleLocationChange = (loc) => {
@@ -114,22 +117,30 @@ const ProfileWizard = () => {
     setForm({ ...form, profilePhotos: arr });
   };
 
-  // Favorites
-  const handleFavoritesChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  // Favorites - Fixed to use functional update
+  const handleFavoritesChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prevForm => ({ ...prevForm, [name]: value }));
+  };
 
-  // Preferences & answers
+  // Preferences & answers - Fixed to use functional update
   const togglePreference = (bucket, value) => {
-    const cur = new Set(form.preferences[bucket] || []);
-    cur.has(value) ? cur.delete(value) : cur.add(value);
-    setForm({
-      ...form,
-      preferences: { ...form.preferences, [bucket]: Array.from(cur) },
+    setForm(prevForm => {
+      const cur = new Set(prevForm.preferences[bucket] || []);
+      cur.has(value) ? cur.delete(value) : cur.add(value);
+      return {
+        ...prevForm,
+        preferences: { ...prevForm.preferences, [bucket]: Array.from(cur) },
+      };
     });
   };
+
   const handleAnswerChange = (idx, value) => {
-    const arr = [...form.answers];
-    arr[idx] = { ...arr[idx], answer: value };
-    setForm({ ...form, answers: arr });
+    setForm(prevForm => {
+      const arr = [...prevForm.answers];
+      arr[idx] = { ...arr[idx], answer: value };
+      return { ...prevForm, answers: arr };
+    });
   };
 
   // Save all data
@@ -191,22 +202,77 @@ const ProfileWizard = () => {
     }
   };
 
-  // Steps
+  // Steps with proper styling
   const Step1 = () => (
-    <div className="card">
-      <h3>Basic Info</h3>
-      <label>Display Name</label>
-      <input name="displayName" value={form.displayName} onChange={handleBasicChange} />
-      <label>Bio</label>
-      <textarea name="bio" value={form.bio} onChange={handleBasicChange} />
-      <label>Favorite Quote</label>
-      <input name="quote" value={form.quote} onChange={handleBasicChange} />
+    <div style={{
+      border: '1px solid #ddd',
+      borderRadius: '8px',
+      padding: '20px',
+      marginBottom: '20px',
+      backgroundColor: '#fff',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    }}>
+      <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Basic Info</h3>
+      <div style={{ marginBottom: '15px' }}>
+        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Display Name</label>
+        <input 
+          name="displayName" 
+          value={form.displayName} 
+          onChange={handleBasicChange}
+          style={{
+            width: '100%',
+            padding: '10px',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            fontSize: '16px'
+          }}
+        />
+      </div>
+      <div style={{ marginBottom: '15px' }}>
+        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Bio</label>
+        <textarea 
+          name="bio" 
+          value={form.bio} 
+          onChange={handleBasicChange}
+          style={{
+            width: '100%',
+            padding: '10px',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            fontSize: '16px',
+            minHeight: '100px',
+            resize: 'vertical'
+          }}
+        />
+      </div>
+      <div style={{ marginBottom: '15px' }}>
+        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Favorite Quote</label>
+        <input 
+          name="quote" 
+          value={form.quote} 
+          onChange={handleBasicChange}
+          style={{
+            width: '100%',
+            padding: '10px',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            fontSize: '16px'
+          }}
+        />
+      </div>
     </div>
   );
 
   const Step2 = () => (
-    <div>
-      <h3>Location</h3>
+    <div style={{
+      border: '1px solid #ddd',
+      borderRadius: '8px',
+      padding: '20px',
+      marginBottom: '20px',
+      backgroundColor: '#fff',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    }}>
+      <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Location</h3>
       <LocationPicker
         value={form.location}
         onChange={handleLocationChange}
@@ -219,14 +285,48 @@ const ProfileWizard = () => {
   );
 
   const Step3 = () => (
-    <div className="card">
-      <h3>Upload Photos (up to 6)</h3>
-      <input type="file" accept="image/*" onChange={handlePhotoSelected} multiple />
+    <div style={{
+      border: '1px solid #ddd',
+      borderRadius: '8px',
+      padding: '20px',
+      marginBottom: '20px',
+      backgroundColor: '#fff',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    }}>
+      <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Upload Photos (up to 6)</h3>
+      <input 
+        type="file" 
+        accept="image/*" 
+        onChange={handlePhotoSelected} 
+        multiple 
+        style={{
+          width: '100%',
+          padding: '10px',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          fontSize: '16px'
+        }}
+      />
       <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
         {form.profilePhotos.map((src, i) => (
           <div key={i} style={{ position: 'relative' }}>
             <img src={src} alt={`p${i}`} style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 8 }} />
-            <button type="button" onClick={() => removePhoto(i)} style={{ position: 'absolute', top: 4, right: 4 }}>
+            <button 
+              type="button" 
+              onClick={() => removePhoto(i)} 
+              style={{ 
+                position: 'absolute', 
+                top: 4, 
+                right: 4,
+                background: 'red',
+                color: 'white',
+                border: 'none',
+                borderRadius: '50%',
+                width: '24px',
+                height: '24px',
+                cursor: 'pointer'
+              }}
+            >
               ×
             </button>
           </div>
@@ -236,46 +336,100 @@ const ProfileWizard = () => {
   );
 
   const Step4 = () => (
-    <div className="card">
-      <h3>Favorites</h3>
-      <label>Favorite Books (comma-separated)</label>
-      <input name="favoriteBooks" value={form.favoriteBooks} onChange={handleFavoritesChange} />
-      <label>Favorite Songs (comma-separated)</label>
-      <input name="favoriteSongs" value={form.favoriteSongs} onChange={handleFavoritesChange} />
+    <div style={{
+      border: '1px solid #ddd',
+      borderRadius: '8px',
+      padding: '20px',
+      marginBottom: '20px',
+      backgroundColor: '#fff',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    }}>
+      <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Favorites</h3>
+      <div style={{ marginBottom: '15px' }}>
+        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Favorite Books (comma-separated)</label>
+        <input 
+          name="favoriteBooks" 
+          value={form.favoriteBooks} 
+          onChange={handleFavoritesChange}
+          style={{
+            width: '100%',
+            padding: '10px',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            fontSize: '16px'
+          }}
+        />
+      </div>
+      <div style={{ marginBottom: '15px' }}>
+        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Favorite Songs (comma-separated)</label>
+        <input 
+          name="favoriteSongs" 
+          value={form.favoriteSongs} 
+          onChange={handleFavoritesChange}
+          style={{
+            width: '100%',
+            padding: '10px',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            fontSize: '16px'
+          }}
+        />
+      </div>
     </div>
   );
 
   const Step5 = () => (
-    <div className="card">
-      <h3>Preferences & Questions</h3>
+    <div style={{
+      border: '1px solid #ddd',
+      borderRadius: '8px',
+      padding: '20px',
+      marginBottom: '20px',
+      backgroundColor: '#fff',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    }}>
+      <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Preferences & Questions</h3>
       <div style={{ marginBottom: 12 }}>
-        <p><strong>Book Preferences</strong></p>
+        <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Book Preferences</p>
         {['Fiction','Non-fiction','Sci-fi','Romance','Mystery','Poetry'].map((t) => (
-          <label key={t} style={{ marginRight: 8 }}>
-            <input type="checkbox"
+          <label key={t} style={{ marginRight: 8, display: 'inline-block', marginBottom: '8px' }}>
+            <input 
+              type="checkbox"
               checked={form.preferences.books?.includes(t)}
               onChange={() => togglePreference('books', t)}
+              style={{ marginRight: '5px' }}
             /> {t}
           </label>
         ))}
       </div>
       <div style={{ marginBottom: 12 }}>
-        <p><strong>Music Preferences</strong></p>
+        <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Music Preferences</p>
         {['Pop','Rock','Classical','Jazz','Electronic','Indie'].map((t) => (
-          <label key={t} style={{ marginRight: 8 }}>
-            <input type="checkbox"
+          <label key={t} style={{ marginRight: 8, display: 'inline-block', marginBottom: '8px' }}>
+            <input 
+              type="checkbox"
               checked={form.preferences.music?.includes(t)}
               onChange={() => togglePreference('music', t)}
+              style={{ marginRight: '5px' }}
             /> {t}
           </label>
         ))}
       </div>
       <div>
-        <p><strong>Short Questions</strong></p>
+        <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Short Questions</p>
         {form.answers.map((a, i) => (
-          <div key={a.questionId} style={{ marginBottom: 8 }}>
-            <label>{a.question}</label>
-            <input value={a.answer || ''} onChange={(e) => handleAnswerChange(i, e.target.value)} />
+          <div key={a.questionId} style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>{a.question}</label>
+            <input 
+              value={a.answer || ''} 
+              onChange={(e) => handleAnswerChange(i, e.target.value)}
+              style={{
+                width: '100%',
+                padding: '10px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                fontSize: '16px'
+              }}
+            />
           </div>
         ))}
       </div>
@@ -283,13 +437,26 @@ const ProfileWizard = () => {
   );
 
   const Step6 = () => (
-    <div className="card">
-      <h3>Review & Submit</h3>
+    <div style={{
+      border: '1px solid #ddd',
+      borderRadius: '8px',
+      padding: '20px',
+      marginBottom: '20px',
+      backgroundColor: '#fff',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    }}>
+      <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Review & Submit</h3>
       <p><strong>Display Name:</strong> {form.displayName}</p>
       <p><strong>Bio:</strong> {form.bio}</p>
       <p><strong>Quote:</strong> {form.quote}</p>
-      <div className="card" style={{ marginTop: 8 }}>
-        <h4>Location</h4>
+      <div style={{
+        border: '1px solid #eee',
+        borderRadius: '6px',
+        padding: '15px',
+        marginTop: 8,
+        backgroundColor: '#f9f9f9'
+      }}>
+        <h4 style={{ marginTop: 0 }}>Location</h4>
         <p><strong>City:</strong> {form.location.cityName || '-'}</p>
         <p><strong>Country:</strong> {form.location.countryName || '-'}</p>
         <p><strong>Coordinates:</strong> {form.location.lat ?? '-'}, {form.location.lng ?? '-'}</p>
@@ -332,10 +499,51 @@ const ProfileWizard = () => {
       {step === 6 && <Step6 />}
 
       <div style={{ marginTop: 16 }}>
-        {step > 1 && <button onClick={() => setStep(step - 1)} style={{ marginRight: 8 }}>Back</button>}
-        {step < totalSteps && <button onClick={() => canNext() ? setStep(step + 1) : setError('Please fill required fields')}>Next</button>}
+        {step > 1 && (
+          <button 
+            onClick={() => setStep(step - 1)} 
+            style={{ 
+              marginRight: 8,
+              padding: '10px 20px',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              backgroundColor: '#f8f9fa',
+              cursor: 'pointer'
+            }}
+          >
+            Back
+          </button>
+        )}
+        {step < totalSteps && (
+          <button 
+            onClick={() => canNext() ? setStep(step + 1) : setError('Please fill required fields')}
+            style={{
+              padding: '10px 20px',
+              border: '1px solid #007bff',
+              borderRadius: '4px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              cursor: 'pointer'
+            }}
+          >
+            Next
+          </button>
+        )}
         {step === totalSteps && (
-          <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
+          <button 
+            onClick={handleSave} 
+            disabled={saving}
+            style={{
+              padding: '12px 24px',
+              border: '1px solid #28a745',
+              borderRadius: '4px',
+              backgroundColor: '#28a745',
+              color: 'white',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: 'bold'
+            }}
+          >
             {saving ? 'Saving...' : 'Save Profile'}
           </button>
         )}
