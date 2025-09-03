@@ -1957,6 +1957,13 @@ a:hover { color: var(--color-primary-hover); }
   margin-top: var(--space-64);
   position: relative;
   overflow: hidden;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  grid-template-areas: none;
+  grid-auto-flow: row;
+  grid-template-rows: auto;
+  grid-template-columns: none;
 }
 
 .modern-footer::before {
@@ -1973,6 +1980,15 @@ a:hover { color: var(--color-primary-hover); }
   max-width: var(--max-width);
   margin: 0 auto;
   padding: var(--space-48) var(--space-24);
+  display: block;
+  width: 100%;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  grid-template-areas: none;
+  grid-auto-flow: row;
+  grid-template-rows: auto;
+  grid-template-columns: none;
 }
 
 /* Main Footer Content */
@@ -1981,11 +1997,28 @@ a:hover { color: var(--color-primary-hover); }
   grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
   gap: var(--space-40);
   margin-bottom: var(--space-48);
+  align-items: start;
+  width: 100%;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  grid-auto-rows: min-content;
+  grid-template-areas: "brand links links links links";
+  grid-auto-flow: row;
+  grid-template-rows: auto;
 }
 
 /* Brand Section */
 .footer-brand {
   max-width: 400px;
+  min-height: 0;
+  width: 100%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  grid-area: brand;
+  grid-auto-flow: row;
+  grid-template-rows: auto;
+  grid-template-columns: none;
 }
 
 .footer-logo {
@@ -2056,9 +2089,36 @@ a:hover { color: var(--color-primary-hover); }
 }
 
 /* Footer Links */
+.footer-links {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-32);
+  min-height: 0;
+  align-items: start;
+  width: 100%;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  grid-auto-rows: min-content;
+  grid-area: links;
+  grid-auto-flow: row;
+  grid-template-rows: auto;
+}
+
 .footer-section {
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  width: 100%;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  grid-column: auto;
+  grid-row: auto;
+  grid-area: auto;
+  grid-auto-flow: row;
+  grid-template-rows: auto;
+  grid-template-columns: none;
 }
 
 .footer-section-title {
@@ -2067,6 +2127,7 @@ a:hover { color: var(--color-primary-hover); }
   color: var(--color-text);
   margin-bottom: var(--space-20);
   position: relative;
+  white-space: nowrap;
 }
 
 .footer-section-title::after {
@@ -2087,6 +2148,10 @@ a:hover { color: var(--color-primary-hover); }
   display: flex;
   flex-direction: column;
   gap: var(--space-12);
+  min-height: 0;
+  width: 100%;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .footer-link {
@@ -2096,6 +2161,7 @@ a:hover { color: var(--color-primary-hover); }
   transition: all var(--transition-fast);
   display: inline-block;
   position: relative;
+  white-space: nowrap;
 }
 
 .footer-link::before {
@@ -2215,6 +2281,11 @@ a:hover { color: var(--color-primary-hover); }
     grid-column: 1 / -1;
     max-width: 100%;
   }
+  
+  .footer-links {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-24);
+  }
 }
 
 @media (max-width: 768px) {
@@ -2227,8 +2298,16 @@ a:hover { color: var(--color-primary-hover); }
     gap: var(--space-24);
   }
   
+  .footer-links {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-20);
+  }
+  
   .footer-bottom-content {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
     gap: var(--space-16);
     text-align: center;
   }
@@ -2253,10 +2332,30 @@ a:hover { color: var(--color-primary-hover); }
     justify-content: center;
   }
   
-  .footer-stats {
-    flex-direction: column;
+  .footer-links {
+    grid-template-columns: 1fr;
+    gap: var(--space-16);
+  }
+  
+  .footer-bottom-content {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: var(--space-12);
+  }
+  
+  .footer-copyright {
+    flex: 1;
+    min-width: 200px;
+    text-align: center;
+  }
+  
+  .footer-stats {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-16);
     align-items: center;
+    justify-content: center;
   }
 }
 
