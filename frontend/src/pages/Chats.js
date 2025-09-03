@@ -65,8 +65,8 @@ const Chats = () => {
       </div>
 
       {error && (
-        <div className="error-message">
-          <p className="muted">{error}</p>
+        <div className="status-message error">
+          <p>{error}</p>
         </div>
       )}
 

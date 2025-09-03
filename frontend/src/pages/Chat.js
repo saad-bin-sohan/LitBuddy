@@ -277,23 +277,25 @@ const Chat = () => {
 
   // --- Render ---
   return (
-    <main className="container" style={{ padding: 16 }}>
-      <div className="chat-container" style={{ maxWidth: 980, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <main className="container">
+      <div className="chat-container">
         {/* --- Header --- */}
-        <div className="chat-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div className="chat-title" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+        <div className="chat-header">
+          <div className="chat-title">
             <Avatar size={44} name={chatMeta?.name || 'Conversation'} />
             <div>
-              <div className="chat-name" style={{ fontWeight: 700 }}>{chatMeta?.name || 'Conversation'}</div>
-              <div className="chat-status" style={{ fontSize: 12, color: 'var(--muted)' }}>
+              <div className={`chat-name ${chatMeta.status === 'paused' ? 'paused' : ''}`}>
+                {chatMeta?.name || 'Conversation'}
+              </div>
+              <div className={`chat-status ${chatMeta.status === 'paused' ? 'paused' : ''}`}>
                 {chatMeta.status === 'paused' ? 'Paused' : 'Active'}
                 {chatMeta.pausedAt ? ` — paused at ${new Date(chatMeta.pausedAt).toLocaleString()}` : ''}
               </div>
             </div>
           </div>
 
-          <div className="chat-controls" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <div className={`status-badge ${chatMeta.status}`} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #eee', fontSize: 12 }}>
+          <div className="chat-controls">
+            <div className={`status-badge ${chatMeta.status}`}>
               {String(chatMeta.status || '').toUpperCase()}
             </div>
 
@@ -302,11 +304,11 @@ const Chat = () => {
             </Button>
 
             {partnerId && (
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <div className="report-controls">
                 <ReportButton reportedUserId={partnerId} title="Report conversation participant (full form)" />
                 <button
                   type="button"
-                  className="icon-btn"
+                  className="action-button"
                   title="Quick report participant"
                   aria-label="Quick report participant"
                   onClick={() => openReportModalForUser(partnerId)}
@@ -319,15 +321,11 @@ const Chat = () => {
         </div>
 
         {/* --- Messages --- */}
-        <div
-          className="chat-messages"
-          ref={scrollRef}
-          style={{ overflowY: 'auto', maxHeight: '60vh', padding: 12, borderRadius: 8, border: '1px solid #eee', background: 'var(--surface)' }}
-        >
+        <div className="chat-messages" ref={scrollRef}>
           {loading ? (
-            <div style={{ padding: 20 }}>Loading messages…</div>
+            <div className="empty-state">Loading messages…</div>
           ) : messages.length === 0 ? (
-            <div className="empty-state" style={{ padding: 20, textAlign: 'center', color: 'var(--muted)' }}>
+            <div className="empty-state">
               No messages yet. Say hello 👋
             </div>
           ) : (
@@ -341,56 +339,49 @@ const Chat = () => {
                 <div
                   key={msgKey}
                   className={`message-container ${mine ? 'mine' : 'theirs'}`}
-                  style={{ display: 'flex', gap: 10, marginBottom: 12, alignItems: 'flex-end', flexDirection: mine ? 'row-reverse' : 'row' }}
                 >
-                  <div style={{ flex: '0 0 auto' }}>
+                  <div className="message-avatar">
                     <Avatar size={36} name={mine ? 'You' : sender.name} />
                   </div>
 
-                  <div style={{ flex: 1, maxWidth: '78%' }}>
-                    <div
-                      className={`message-bubble ${mine ? 'mine' : 'theirs'}`}
-                      style={{
-                        background: mine ? 'linear-gradient(180deg, #E6F7FF, #DFF3FF)' : '#fff',
-                        border: '1px solid #eee',
-                        padding: 12,
-                        borderRadius: 12,
-                        boxShadow: 'var(--shadow-1)',
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                        <div style={{ minWidth: 0 }}>
-                          <div className="message-sender" style={{ fontWeight: 700, marginBottom: 6, fontSize: 13 }}>
-                            {mine ? 'You' : sender.name}
-                          </div>
+                  <div className="message-content">
+                    <div className={`message-bubble ${mine ? 'mine' : 'theirs'}`}>
+                      <div className="message-sender">
+                        {mine ? 'You' : sender.name}
+                      </div>
 
-                          <div className="message-text" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.45 }}>
-                            {m.text}
-                          </div>
-                        </div>
+                      <div className="message-text">
+                        {m.text}
+                      </div>
 
-                        <div style={{ marginLeft: 8, textAlign: 'right', minWidth: 70 }}>
-                          <div className="message-time" style={{ fontSize: 12, color: 'var(--muted)' }}>{ts}</div>
+                      <div className="message-time">{ts}</div>
 
-                          <div style={{ display: 'flex', gap: 6, marginTop: 8, justifyContent: 'flex-end' }}>
-                            <button type="button" className="icon-btn" title="Copy" onClick={() => copyToClipboard(m.text || '')}>
-                              📋
+                      <div className="message-actions">
+                        <button 
+                          type="button" 
+                          className="action-button" 
+                          title="Copy message"
+                          onClick={() => copyToClipboard(m.text || '')}
+                        >
+                          📋
+                        </button>
+                        {sender.id && String(sender.id) !== String(user?._id) && (
+                          <>
+                            <button
+                              type="button"
+                              className="action-button"
+                              title="Quick report message"
+                              onClick={() => openReportModalForMessage(sender.id, m._id, m.text)}
+                            >
+                              🚩
                             </button>
-                            {sender.id && String(sender.id) !== String(user?._id) && (
-                              <>
-                                <button
-                                  type="button"
-                                  className="icon-btn"
-                                  title="Quick report"
-                                  onClick={() => openReportModalForMessage(sender.id, m._id, m.text)}
-                                >
-                                  🚩
-                                </button>
-                                <ReportButton reportedUserId={sender.id} messageId={m._id} title="Report (full form)" />
-                              </>
-                            )}
-                          </div>
-                        </div>
+                            <ReportButton 
+                              reportedUserId={sender.id} 
+                              messageId={m._id} 
+                              title="Report message (full form)" 
+                            />
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -401,7 +392,7 @@ const Chat = () => {
         </div>
 
         {/* --- Composer --- */}
-        <form className="message-composer" onSubmit={handleSend} style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+        <form className="message-composer" onSubmit={handleSend}>
           <textarea
             ref={messageInputRef}
             className="message-input"
@@ -411,25 +402,19 @@ const Chat = () => {
             onKeyPress={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
             disabled={chatMeta.status !== 'active'}
             rows="1"
-            style={{
-              flex: 1,
-              minHeight: 44,
-              maxHeight: 300,
-              resize: 'none',
-              padding: 10,
-              borderRadius: 8,
-              border: '1px solid #ddd',
-              fontSize: 14,
-            }}
           />
 
-          <Button type="submit" disabled={chatMeta.status !== 'active' || !newMessage.trim()}>
+          <Button 
+            type="submit" 
+            className="send-button"
+            disabled={chatMeta.status !== 'active' || !newMessage.trim()}
+          >
             Send
           </Button>
         </form>
 
         {statusMessage && (
-          <div className="status-message" role="status" aria-live="polite" style={{ marginTop: 8, color: 'var(--muted)' }}>
+          <div className={`status-message ${statusMessage.includes('Failed') ? 'error' : 'success'}`} role="status" aria-live="polite">
             {statusMessage}
           </div>
         )}
@@ -441,32 +426,20 @@ const Chat = () => {
             aria-modal="true"
             aria-label={reportTarget.mode === 'message' ? 'Report message' : 'Report user'}
             tabIndex={-1}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(0,0,0,0.4)',
-              zIndex: 1200,
-              padding: 20,
-            }}
+            className="report-modal"
             onClick={(e) => { if (e.target === e.currentTarget) closeReportModal(); }}
           >
-            <div style={{
-              width: 'min(920px, 96%)',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              background: '#fff',
-              borderRadius: 12,
-              padding: 18,
-              boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
-            }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <h3 style={{ margin: 0 }}>
+            <div className="report-modal-content">
+              <div className="report-modal-header">
+                <h3>
                   {reportTarget.mode === 'message' ? 'Report Message' : 'Report User'}
                 </h3>
-                <button type="button" className="icon-btn" onClick={closeReportModal} aria-label="Close report form">
+                <button 
+                  type="button" 
+                  className="close-button" 
+                  onClick={closeReportModal} 
+                  aria-label="Close report form"
+                >
                   ✖
                 </button>
               </div>
