@@ -9,6 +9,6 @@
     }
   ],
   "env": {
-    "REACT_APP_BACKEND_URL": "https://your-backend-name.onrender.com"
+    "REACT_APP_BACKEND_URL": "https://litbuddy.onrender.com"
   }
 }
