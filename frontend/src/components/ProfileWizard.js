@@ -58,11 +58,11 @@ const ProfileWizard = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  // Basic fields - Memoized with useCallback
-  const handleBasicChange = useCallback((e) => {
+  // Basic fields - Fixed to use functional update
+  const handleBasicChange = (e) => {
     const { name, value } = e.target;
     setForm(prevForm => ({ ...prevForm, [name]: value }));
-  }, []);
+  };
 
   // Location updates - Memoized with useCallback
   const handleLocationChange = useCallback((loc) => {
@@ -120,14 +120,14 @@ const ProfileWizard = () => {
     });
   }, []);
 
-  // Favorites - Memoized with useCallback
-  const handleFavoritesChange = useCallback((e) => {
+  // Favorites - Fixed to use functional update
+  const handleFavoritesChange = (e) => {
     const { name, value } = e.target;
     setForm(prevForm => ({ ...prevForm, [name]: value }));
-  }, []);
+  };
 
-  // Preferences & answers - Memoized with useCallback
-  const togglePreference = useCallback((bucket, value) => {
+  // Preferences & answers - Fixed to use functional update
+  const togglePreference = (bucket, value) => {
     setForm(prevForm => {
       const cur = new Set(prevForm.preferences[bucket] || []);
       cur.has(value) ? cur.delete(value) : cur.add(value);
@@ -136,15 +136,15 @@ const ProfileWizard = () => {
         preferences: { ...prevForm.preferences, [bucket]: Array.from(cur) },
       };
     });
-  }, []);
+  };
 
-  const handleAnswerChange = useCallback((idx, value) => {
+  const handleAnswerChange = (idx, value) => {
     setForm(prevForm => {
       const arr = [...prevForm.answers];
       arr[idx] = { ...arr[idx], answer: value };
       return { ...prevForm, answers: arr };
     });
-  }, []);
+  };
 
   // Save all data
   const handleSave = async () => {
