@@ -56,32 +56,15 @@ const ProfileWizard = () => {
   // Use initialUserData to initialize form state
   const [form, setForm] = useState(initialUserData);
 
-  // Focus management
-  const [focusedField, setFocusedField] = useState(null);
-  const inputRefs = useRef({});
-
-  // Restore focus after re-renders
-  useEffect(() => {
-    if (focusedField && inputRefs.current[focusedField]) {
-      const input = inputRefs.current[focusedField];
-      setTimeout(() => {
-        input.focus();
-        const length = input.value.length;
-        input.setSelectionRange(length, length);
-      }, 0);
-    }
-  }, [focusedField]); // Remove dependency on `form`
-
   const totalSteps = 6;
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  // Enhanced change handlers that track focus
+  // Simplified change handlers
   const handleBasicChange = useCallback((e) => {
     const { name, value } = e.target;
-    setFocusedField(name);
     setForm(prevForm => ({ ...prevForm, [name]: value }));
   }, []);
 
@@ -115,11 +98,6 @@ const ProfileWizard = () => {
       // ONLY update the local form state - don't update the global user context
       setForm((prev) => ({ ...prev, location: updated.location || payload.location }));
       
-      // Remove these lines that cause re-renders:
-      // setUser(updated);
-      // try { localStorage.setItem('user', JSON.stringify(updated)); } catch (_) {}
-      // if (typeof refreshUser === 'function') await refreshUser();
-      
       setMessage('Location saved successfully.');
     } catch (err) {
       console.error('persistLocationNow error', err);
@@ -144,10 +122,9 @@ const ProfileWizard = () => {
     });
   }, []);
 
-  // Enhanced change handlers that track focus
+  // Simplified change handlers
   const handleFavoritesChange = useCallback((e) => {
     const { name, value } = e.target;
-    setFocusedField(name);
     setForm(prevForm => ({ ...prevForm, [name]: value }));
   }, []);
 
@@ -164,7 +141,6 @@ const ProfileWizard = () => {
   };
 
   const handleAnswerChange = useCallback((idx, value) => {
-    setFocusedField(`answer-${idx}`);
     setForm(prevForm => {
       const arr = [...prevForm.answers];
       arr[idx] = { ...arr[idx], answer: value };
@@ -231,7 +207,6 @@ const ProfileWizard = () => {
     }
   };
 
-  // Update Step1 to include refs
   const Step1 = () => (
     <div style={{
       border: '1px solid #ddd',
@@ -245,7 +220,6 @@ const ProfileWizard = () => {
       <div style={{ marginBottom: '15px' }}>
         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Display Name</label>
         <input 
-          ref={el => inputRefs.current.displayName = el}
           name="displayName" 
           value={form.displayName} 
           onChange={handleBasicChange}
@@ -261,7 +235,6 @@ const ProfileWizard = () => {
       <div style={{ marginBottom: '15px' }}>
         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Bio</label>
         <textarea 
-          ref={el => inputRefs.current.bio = el}
           name="bio" 
           value={form.bio} 
           onChange={handleBasicChange}
@@ -279,7 +252,6 @@ const ProfileWizard = () => {
       <div style={{ marginBottom: '15px' }}>
         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Favorite Quote</label>
         <input 
-          ref={el => inputRefs.current.quote = el}
           name="quote" 
           value={form.quote} 
           onChange={handleBasicChange}
@@ -367,7 +339,6 @@ const ProfileWizard = () => {
     </div>
   );
 
-  // Update Step4 to include refs
   const Step4 = () => (
     <div style={{
       border: '1px solid #ddd',
@@ -381,7 +352,6 @@ const ProfileWizard = () => {
       <div style={{ marginBottom: '15px' }}>
         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Favorite Books (comma-separated)</label>
         <input 
-          ref={el => inputRefs.current.favoriteBooks = el}
           name="favoriteBooks" 
           value={form.favoriteBooks} 
           onChange={handleFavoritesChange}
@@ -397,7 +367,6 @@ const ProfileWizard = () => {
       <div style={{ marginBottom: '15px' }}>
         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Favorite Songs (comma-separated)</label>
         <input 
-          ref={el => inputRefs.current.favoriteSongs = el}
           name="favoriteSongs" 
           value={form.favoriteSongs} 
           onChange={handleFavoritesChange}
@@ -413,7 +382,6 @@ const ProfileWizard = () => {
     </div>
   );
 
-  // Update Step5 to include refs for answers
   const Step5 = () => (
     <div style={{
       border: '1px solid #ddd',
@@ -424,7 +392,7 @@ const ProfileWizard = () => {
       boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
     }}>
       <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Preferences & Questions</h3>
-      <div style={{ marginBottom: 12 }}>
+      <div style={{ marginBottom: '12' }}>
         <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Book Preferences</p>
         {['Fiction','Non-fiction','Sci-fi','Romance','Mystery','Poetry'].map((t) => (
           <label key={t} style={{ marginRight: 8, display: 'inline-block', marginBottom: '8px' }}>
@@ -437,7 +405,7 @@ const ProfileWizard = () => {
           </label>
         ))}
       </div>
-      <div style={{ marginBottom: 12 }}>
+      <div style={{ marginBottom: '12' }}>
         <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Music Preferences</p>
         {['Pop','Rock','Classical','Jazz','Electronic','Indie'].map((t) => (
           <label key={t} style={{ marginRight: 8, display: 'inline-block', marginBottom: '8px' }}>
@@ -456,7 +424,6 @@ const ProfileWizard = () => {
           <div key={a.questionId} style={{ marginBottom: '15px' }}>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>{a.question}</label>
             <input 
-              ref={el => inputRefs.current[`answer-${i}`] = el}
               value={a.answer || ''} 
               onChange={(e) => handleAnswerChange(i, e.target.value)}
               style={{
