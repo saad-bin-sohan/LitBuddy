@@ -1607,7 +1607,7 @@ a:hover { color: var(--color-primary-hover); }
   resize: none;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-12) var(--space-16);
+  padding: var(--space-16) var(--space-20);
   font-family: var(--font-family-base);
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
