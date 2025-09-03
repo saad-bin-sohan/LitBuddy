@@ -1,18 +1,19 @@
 // frontend/src/components/Navbar.js
 /**
- * Navbar (updated)
- *
- * Enhancements:
- *  - Uses logout() from AuthContext if available (preferred).
- *  - Shows an Admin link when the user is an admin.
- *  - Safely reads avatar from either profilePhotos[0] or profilePhoto fallback.
- *  - Adds an admin badge next to the display name for clarity.
- *  - Minor accessibility improvements and aria attributes.
+ * Modern Navbar Component
+ * 
+ * Features:
+ * - Beautiful gradient logo and branding
+ * - Enhanced navigation with active states
+ * - Modern profile dropdown
+ * - Smooth animations and transitions
+ * - Responsive design with mobile menu
+ * - Theme toggle with smooth transitions
  */
 
-import React, { useContext, useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { FiLogOut, FiMessageSquare, FiMenu, FiSun, FiMoon } from 'react-icons/fi';
+import React, { useContext, useState, useEffect, useRef } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { FiLogOut, FiMessageSquare, FiMenu, FiSun, FiMoon, FiX, FiUser, FiSettings, FiBookOpen, FiUsers, FiSearch } from 'react-icons/fi';
 import { AuthContext } from '../contexts/AuthContext';
 import NotificationCenter from './NotificationCenter';
 import Avatar from './Avatar';
@@ -20,7 +21,12 @@ import Avatar from './Avatar';
 const Navbar = () => {
   const { user, setUser, logout, isAdmin } = useContext(AuthContext);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const profileDropdownRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
   useEffect(() => {
     // Ensure we set the attribute that your CSS file reads:
@@ -29,10 +35,8 @@ const Navbar = () => {
     try {
       // Primary attribute used in styles.css
       document.documentElement.setAttribute('data-color-scheme', attrValue);
-
       // Keep existing attribute (backwards compatibility)
       document.documentElement.setAttribute('data-theme', attrValue);
-
       // Helps native form controls & some UA styling match the chosen theme
       document.documentElement.style.colorScheme = attrValue;
     } catch (err) {
@@ -42,9 +46,28 @@ const Navbar = () => {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+        setIsProfileDropdownOpen(false);
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
   const handleLogout = () => {
     try {
-      // Prefer context-provided logout
       if (typeof logout === 'function') {
         logout();
       } else {
@@ -55,108 +78,251 @@ const Navbar = () => {
       // noop
     }
     navigate('/');
+    setIsProfileDropdownOpen(false);
   };
 
-  // Resolve avatar source (support both profilePhoto and profilePhotos array)
+  // Resolve avatar source
   const avatarSrc = user
     ? (user.profilePhotos && user.profilePhotos.length ? user.profilePhotos[0] : (user.profilePhoto || ''))
     : '';
 
+  const isActive = (path) => location.pathname === path;
+
   return (
-    <header className="app-navbar">
-      <div className="nav-inner">
-        <div className="brand">
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div className="logo" aria-hidden>LB</div>
-            <div className="title">
-              <div className="appname">LitBuddy</div>
-              <div className="tag muted">Read • Connect • Chat</div>
+    <header className="modern-navbar">
+      <div className="nav-container">
+        {/* Brand Section */}
+        <div className="nav-brand">
+          <Link to="/" className="brand-link">
+            <div className="brand-logo">
+              <div className="logo-icon">📚</div>
+              <div className="logo-glow"></div>
+            </div>
+            <div className="brand-text">
+              <div className="brand-name">LitBuddy</div>
+              <div className="brand-tagline">Read • Connect • Chat</div>
             </div>
           </Link>
         </div>
 
-        <nav className="nav-links" aria-label="Main navigation">
-          <Link to="/">Home</Link>
-          <Link to="/suggestions">Discover</Link>
-          <Link to="/matches">Matches</Link>
+        {/* Desktop Navigation */}
+        <nav className="nav-menu" aria-label="Main navigation">
+          <Link 
+            to="/" 
+            className={`nav-link ${isActive('/') ? 'active' : ''}`}
+          >
+            <FiBookOpen className="nav-icon" />
+            <span>Home</span>
+          </Link>
+          <Link 
+            to="/suggestions" 
+            className={`nav-link ${isActive('/suggestions') ? 'active' : ''}`}
+          >
+            <FiSearch className="nav-icon" />
+            <span>Discover</span>
+          </Link>
+          <Link 
+            to="/matches" 
+            className={`nav-link ${isActive('/matches') ? 'active' : ''}`}
+          >
+            <FiUsers className="nav-icon" />
+            <span>Matches</span>
+          </Link>
         </nav>
 
+        {/* Right Side Actions */}
         <div className="nav-actions">
+          {/* Theme Toggle */}
           <button
-            className="icon-btn"
+            className="theme-toggle"
             title="Toggle theme"
             onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
             aria-label="Toggle theme"
           >
-            {theme === 'dark' ? <FiSun /> : <FiMoon />}
+            <div className="theme-icon">
+              {theme === 'dark' ? <FiSun /> : <FiMoon />}
+            </div>
+            <div className="theme-ripple"></div>
           </button>
 
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <NotificationCenter />
+          {/* User Actions */}
+          {user ? (
+            <>
+              {/* Notifications */}
+              <div className="notification-wrapper">
+                <NotificationCenter />
+              </div>
 
-            {user ? (
-              <>
-                <Link to="/chats" className="icon-btn" title="Chats" aria-label="Chats">
-                  <FiMessageSquare />
-                </Link>
+              {/* Chats Link */}
+              <Link to="/chats" className="nav-action-btn chats-btn" title="Chats" aria-label="Chats">
+                <FiMessageSquare />
+                <span className="action-label">Chats</span>
+              </Link>
 
-                <div
-                  className="profile-pill"
-                  role="button"
-                  onClick={() => navigate(user.hasCompletedSetup ? '/my-profile' : '/profile-setup')}
-                  aria-label="Open profile"
-                  tabIndex={0}
+              {/* Profile Dropdown */}
+              <div className="profile-dropdown" ref={profileDropdownRef}>
+                <button
+                  className="profile-trigger"
+                  onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                  aria-label="Open profile menu"
+                  aria-expanded={isProfileDropdownOpen}
                 >
-                  <Avatar src={avatarSrc} name={user.displayName || user.name} size={36} />
-                  <div style={{ display: 'flex', flexDirection: 'column', marginLeft: 8 }}>
-                    <div style={{ fontWeight: 700, fontSize: 13, display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <span>{user.displayName || user.name}</span>
-                      {isAdmin && (
-                        <span
-                          style={{
-                            background: 'var(--accent)',
-                            color: 'white',
-                            fontSize: 11,
-                            padding: '2px 6px',
-                            borderRadius: 12,
-                          }}
-                          title="Administrator"
-                          aria-hidden
-                        >
-                          Admin
-                        </span>
-                      )}
+                  <Avatar src={avatarSrc} name={user.displayName || user.name} size={40} />
+                  <div className="profile-info">
+                    <div className="profile-name">
+                      {user.displayName || user.name}
+                      {isAdmin && <span className="admin-badge">Admin</span>}
                     </div>
-                    <div style={{ fontSize: 11, color: 'var(--muted)' }}>
-                      Active: {user.activeConversations ?? 0}/{user.maxActiveConversations ?? 3}
+                    <div className="profile-status">
+                      {user.activeConversations ?? 0}/{user.maxActiveConversations ?? 3} active
                     </div>
                   </div>
-                </div>
-
-                <button className="icon-btn" title="Logout" onClick={handleLogout} aria-label="Logout">
-                  <FiLogOut />
+                  <div className={`dropdown-arrow ${isProfileDropdownOpen ? 'open' : ''}`}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                 </button>
 
-                {/* Expose admin quick link */}
-                {isAdmin && (
-                  <Link to="/admin/reports" className="btn btn-ghost" aria-label="Admin dashboard" style={{ marginLeft: 8 }}>
-                    Admin
-                  </Link>
+                {isProfileDropdownOpen && (
+                  <div className="profile-dropdown-menu">
+                    <div className="dropdown-header">
+                      <div className="dropdown-user">
+                        <Avatar src={avatarSrc} name={user.displayName || user.name} size={48} />
+                        <div>
+                          <div className="dropdown-name">{user.displayName || user.name}</div>
+                          <div className="dropdown-email">{user.email}</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="dropdown-actions">
+                      <Link 
+                        to={user.hasCompletedSetup ? '/my-profile' : '/profile-setup'} 
+                        className="dropdown-item"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                      >
+                        <FiUser />
+                        <span>Profile</span>
+                      </Link>
+                      
+                      {isAdmin && (
+                        <Link 
+                          to="/admin/reports" 
+                          className="dropdown-item admin-item"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          <FiSettings />
+                          <span>Admin Dashboard</span>
+                        </Link>
+                      )}
+                      
+                      <button className="dropdown-item logout-item" onClick={handleLogout}>
+                        <FiLogOut />
+                        <span>Logout</span>
+                      </button>
+                    </div>
+                  </div>
                 )}
-              </>
-            ) : (
-              <>
-                <Link to="/login" className="btn btn-ghost">Login</Link>
-                <Link to="/register" className="btn btn-primary">Sign up</Link>
-              </>
-            )}
-          </div>
+              </div>
+            </>
+          ) : (
+            <div className="auth-buttons">
+              <Link to="/login" className="auth-btn login-btn">
+                <FiUser />
+                <span>Login</span>
+              </Link>
+              <Link to="/register" className="auth-btn signup-btn">
+                <span>Get Started</span>
+                <div className="btn-glow"></div>
+              </Link>
+            </div>
+          )}
 
-          <button className="icon-btn" style={{ marginLeft: 6 }} aria-label="menu">
-            <FiMenu />
+          {/* Mobile Menu Toggle */}
+          <button 
+            className="mobile-menu-toggle"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle mobile menu"
+            aria-expanded={isMobileMenuOpen}
+          >
+            {isMobileMenuOpen ? <FiX /> : <FiMenu />}
           </button>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="mobile-menu" ref={mobileMenuRef}>
+          <div className="mobile-menu-header">
+            <div className="mobile-brand">
+              <div className="mobile-logo">📚</div>
+              <span>LitBuddy</span>
+            </div>
+          </div>
+          
+          <nav className="mobile-nav">
+            <Link to="/" className="mobile-nav-link">
+              <FiBookOpen />
+              <span>Home</span>
+            </Link>
+            <Link to="/suggestions" className="mobile-nav-link">
+              <FiSearch />
+              <span>Discover</span>
+            </Link>
+            <Link to="/matches" className="mobile-nav-link">
+              <FiUsers />
+              <span>Matches</span>
+            </Link>
+            {user && (
+              <Link to="/chats" className="mobile-nav-link">
+                <FiMessageSquare />
+                <span>Chats</span>
+              </Link>
+            )}
+          </nav>
+
+          {user ? (
+            <div className="mobile-user-section">
+              <div className="mobile-user-info">
+                <Avatar src={avatarSrc} name={user.displayName || user.name} size={48} />
+                <div>
+                  <div className="mobile-user-name">{user.displayName || user.name}</div>
+                  <div className="mobile-user-status">
+                    {user.activeConversations ?? 0}/{user.maxActiveConversations ?? 3} active conversations
+                  </div>
+                </div>
+              </div>
+              <div className="mobile-user-actions">
+                <Link to={user.hasCompletedSetup ? '/my-profile' : '/profile-setup'} className="mobile-action-btn">
+                  <FiUser />
+                  <span>Profile</span>
+                </Link>
+                {isAdmin && (
+                  <Link to="/admin/reports" className="mobile-action-btn admin">
+                    <FiSettings />
+                    <span>Admin</span>
+                  </Link>
+                )}
+                <button className="mobile-action-btn logout" onClick={handleLogout}>
+                  <FiLogOut />
+                  <span>Logout</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="mobile-auth">
+              <Link to="/login" className="mobile-auth-btn login">
+                <FiUser />
+                <span>Login</span>
+              </Link>
+              <Link to="/register" className="mobile-auth-btn signup">
+                <span>Get Started</span>
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
     </header>
   );
 };

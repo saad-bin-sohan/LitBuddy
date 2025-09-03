@@ -56,36 +56,36 @@ const Chats = () => {
 
   return (
     <main className="container">
-      <div className="chats-header">
-        <div className="chats-title-section">
+      <div className="chats-header-modern">
+        <div className="chats-title-section-modern">
           <h2>Your Conversations</h2>
-          <p className="chats-subtitle">Manage and continue your ongoing chats</p>
+          <p className="chats-subtitle-modern">Manage and continue your ongoing chats</p>
         </div>
         {chats.length > 0 && (
-          <div className="chats-count">
-            <span className="count-badge">{chats.length}</span>
-            <span className="count-label">active chats</span>
+          <div className="chats-count-modern">
+            <span className="count-badge-modern">{chats.length}</span>
+            <span className="count-label-modern">active chats</span>
           </div>
         )}
       </div>
 
       {error && (
-        <div className="status-message error">
+        <div className="status-message-modern error">
           <span className="error-icon">❌</span>
           <p>{error}</p>
         </div>
       )}
 
-      <div className="chats-list">
+      <div className="chats-list-modern">
         {chats.length === 0 ? (
-          <Card className="empty-chats">
-            <div className="empty-content">
-              <div className="empty-icon">💬</div>
+          <Card className="empty-chats-modern">
+            <div className="empty-content-modern">
+              <div className="empty-icon-modern">💬</div>
               <h3>No conversations yet</h3>
               <p className="muted">
                 Start matching with people to begin meaningful conversations!
               </p>
-              <div className="empty-actions">
+              <div className="empty-actions-modern">
                 <Button variant="primary" onClick={() => navigate('/matches')}>
                   🎯 Find Matches
                 </Button>
@@ -103,56 +103,56 @@ const Chats = () => {
             return (
               <Card 
                 key={c._id} 
-                className={`chat-item ${!isActive ? 'paused' : ''} ${unreadCount > 0 ? 'has-unread' : ''}`} 
+                className={`chat-item-modern ${!isActive ? 'paused' : ''} ${unreadCount > 0 ? 'has-unread' : ''}`} 
                 onClick={() => navigate(`/chat/${c._id}`)}
               >
-                <div className="chat-item-content">
-                  <div className="chat-avatar">
+                <div className="chat-item-content-modern">
+                  <div className="chat-avatar-modern">
                     <Avatar 
                       src={other?.profilePhoto} 
                       name={other?.name || other?.displayName || 'User'} 
-                      size={60} 
+                      size={64} 
                     />
-                    <div className={`status-indicator ${isActive ? 'active' : 'paused'}`} 
+                    <div className={`status-indicator-modern ${isActive ? 'active' : 'paused'}`} 
                          title={isActive ? 'Chat is active' : 'Chat is paused'}>
-                      {isActive ? '🟢' : '⏸️'}
+                      <div className="status-dot"></div>
                     </div>
                     {unreadCount > 0 && (
-                      <div className="unread-indicator" title={`${unreadCount} unread messages`}>
+                      <div className="unread-indicator-modern" title={`${unreadCount} unread messages`}>
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </div>
                     )}
                   </div>
 
-                  <div className="chat-details">
-                    <div className="chat-header-row">
-                      <div className="chat-participant">
+                  <div className="chat-details-modern">
+                    <div className="chat-header-row-modern">
+                      <div className="chat-participant-modern">
                         <h4>{other?.displayName || other?.name || 'Unknown User'}</h4>
-                        <div className="participant-meta">
-                          {!isActive && <span className="status-text">⏸️ Paused</span>}
+                        <div className="participant-meta-modern">
+                          {!isActive && <span className="status-text-modern">⏸️ Paused</span>}
                           {other?.location && (
-                            <span className="location-text"> {other.location}</span>
+                            <span className="location-text-modern">📍 {other.location}</span>
                           )}
                         </div>
                       </div>
-                      <div className="chat-meta">
-                        <div className="last-message-time">
+                      <div className="chat-meta-modern">
+                        <div className="last-message-time-modern">
                           {formatLastMessageTime(lastActivity)}
                         </div>
                         {unreadCount > 0 && (
-                          <div className="unread-badge">
+                          <div className="unread-badge-modern">
                             {unreadCount > 99 ? '99+' : unreadCount}
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <div className="last-message">
-                      <p className="message-preview">
+                    <div className="last-message-modern">
+                      <p className="message-preview-modern">
                         {truncateMessage(lastMessage)}
                       </p>
                       {!isActive && (
-                        <div className="pause-notice">
+                        <div className="pause-notice-modern">
                           <span className="pause-icon">⏸️</span>
                           This conversation is currently paused
                         </div>

@@ -289,81 +289,92 @@ const Chat = () => {
   // --- Render ---
   return (
     <main className="container">
-      <div className="chat-container">
-        {/* --- Enhanced Header --- */}
-        <div className="chat-header">
-          <div className="chat-title">
-            <Avatar size={48} name={chatMeta?.name || 'Conversation'} />
-            <div className="chat-title-content">
-              <div className={`chat-name ${chatMeta.status === 'paused' ? 'paused' : ''}`}>
-                {chatMeta?.name || 'Conversation'}
+      <div className="chat-container-modern">
+        {/* --- Modern Header --- */}
+        <div className="chat-header-modern">
+          <div className="chat-header-left">
+            <div className="chat-avatar-section">
+              <Avatar size={56} name={chatMeta?.name || 'Conversation'} className="chat-header-avatar" />
+              <div className={`status-indicator-modern ${chatMeta.status}`}>
+                <div className="status-dot"></div>
               </div>
-              <div className={`chat-status ${chatMeta.status === 'paused' ? 'paused' : ''}`}>
+            </div>
+            <div className="chat-header-info">
+              <h2 className="chat-title-modern">
+                {chatMeta?.name || 'Conversation'}
+              </h2>
+              <div className="chat-subtitle">
                 {chatMeta.status === 'paused' ? (
-                  <>
-                    <span className="status-dot paused"></span>
-                    Paused
+                  <span className="status-text-modern paused">
+                    <span className="status-icon">⏸️</span>
+                    Paused conversation
                     {chatMeta.pausedAt && (
                       <span className="pause-time">
-                        — {new Date(chatMeta.pausedAt).toLocaleString()}
+                        • {new Date(chatMeta.pausedAt).toLocaleDateString()} at {new Date(chatMeta.pausedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     )}
-                  </>
+                  </span>
                 ) : (
-                  <>
-                    <span className="status-dot active"></span>
-                    Active
-                  </>
+                  <span className="status-text-modern active">
+                    <span className="status-icon">🟢</span>
+                    Active conversation
+                  </span>
                 )}
               </div>
             </div>
           </div>
 
-          <div className="chat-controls">
-            <div className={`status-badge ${chatMeta.status}`}>
-              {chatMeta.status === 'active' ? '🟢 Active' : '⏸️ Paused'}
-            </div>
-
+          <div className="chat-header-actions">
             <Button 
               variant="ghost" 
               onClick={handlePauseToggle} 
               aria-pressed={chatMeta.status === 'paused'}
-              className="control-button"
+              className={`control-button-modern ${chatMeta.status === 'paused' ? 'resume' : 'pause'}`}
             >
-              {chatMeta.status === 'active' ? '⏸️ Pause' : '▶️ Resume'}
+              {chatMeta.status === 'active' ? (
+                <>
+                  <span className="button-icon">⏸️</span>
+                  Pause
+                </>
+              ) : (
+                <>
+                  <span className="button-icon">▶️</span>
+                  Resume
+                </>
+              )}
             </Button>
 
             {partnerId && (
-              <div className="report-controls">
-                <ReportButton 
-                  reportedUserId={partnerId} 
-                  title="Report conversation participant (full form)" 
-                  className="report-button"
-                />
+              <div className="report-controls-modern">
                 <button
                   type="button"
-                  className="action-button quick-report"
+                  className="action-button-modern quick-report"
                   title="Quick report participant"
                   aria-label="Quick report participant"
                   onClick={() => openReportModalForUser(partnerId)}
                 >
                   🚩
                 </button>
+                <ReportButton 
+                  reportedUserId={partnerId} 
+                  title="Report conversation participant" 
+                  className="report-button-modern"
+                />
               </div>
             )}
           </div>
         </div>
 
-        {/* --- Enhanced Messages --- */}
-        <div className="chat-messages" ref={scrollRef}>
+        {/* --- Modern Messages --- */}
+        <div className="chat-messages-modern" ref={scrollRef}>
           {loading ? (
-            <div className="empty-state loading">
-              <div className="loading-spinner"></div>
-              <p>Loading messages…</p>
+            <div className="empty-state-modern loading">
+              <div className="loading-spinner-modern"></div>
+              <p>Loading your conversation...</p>
             </div>
           ) : messages.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon">💬</div>
+            <div className="empty-state-modern">
+              <div className="empty-icon-modern">💬</div>
               <h3>Start the conversation!</h3>
               <p>Send your first message to begin chatting</p>
             </div>
@@ -380,55 +391,51 @@ const Chat = () => {
               return (
                 <div
                   key={msgKey}
-                  className={`message-container ${mine ? 'mine' : 'theirs'}`}
+                  className={`message-container-modern ${mine ? 'mine' : 'theirs'}`}
                 >
-                  <div className="message-avatar">
-                    <Avatar 
-                      size={40} 
-                      name={mine ? 'You' : sender.name}
-                      className={mine ? 'avatar-mine' : 'avatar-theirs'}
-                    />
-                  </div>
+                  {!mine && (
+                    <div className="message-avatar-modern">
+                      <Avatar 
+                        size={36} 
+                        name={sender.name}
+                        className="avatar-theirs-modern"
+                      />
+                    </div>
+                  )}
 
-                  <div className="message-content">
-                    <div className={`message-bubble ${mine ? 'mine' : 'theirs'}`}>
-                      <div className="message-sender">
-                        {mine ? 'You' : sender.name}
-                      </div>
+                  <div className="message-content-modern">
+                    <div className={`message-bubble-modern ${mine ? 'mine' : 'theirs'}`}>
+                      {!mine && (
+                        <div className="message-sender-modern">
+                          {sender.name}
+                        </div>
+                      )}
 
-                      <div className="message-text">
+                      <div className="message-text-modern">
                         {m.text}
                       </div>
 
-                      <div className="message-footer">
-                        <div className="message-time">{ts}</div>
+                      <div className="message-footer-modern">
+                        <div className="message-time-modern">{ts}</div>
                         
-                        <div className="message-actions">
+                        <div className="message-actions-modern">
                           <button 
                             type="button" 
-                            className="action-button copy-btn" 
+                            className="action-button-modern copy-btn" 
                             title="Copy message"
                             onClick={() => copyToClipboard(m.text || '')}
                           >
                             📋
                           </button>
                           {sender.id && String(sender.id) !== String(user?._id) && (
-                            <>
-                              <button
-                                type="button"
-                                className="action-button report-btn"
-                                title="Quick report message"
-                                onClick={() => openReportModalForMessage(sender.id, m._id, m.text)}
-                              >
-                                🚩
-                              </button>
-                              <ReportButton 
-                                reportedUserId={sender.id} 
-                                messageId={m._id} 
-                                title="Report message (full form)" 
-                                className="report-button-inline"
-                              />
-                            </>
+                            <button
+                              type="button"
+                              className="action-button-modern report-btn"
+                              title="Report message"
+                              onClick={() => openReportModalForMessage(sender.id, m._id, m.text)}
+                            >
+                              🚩
+                            </button>
                           )}
                         </div>
                       </div>
@@ -440,45 +447,48 @@ const Chat = () => {
           )}
         </div>
 
-        {/* --- Enhanced Composer --- */}
-        <form className="message-composer" onSubmit={handleSend}>
-          <div className="composer-input-wrapper">
-            <textarea
-              ref={messageInputRef}
-              className="message-input"
-              placeholder={chatMeta.status === 'active' ? 'Type your message here...' : 'Conversation is paused'}
-              value={newMessage}
-              onChange={handleInputChange}
-              onKeyPress={(e) => { 
-                if (e.key === 'Enter' && !e.shiftKey) { 
-                  e.preventDefault(); 
-                  handleSend(); 
-                } 
-              }}
-              disabled={chatMeta.status !== 'active'}
-              rows="1"
-            />
-            {chatMeta.status !== 'active' && (
-              <div className="composer-disabled-overlay">
-                <span>⏸️ Chat is paused</span>
-              </div>
-            )}
-          </div>
+        {/* --- Modern Composer --- */}
+        <div className="message-composer-modern">
+          <form onSubmit={handleSend} className="composer-form">
+            <div className="composer-input-wrapper-modern">
+              <textarea
+                ref={messageInputRef}
+                className="message-input-modern"
+                placeholder={chatMeta.status === 'active' ? 'Type your message here...' : 'Conversation is paused'}
+                value={newMessage}
+                onChange={handleInputChange}
+                onKeyPress={(e) => { 
+                  if (e.key === 'Enter' && !e.shiftKey) { 
+                    e.preventDefault(); 
+                    handleSend(); 
+                  } 
+                }}
+                disabled={chatMeta.status !== 'active'}
+                rows="1"
+              />
+              {chatMeta.status !== 'active' && (
+                <div className="composer-disabled-overlay-modern">
+                  <span className="pause-icon">⏸️</span>
+                  <span>Chat is paused</span>
+                </div>
+              )}
+            </div>
 
-          <Button 
-            type="submit" 
-            className="send-button"
-            disabled={chatMeta.status !== 'active' || !newMessage.trim()}
-          >
-            <span className="send-icon">💬</span>
-            Send
-          </Button>
-        </form>
+            <Button 
+              type="submit" 
+              className="send-button-modern"
+              disabled={chatMeta.status !== 'active' || !newMessage.trim()}
+            >
+              <span className="send-icon">💬</span>
+              Send
+            </Button>
+          </form>
+        </div>
 
-        {/* --- Enhanced Status Message --- */}
+        {/* --- Modern Status Message --- */}
         {statusMessage && (
-          <div className={`status-message ${statusMessage.includes('Failed') ? 'error' : 'success'}`} role="status" aria-live="polite">
-            <span className="status-icon">
+          <div className={`status-message-modern ${statusMessage.includes('Failed') ? 'error' : 'success'}`} role="status" aria-live="polite">
+            <span className="status-icon-modern">
               {statusMessage.includes('Failed') ? '❌' : '✅'}
             </span>
             {statusMessage}
@@ -492,17 +502,17 @@ const Chat = () => {
             aria-modal="true"
             aria-label={reportTarget.mode === 'message' ? 'Report message' : 'Report user'}
             tabIndex={-1}
-            className="report-modal"
+            className="report-modal-modern"
             onClick={(e) => { if (e.target === e.currentTarget) closeReportModal(); }}
           >
-            <div className="report-modal-content">
-              <div className="report-modal-header">
+            <div className="report-modal-content-modern">
+              <div className="report-modal-header-modern">
                 <h3>
                   {reportTarget.mode === 'message' ? '🚩 Report Message' : '🚩 Report User'}
                 </h3>
                 <button 
                   type="button" 
-                  className="close-button" 
+                  className="close-button-modern" 
                   onClick={closeReportModal} 
                   aria-label="Close report form"
                 >
