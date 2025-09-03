@@ -9,11 +9,9 @@ import { NotificationProvider } from './contexts/NotificationContext'; // NEW
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
-    <AuthProvider>
-      <NotificationProvider>
-        <App />
-      </NotificationProvider>
-    </AuthProvider>
-  </React.StrictMode>
+  <AuthProvider>
+    <NotificationProvider>
+      <App />
+    </NotificationProvider>
+  </AuthProvider>
 );
