@@ -323,10 +323,10 @@ const Chat = () => {
         {/* --- Messages --- */}
         <div className="chat-messages" ref={scrollRef}>
           {loading ? (
-            <div className="loading-messages">Loading messages…</div>
+            <div className="empty-state">Loading messages…</div>
           ) : messages.length === 0 ? (
             <div className="empty-state">
-              <span>No messages yet. Say hello 👋</span>
+              No messages yet. Say hello 👋
             </div>
           ) : (
             messages.map((m, idx) => {
@@ -340,14 +340,10 @@ const Chat = () => {
                   key={msgKey}
                   className={`message-container ${mine ? 'mine' : 'theirs'}`}
                 >
-                  {/* Avatar - Only show for their messages, positioned to the left */}
-                  {!mine && (
-                    <div className="message-avatar">
-                      <Avatar size={36} name={sender.name} />
-                    </div>
-                  )}
+                  <div className="message-avatar">
+                    <Avatar size={36} name={mine ? 'You' : sender.name} />
+                  </div>
 
-                  {/* Message content wrapper */}
                   <div className="message-content">
                     <div className={`message-bubble ${mine ? 'mine' : 'theirs'}`}>
                       <div className="message-sender">
@@ -366,7 +362,6 @@ const Chat = () => {
                           className="action-button" 
                           title="Copy message"
                           onClick={() => copyToClipboard(m.text || '')}
-                          aria-label="Copy message to clipboard"
                         >
                           📋
                         </button>
@@ -377,7 +372,6 @@ const Chat = () => {
                               className="action-button"
                               title="Quick report message"
                               onClick={() => openReportModalForMessage(sender.id, m._id, m.text)}
-                              aria-label="Report this message"
                             >
                               🚩
                             </button>
@@ -391,13 +385,6 @@ const Chat = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Avatar - Only show for my messages, positioned to the right */}
-                  {mine && (
-                    <div className="message-avatar">
-                      <Avatar size={36} name="You" />
-                    </div>
-                  )}
                 </div>
               );
             })
@@ -415,14 +402,12 @@ const Chat = () => {
             onKeyPress={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
             disabled={chatMeta.status !== 'active'}
             rows="1"
-            aria-label="Type your message"
           />
 
           <Button 
             type="submit" 
             className="send-button"
             disabled={chatMeta.status !== 'active' || !newMessage.trim()}
-            aria-label="Send message"
           >
             Send
           </Button>
