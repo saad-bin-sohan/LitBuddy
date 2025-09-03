@@ -63,9 +63,9 @@ function sanitizeUserForResponse(user) {
 // Cookie options (used for setting and clearing cookie)
 const cookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production', // secure in production
-  sameSite: 'Strict', // see note: change to 'Lax' or 'None' if cross-site usage required
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'None',
+  maxAge: 7 * 24 * 60 * 60 * 1000,
   path: '/',
 };
 
@@ -255,7 +255,7 @@ const logoutUser = asyncHandler(async (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'Strict',
+    sameSite: 'None',
     path: '/',
   });
   res.status(200).json({ message: 'Logged out successfully' });
