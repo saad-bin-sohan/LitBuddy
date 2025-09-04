@@ -81,17 +81,17 @@ const Home = () => {
                     <span>📖</span>
                   </div>
                   <div className="card-info">
-                    <h4>New this week</h4>
-                    <p>Recently matched readers around the world</p>
+                    <h4>Find out what others are reading</h4>
+                    <p>From Recently matched readers around the world</p>
                   </div>
                 </div>
                 <div className="card-image">
                   <img 
                     alt="Reading together" 
-                    src="https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=600&auto=format&fit=crop&crop=faces" 
+                    src="https://electricliterature.com/wp-content/uploads/2021/11/Best-Book-Cover-Electric-Lit-2021-1.png" 
                   />
                   <div className="image-overlay">
-                    <span>Start your journey</span>
+                    <span></span>
                   </div>
                 </div>
               </div>
