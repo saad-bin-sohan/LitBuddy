@@ -17,9 +17,13 @@
   --color-gray-400: rgba(119, 124, 124, 1);
   --color-slate-500: rgba(98, 108, 113, 1);
   --color-brown-600: rgba(94, 82, 64, 1);
-  --color-charcoal-700: rgba(31, 33, 33, 1);
-  --color-charcoal-800: rgba(38, 40, 40, 1);
+  --color-charcoal-700: rgba(17, 24, 39, 1);
+  --color-charcoal-800: rgba(31, 41, 55, 1);
   --color-slate-900: rgba(19, 52, 59, 1);
+  --color-dark-blue-900: rgba(15, 23, 42, 1);
+  --color-dark-blue-800: rgba(30, 41, 59, 1);
+  --color-dark-slate-700: rgba(51, 65, 85, 1);
+  --color-dark-slate-600: rgba(71, 85, 105, 1);
   --color-teal-300: rgba(50, 184, 198, 1);
   --color-teal-400: rgba(45, 166, 178, 1);
   --color-teal-500: rgba(33, 128, 141, 1);
@@ -597,39 +601,39 @@
     --color-gray-200-rgb: 245, 245, 245;
 
     /* Background color tokens (Dark Mode) */
-    --color-bg-1: rgba(29, 78, 216, 0.15); /* Dark blue */
-    --color-bg-2: rgba(180, 83, 9, 0.15); /* Dark yellow */
-    --color-bg-3: rgba(21, 128, 61, 0.15); /* Dark green */
-    --color-bg-4: rgba(185, 28, 28, 0.15); /* Dark red */
-    --color-bg-5: rgba(107, 33, 168, 0.15); /* Dark purple */
-    --color-bg-6: rgba(194, 65, 12, 0.15); /* Dark orange */
-    --color-bg-7: rgba(190, 24, 93, 0.15); /* Dark pink */
-    --color-bg-8: rgba(8, 145, 178, 0.15); /* Dark cyan */
+    --color-bg-1: rgba(59, 130, 246, 0.12); /* Modern blue */
+    --color-bg-2: rgba(245, 158, 11, 0.12); /* Modern amber */
+    --color-bg-3: rgba(34, 197, 94, 0.12); /* Modern green */
+    --color-bg-4: rgba(239, 68, 68, 0.12); /* Modern red */
+    --color-bg-5: rgba(147, 51, 234, 0.12); /* Modern purple */
+    --color-bg-6: rgba(249, 115, 22, 0.12); /* Modern orange */
+    --color-bg-7: rgba(236, 72, 153, 0.12); /* Modern pink */
+    --color-bg-8: rgba(6, 182, 212, 0.12); /* Modern cyan */
     
     /* Semantic Color Tokens (Dark Mode) */
-    --color-background: var(--color-charcoal-700);
-    --color-surface: var(--color-charcoal-800);
+    --color-background: var(--color-dark-blue-900);
+    --color-surface: var(--color-dark-blue-800);
     --color-text: var(--color-gray-200);
     --color-text-secondary: rgba(var(--color-gray-300-rgb), 0.7);
     --color-primary: var(--color-teal-300);
     --color-primary-hover: var(--color-teal-400);
     --color-primary-active: var(--color-teal-800);
-    --color-secondary: rgba(var(--color-gray-400-rgb), 0.15);
-    --color-secondary-hover: rgba(var(--color-gray-400-rgb), 0.25);
-    --color-secondary-active: rgba(var(--color-gray-400-rgb), 0.3);
-    --color-border: rgba(var(--color-gray-400-rgb), 0.3);
+    --color-secondary: rgba(71, 85, 105, 0.15);
+    --color-secondary-hover: rgba(71, 85, 105, 0.25);
+    --color-secondary-active: rgba(71, 85, 105, 0.3);
+    --color-border: rgba(71, 85, 105, 0.3);
     --color-error: var(--color-red-400);
     --color-success: var(--color-teal-300);
     --color-warning: var(--color-orange-400);
     --color-info: var(--color-gray-300);
     --color-focus-ring: rgba(var(--color-teal-300-rgb), 0.4);
     --color-btn-primary-text: var(--color-slate-900);
-    --color-card-border: rgba(var(--color-gray-400-rgb), 0.2);
-    --color-card-border-inner: rgba(var(--color-gray-400-rgb), 0.15);
+    --color-card-border: rgba(71, 85, 105, 0.2);
+    --color-card-border-inner: rgba(71, 85, 105, 0.15);
     --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.1),
       inset 0 -1px 0 rgba(0, 0, 0, 0.15);
-    --button-border-secondary: rgba(var(--color-gray-400-rgb), 0.2);
-    --color-border-secondary: rgba(var(--color-gray-400-rgb), 0.2);
+    --button-border-secondary: rgba(71, 85, 105, 0.2);
+    --color-border-secondary: rgba(71, 85, 105, 0.2);
     --color-select-caret: rgba(var(--color-gray-200-rgb), 0.8);
 
     /* Common style patterns - updated for dark mode */
@@ -642,7 +646,7 @@
 
     /* RGB versions for dark mode */
     --color-primary-rgb: 50, 184, 198;
-    --color-surface-rgb: 38, 40, 40;
+    --color-surface-rgb: 30, 41, 59;
     --color-border-rgb: 119, 124, 124;
     --color-success-rgb: var(--color-teal-300-rgb);
     --color-error-rgb: var(--color-red-400-rgb);
@@ -660,38 +664,38 @@
   --color-gray-200-rgb: 245, 245, 245;
 
   /* Colorful background palette - Dark Mode */
-  --color-bg-1: rgba(29, 78, 216, 0.15); /* Dark blue */
-  --color-bg-2: rgba(180, 83, 9, 0.15); /* Dark yellow */
-  --color-bg-3: rgba(21, 128, 61, 0.15); /* Dark green */
-  --color-bg-4: rgba(185, 28, 28, 0.15); /* Dark red */
-  --color-bg-5: rgba(107, 33, 168, 0.15); /* Dark purple */
-  --color-bg-6: rgba(194, 65, 12, 0.15); /* Dark orange */
-  --color-bg-7: rgba(190, 24, 93, 0.15); /* Dark pink */
-  --color-bg-8: rgba(8, 145, 178, 0.15); /* Dark cyan */
+  --color-bg-1: rgba(59, 130, 246, 0.12); /* Modern blue */
+  --color-bg-2: rgba(245, 158, 11, 0.12); /* Modern amber */
+  --color-bg-3: rgba(34, 197, 94, 0.12); /* Modern green */
+  --color-bg-4: rgba(239, 68, 68, 0.12); /* Modern red */
+  --color-bg-5: rgba(147, 51, 234, 0.12); /* Modern purple */
+  --color-bg-6: rgba(249, 115, 22, 0.12); /* Modern orange */
+  --color-bg-7: rgba(236, 72, 153, 0.12); /* Modern pink */
+  --color-bg-8: rgba(6, 182, 212, 0.12); /* Modern cyan */
   
   /* Semantic Color Tokens (Dark Mode) */
-  --color-background: var(--color-charcoal-700);
-  --color-surface: var(--color-charcoal-800);
+  --color-background: var(--color-dark-blue-900);
+  --color-surface: var(--color-dark-blue-800);
   --color-text: var(--color-gray-200);
   --color-text-secondary: rgba(var(--color-gray-300-rgb), 0.7);
   --color-primary: var(--color-teal-300);
   --color-primary-hover: var(--color-teal-400);
   --color-primary-active: var(--color-teal-800);
-  --color-secondary: rgba(var(--color-gray-400-rgb), 0.15);
-  --color-secondary-hover: rgba(var(--color-gray-400-rgb), 0.25);
-  --color-secondary-active: rgba(var(--color-gray-400-rgb), 0.3);
-  --color-border: rgba(var(--color-gray-400-rgb), 0.3);
+  --color-secondary: rgba(71, 85, 105, 0.15);
+  --color-secondary-hover: rgba(71, 85, 105, 0.25);
+  --color-secondary-active: rgba(71, 85, 105, 0.3);
+  --color-border: rgba(71, 85, 105, 0.3);
   --color-error: var(--color-red-400);
   --color-success: var(--color-teal-300);
   --color-warning: var(--color-orange-400);
   --color-info: var(--color-gray-300);
   --color-focus-ring: rgba(var(--color-teal-300-rgb), 0.4);
   --color-btn-primary-text: var(--color-slate-900);
-  --color-card-border: rgba(var(--color-gray-400-rgb), 0.15);
-  --color-card-border-inner: rgba(var(--color-gray-400-rgb), 0.15);
+  --color-card-border: rgba(71, 85, 105, 0.2);
+  --color-card-border-inner: rgba(71, 85, 105, 0.15);
   --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.1),
     inset 0 -1px 0 rgba(0, 0, 0, 0.15);
-  --color-border-secondary: rgba(var(--color-gray-400-rgb), 0.2);
+  --color-border-secondary: rgba(71, 85, 105, 0.2);
   --color-select-caret: rgba(var(--color-gray-200-rgb), 0.8);
 
   /* Common style patterns - updated for dark mode */
@@ -704,7 +708,7 @@
 
   /* RGB versions for dark mode */
   --color-primary-rgb: 50, 184, 198;
-  --color-surface-rgb: 38, 40, 40;
+  --color-surface-rgb: 30, 41, 59;
   --color-border-rgb: 119, 124, 124;
   --color-success-rgb: var(--color-teal-300-rgb);
   --color-error-rgb: var(--color-red-400-rgb);
