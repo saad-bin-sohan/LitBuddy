@@ -106,7 +106,7 @@ const Register = () => {
           {/* Email Field */}
           <div className="form-field">
             <label htmlFor="email" className="form-label">
-              Email Address
+              
             </label>
             <input
               id="email"
