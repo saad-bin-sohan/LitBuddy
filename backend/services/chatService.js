@@ -100,7 +100,95 @@ async function createChatBetween(requesterId, otherUserId) {
  * List chats for a user
  */
 async function listChatsForUser(userIdRaw) {
-  // ... [no STOMP needed, stays the same]
+  const userId = toObjectId(userIdRaw);
+  if (!userId) {
+    const err = new Error('Invalid user ID');
+    err.status = 400;
+    throw err;
+  }
+
+  // Validate that the user exists
+  try {
+    const userExists = await require('../models/userModel').findById(userId).select('_id');
+    if (!userExists) {
+      const err = new Error('User not found');
+      err.status = 404;
+      throw err;
+    }
+  } catch (userError) {
+    console.error('Error validating user:', userError);
+    const err = new Error('Failed to validate user');
+    err.status = 500;
+    throw err;
+  }
+
+  try {
+    console.log(`Fetching chats for user: ${userId}`);
+    
+    // Check database connection
+    if (mongoose.connection.readyState !== 1) {
+      const err = new Error('Database connection not ready');
+      err.status = 503;
+      throw err;
+    }
+    
+    // Find all chats where the user is a participant
+    const chats = await Chat.find({
+      participants: userId
+    })
+    .populate('participants', 'name displayName profilePhoto location')
+    .populate('messages.sender', 'name displayName')
+    .sort({ lastActive: -1, updatedAt: -1 })
+    .lean();
+
+    console.log(`Found ${chats.length} chats for user ${userId}`);
+
+    // Process each chat to add computed fields
+    const processedChats = chats.map(chat => {
+      try {
+        const otherParticipant = chat.participants.find(p => String(p._id) !== String(userId));
+        const lastMessage = chat.messages && chat.messages.length > 0 
+          ? chat.messages[chat.messages.length - 1] 
+          : null;
+        
+        // Calculate unread count (messages not from current user)
+        const unreadCount = chat.messages ? chat.messages.filter(msg => 
+          msg.sender && msg.sender._id && String(msg.sender._id) !== String(userId)
+        ).length : 0;
+
+        return {
+          ...chat,
+          otherParticipant,
+          lastMessage: lastMessage ? {
+            text: lastMessage.text,
+            timestamp: lastMessage.timestamp,
+            sender: lastMessage.sender
+          } : null,
+          unreadCount,
+          // Ensure we have the last activity timestamp
+          lastActivity: lastMessage ? lastMessage.timestamp : chat.lastActive || chat.updatedAt
+        };
+      } catch (chatError) {
+        console.error('Error processing chat:', chat._id, chatError);
+        // Return a minimal chat object if processing fails
+        return {
+          ...chat,
+          otherParticipant: null,
+          lastMessage: null,
+          unreadCount: 0,
+          lastActivity: chat.updatedAt
+        };
+      }
+    });
+
+    console.log(`Processed ${processedChats.length} chats successfully`);
+    return processedChats;
+  } catch (error) {
+    console.error('Error in listChatsForUser:', error);
+    const err = new Error('Failed to fetch chats');
+    err.status = 500;
+    throw err;
+  }
 }
 
 /**

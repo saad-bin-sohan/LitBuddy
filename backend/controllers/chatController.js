@@ -33,9 +33,19 @@ const startChat = asyncHandler(async (req, res) => {
  */
 const listChats = asyncHandler(async (req, res) => {
   try {
+    console.log(`List chats request from user: ${req.user._id}`);
+    
+    // Validate user object
+    if (!req.user || !req.user._id) {
+      console.error('Invalid user object in request');
+      return res.status(400).json({ message: 'Invalid user session' });
+    }
+    
     const chats = await chatService.listChatsForUser(req.user._id);
+    console.log(`Returning ${chats.length} chats for user ${req.user._id}`);
     res.json(chats);
   } catch (err) {
+    console.error('Error in listChats controller:', err);
     throw err;
   }
 });

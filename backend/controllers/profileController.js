@@ -60,11 +60,17 @@ exports.updateUserProfile = async (req, res) => {
       if (k in req.body) updates[k] = req.body[k];
     }
 
-    // Check if required fields for profile setup are provided
+    // Check if required fields for profile setup are already complete in user's profile
     const requiredFields = ['name', 'age', 'gender'];
-    const isProfileComplete = requiredFields.every((field) => req.body[field]);
+    const existingUser = await User.findById(userId);
+    if (!existingUser) return res.status(404).json({ message: 'User not found' });
+    
+    const isProfileComplete = requiredFields.every((field) => {
+      const value = existingUser[field];
+      return value !== undefined && value !== null && value !== '';
+    });
 
-    // ✅ Mark setup as complete only if required fields are provided
+    // ✅ Mark setup as complete if required fields are already present
     if (isProfileComplete) {
       updates.hasCompletedSetup = true;
     }

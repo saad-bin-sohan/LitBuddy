@@ -53,4 +53,7 @@ chatSchema.index(
 // Additional index for quick inbox retrieval
 chatSchema.index({ updatedAt: -1 });
 
+// Index for quick participant lookup
+chatSchema.index({ participants: 1, updatedAt: -1 });
+
 module.exports = mongoose.model('Chat', chatSchema);

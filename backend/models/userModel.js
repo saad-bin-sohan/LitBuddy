@@ -37,6 +37,12 @@ const userSchema = mongoose.Schema(
     age: { type: Number, required: [true, 'Please provide your age'], min: 18 },
     gender: { type: String, enum: ['Male', 'Female', 'Other'], required: true },
 
+    // Google OAuth fields
+    googleId: { type: String, unique: true, sparse: true },
+    googleEmail: { type: String, unique: true, sparse: true },
+    googleProfilePicture: { type: String },
+    isGoogleUser: { type: Boolean, default: false },
+
     bio: { type: String, default: '' },
     quote: { type: String, default: '' },
 
@@ -146,7 +152,8 @@ userSchema.methods.hasRole = function (role) {
  *  - Keep isAdmin <-> role in sync for backward compatibility.
  *  - Ensure role has a default when not provided.
  *  - Update hasCompletedSetup from profile fields.
- *  - Hash password when modified.
+ *  - Hash password when modified (only for non-Google users).
+ *  - Handle Google OAuth users properly.
  */
 userSchema.pre('save', async function (next) {
   try {
@@ -166,10 +173,18 @@ userSchema.pre('save', async function (next) {
       this.role = 'reader';
     }
 
-    // Update `hasCompletedSetup` based on required fields
-    this.hasCompletedSetup = this.isProfileSetupComplete();
+    // Update `hasCompletedSetup` based on required fields, but only if relevant fields have changed
+    const relevantFieldsChanged = ['name', 'age', 'gender'].some(field => this.isModified(field));
+    if (relevantFieldsChanged) {
+      this.hasCompletedSetup = this.isProfileSetupComplete();
+    }
 
-    // Hash password when changed
+    // For Google OAuth users, don't hash password (they don't have one)
+    if (this.isGoogleUser) {
+      return next();
+    }
+
+    // Hash password when changed (only for non-Google users)
     if (!this.isModified('password')) {
       return next();
     }

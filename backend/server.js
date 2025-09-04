@@ -142,6 +142,7 @@ app.use(
 
 // 9. Mount routes
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/auth/google', require('./routes/googleAuthRoutes'));
 app.use('/api/otp', require('./routes/otpRoutes'));
 app.use('/api/profile', require('./routes/profileRoutes'));
 app.use('/api/match', require('./routes/matchRoutes'));
@@ -158,6 +159,14 @@ try {
 
 // NEW: subscription routes
 app.use('/api/subscription', require('./routes/subscriptionRoutes'));
+
+// Reading progress routes
+app.use('/api/books', require('./routes/bookRoutes'));
+app.use('/api/reading-progress', require('./routes/readingProgressRoutes'));
+app.use('/api/reading-goals', require('./routes/readingGoalRoutes'));
+
+// GoodReads integration routes
+app.use('/api/goodreads', require('./routes/goodreadsRoutes'));
 
 // 10. Error handling middlewares
 app.use(notFound);

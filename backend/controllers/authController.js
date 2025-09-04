@@ -57,6 +57,11 @@ function sanitizeUserForResponse(user) {
     activeConversations: u.activeConversations,
     hasCompletedSetup: !!u.hasCompletedSetup,
     suspendedUntil: u.suspendedUntil || null,
+    // Google OAuth fields
+    googleId: u.googleId,
+    googleEmail: u.googleEmail,
+    googleProfilePicture: u.googleProfilePicture,
+    isGoogleUser: !!u.isGoogleUser,
   };
 }
 
@@ -117,6 +122,8 @@ const registerUser = asyncHandler(async (req, res) => {
     // Ensure new users are readers by default; do not allow role/isAdmin in public registration
     role: 'reader',
     isAdmin: false,
+    // Explicitly set hasCompletedSetup to true since we have all required fields
+    hasCompletedSetup: true,
   });
 
   if (user) {
