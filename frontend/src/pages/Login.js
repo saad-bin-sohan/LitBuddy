@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { login, requestOtp, loginWithOtp } from '../api/authApi';
 import { AuthContext } from '../contexts/AuthContext';
 import Button from '../components/Button';
+import GoogleAuth from '../components/GoogleAuth';
 
 const makeDeviceId = () => {
   // simple unique id
@@ -133,7 +134,8 @@ const Login = () => {
 
         {/* Main Login Form */}
         {!otpRequired ? (
-          <form onSubmit={handleSubmit} className="auth-form">
+          <>
+            <form onSubmit={handleSubmit} className="auth-form">
             {/* Email Field */}
             <div className="form-field">
               <label htmlFor="email" className="form-label">
@@ -222,6 +224,26 @@ const Login = () => {
               )}
             </Button>
           </form>
+
+          {/* Google OAuth Button */}
+          <div className="auth-divider">
+            <GoogleAuth
+              buttonText="Sign in with Google"
+              onSuccess={(user) => {
+                // Redirect based on profile completion status
+                if (!user.hasCompletedSetup) {
+                  window.location.href = '/profile-setup';
+                } else {
+                  window.location.href = '/my-profile';
+                }
+              }}
+              onError={(error) => {
+                setError(error);
+              }}
+              className="google-auth-btn"
+            />
+          </div>
+          </>
         ) : (
           /* OTP Verification Flow */
           <div className="auth-form">
