@@ -176,6 +176,113 @@
   background: linear-gradient(135deg, var(--color-bg-1) 0%, var(--color-bg-2) 100%);
 }
 
+/* Google OAuth Styles */
+.auth-divider {
+  margin: var(--space-24) 0;
+  text-align: center;
+  position: relative;
+}
+
+.divider-text {
+  background: var(--color-surface);
+  padding: 0 var(--space-16);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  position: relative;
+  z-index: 1;
+}
+
+.auth-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--color-border);
+  z-index: 0;
+}
+
+.google-auth-btn {
+  width: 100%;
+  margin-bottom: var(--space-16);
+}
+
+.google-auth-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-12);
+  width: 100%;
+  padding: var(--space-14) var(--space-20);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-base);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-standard);
+  font-family: var(--font-family-base);
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.google-auth-button:hover {
+  border-color: var(--color-primary);
+  background: var(--color-secondary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.google-auth-button:active {
+  transform: translateY(0);
+}
+
+.google-auth-button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.google-auth-button svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.google-auth-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Dark mode adjustments for Google button */
+@media (prefers-color-scheme: dark) {
+  .google-auth-button {
+    background: var(--color-surface);
+    border-color: var(--color-border);
+    color: var(--color-text);
+  }
+  
+  .google-auth-button:hover {
+    background: var(--color-secondary);
+    border-color: var(--color-primary);
+  }
+}
+
+[data-color-scheme="dark"] .google-auth-button {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+[data-color-scheme="dark"] .google-auth-button:hover {
+  background: var(--color-secondary);
+  border-color: var(--color-primary);
+}
+
 .auth-card {
   width: 100%;
   max-width: 480px;

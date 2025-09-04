@@ -40,18 +40,34 @@ export const startChat = async (userId) => {
  * GET /api/chat
  */
 export const getMyChats = async () => {
-  const res = await fetch(`${API_URL}/chat`, {
-    method: 'GET',
-    credentials: 'include', // Use cookies instead of Authorization header
-  });
-  const data = await parseJsonSafe(res);
-  if (!res.ok) {
-    const err = new Error(data.message || 'Failed to fetch chats');
-    err.status = res.status;
-    err.body = data;
-    throw err;
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
+    const res = await fetch(`${API_URL}/chat`, {
+      method: 'GET',
+      credentials: 'include', // Use cookies instead of Authorization header
+      signal: controller.signal,
+    });
+    
+    clearTimeout(timeoutId);
+    
+    const data = await parseJsonSafe(res);
+    if (!res.ok) {
+      const err = new Error(data.message || 'Failed to fetch chats');
+      err.status = res.status;
+      err.body = data;
+      throw err;
+    }
+    return Array.isArray(data) ? data : (data.chats || []);
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      const err = new Error('Request timeout. Please try again.');
+      err.status = 408;
+      throw err;
+    }
+    throw error;
   }
-  return Array.isArray(data) ? data : (data.chats || []);
 };
 
 /**

@@ -159,6 +159,12 @@ const Navbar = () => {
                 <span className="action-label">Chats</span>
               </Link>
 
+              {/* Reading Progress Link */}
+              <Link to="/reading-progress" className="nav-action-btn reading-btn" title="Reading Progress" aria-label="Reading Progress">
+                <FiBookOpen />
+                <span className="action-label">Reading</span>
+              </Link>
+
               {/* Profile Dropdown */}
               <div className="profile-dropdown" ref={profileDropdownRef}>
                 <button

@@ -84,3 +84,27 @@ export const logout = async () => {
     credentials: 'include',
   });
 };
+
+export const googleAuthCallback = async (googleData) => {
+  const res = await fetch(`${API_URL}/auth/google/callback`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(googleData),
+    credentials: 'include',
+  });
+  const data = await parseJsonSafe(res);
+  if (!res.ok) throw new Error(data.message || 'Google authentication failed');
+  return data;
+};
+
+export const checkGoogleUser = async (googleId) => {
+  const res = await fetch(`${API_URL}/auth/google/check`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ googleId }),
+    credentials: 'include',
+  });
+  const data = await parseJsonSafe(res);
+  if (!res.ok) throw new Error(data.message || 'Failed to check Google user');
+  return data;
+};

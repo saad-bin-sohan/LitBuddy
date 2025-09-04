@@ -1,6 +1,7 @@
 // frontend/src/App.js
 import React, { useContext, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -15,6 +16,9 @@ import AdminReports from './pages/AdminReports';
 import { AuthContext } from './contexts/AuthContext';
 import ProfileView from './pages/ProfileView';
 import Chats from './pages/Chats';
+import ReadingProgress from './pages/ReadingProgress';
+import CreateBook from './pages/CreateBook';
+import SearchBooks from './pages/SearchBooks';
 
 // NEW pages for password reset
 import PasswordResetRequest from './pages/PasswordResetRequest';
@@ -42,67 +46,74 @@ const App = () => {
   if (loading) return <p>Loading...</p>;
 
   return (
-    <Router>
-      <AuthRedirectWrapper>
-        <Navbar />
-        <main style={{ minHeight: '80vh', padding: '20px' }}>
-          <Routes>
-            <Route path="/" element={<Home />} />
+    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+      <Router>
+        <AuthRedirectWrapper>
+          <Navbar />
+          <main style={{ minHeight: '80vh', padding: '20px' }}>
+            <Routes>
+              <Route path="/" element={<Home />} />
 
-            {/* Auth */}
-            <Route
-              path="/login"
-              element={
-                !user
-                  ? <Login />
-                  : <Navigate to={isProfileComplete ? '/' : '/profile-setup'} replace />
+              {/* Auth */}
+              <Route
+                path="/login"
+                element={
+                  !user
+                    ? <Login />
+                    : <Navigate to={isProfileComplete ? '/' : '/profile-setup'} replace />
+                  }
+              />
+              <Route
+                path="/register"
+                element={
+                  !user
+                    ? <Register />
+                    : <Navigate to={isProfileComplete ? '/' : '/profile-setup'} replace />
+                  }
+              />
+
+              {/* Profile routes */}
+              <Route
+                path="/profile-setup"
+                element={
+                  user
+                    ? (isProfileComplete ? <Navigate to="/my-profile" replace /> : <ProfileSetup />)
+                    : <Navigate to="/login" />
                 }
-            />
-            <Route
-              path="/register"
-              element={
-                !user
-                  ? <Register />
-                  : <Navigate to={isProfileComplete ? '/' : '/profile-setup'} replace />
+              />
+              <Route
+                path="/my-profile"
+                element={
+                  user
+                    ? (isProfileComplete ? <ProfileView /> : <Navigate to="/my-profile" replace />)
+                    : <Navigate to="/login" />
                 }
-            />
+              />
 
-            {/* Profile routes */}
-            <Route
-              path="/profile-setup"
-              element={
-                user
-                  ? (isProfileComplete ? <Navigate to="/my-profile" replace /> : <ProfileSetup />)
-                  : <Navigate to="/login" />
-              }
-            />
-            <Route
-              path="/my-profile"
-              element={
-                user
-                  ? (isProfileComplete ? <ProfileView /> : <Navigate to="/profile-setup" replace />)
-                  : <Navigate to="/login" />
-              }
-            />
+              {/* User features */}
+              <Route path="/suggestions" element={user ? <MatchSuggestions /> : <Navigate to="/login" />} />
+              <Route path="/matches" element={user ? <Matches /> : <Navigate to="/login" />} />
+              <Route path="/chat/:chatId" element={user ? <Chat /> : <Navigate to="/login" />} />
+              <Route path="/chats" element={user ? <Chats /> : <Navigate to="/login" />} />
+              <Route path="/report/:userId" element={user ? <ReportUser /> : <Navigate to="/login" />} />
+              
+              {/* Reading Progress */}
+              <Route path="/reading-progress" element={user ? <ReadingProgress /> : <Navigate to="/login" />} />
+              <Route path="/create-book" element={user ? <CreateBook /> : <Navigate to="/login" />} />
+              <Route path="/search-books" element={user ? <SearchBooks /> : <Navigate to="/login" />} />
 
-            {/* User features */}
-            <Route path="/suggestions" element={user ? <MatchSuggestions /> : <Navigate to="/login" />} />
-            <Route path="/matches" element={user ? <Matches /> : <Navigate to="/login" />} />
-            <Route path="/chat/:chatId" element={user ? <Chat /> : <Navigate to="/login" />} />
-            <Route path="/chats" element={user ? <Chats /> : <Navigate to="/login" />} />
-            <Route path="/report/:userId" element={user ? <ReportUser /> : <Navigate to="/login" />} />
+              {/* Admin */}
+              <Route path="/admin/reports" element={user?.isAdmin ? <AdminReports /> : <Navigate to="/" />} />
 
-            {/* Admin */}
-            <Route path="/admin/reports" element={user?.isAdmin ? <AdminReports /> : <Navigate to="/" />} />
-
-            {/* Password reset (public) */}
-            <Route path="/password-reset-request" element={<PasswordResetRequest />} />
-            <Route path="/password-reset" element={<PasswordReset />} />
-          </Routes>
-        </main>
-        <Footer />
-      </AuthRedirectWrapper>
-    </Router>
+              {/* Password reset (public) */}
+              <Route path="/password-reset-request" element={<PasswordResetRequest />} />
+              <Route path="/password-reset" element={<PasswordReset />} />
+            </Routes>
+          </main>
+          <Footer />
+        </AuthRedirectWrapper>
+      </Router>
+    </GoogleOAuthProvider>
   );
 };
 

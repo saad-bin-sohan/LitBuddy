@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { register } from '../api/authApi';
 import { AuthContext } from '../contexts/AuthContext';
 import Button from '../components/Button';
+import GoogleAuth from '../components/GoogleAuth';
 
 const Register = () => {
   const { setUser } = useContext(AuthContext);
@@ -68,6 +69,19 @@ const Register = () => {
             {error}
           </div>
         )}
+
+        {/* Google OAuth Button */}
+        <div className="auth-divider">
+          <GoogleAuth 
+            buttonText="Sign up with Google"
+            onError={(error) => setError(error)}
+            className="google-auth-btn"
+          />
+        </div>
+
+        <div className="auth-divider">
+          <span className="divider-text">or</span>
+        </div>
 
         {/* Registration Form */}
         <form onSubmit={handleSubmit} className="auth-form">
