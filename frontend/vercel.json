@@ -13,6 +13,7 @@
     }
   ],
   "env": {
-    "REACT_APP_BACKEND_URL": "/api"
+    "REACT_APP_BACKEND_URL": "/api",
+    "REACT_APP_GOOGLE_CLIENT_ID": "751790859074-vuu7gn21egi6r723kb27vt3ppdiihfs5.apps.googleusercontent.com"
   }
 }

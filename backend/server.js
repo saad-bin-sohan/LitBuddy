@@ -56,7 +56,7 @@ const DEFAULT_ALLOWED = new Set([
   'http://127.0.0.1:5173',
   'http://localhost:5001',
   'http://127.0.0.1:5001',
-  'https://your-frontend-domain.vercel.app', // Add your Vercel domain
+  'https://litbuddy.vercel.app', // Update this to your actual Vercel domain
 ]);
 
 const configured =

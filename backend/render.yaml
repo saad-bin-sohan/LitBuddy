@@ -16,5 +16,6 @@ services:
         value: https://litbuddy.vercel.app
       - key: FRONTEND_URLS
         value: https://litbuddy.vercel.app
-
+      - key: GOOGLE_CLIENT_ID
+        sync: false
     healthCheckPath: /api/health
