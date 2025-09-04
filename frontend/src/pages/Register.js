@@ -88,7 +88,7 @@ const Register = () => {
           {/* Name Field */}
           <div className="form-field">
             <label htmlFor="name" className="form-label">
-              Full Name
+              
             </label>
             <input
               id="name"
@@ -124,7 +124,7 @@ const Register = () => {
           {/* Phone Field */}
           <div className="form-field">
             <label htmlFor="phone" className="form-label">
-              Phone Number <span className="optional-text">(Optional)</span>
+              <span className="optional-text"></span>
             </label>
             <input
               id="phone"
@@ -180,7 +180,7 @@ const Register = () => {
           <div className="form-row">
             <div className="form-field">
               <label htmlFor="age" className="form-label">
-                Age
+                
               </label>
               <input
                 id="age"
@@ -198,7 +198,7 @@ const Register = () => {
 
             <div className="form-field">
               <label htmlFor="gender" className="form-label">
-                Gender
+                
               </label>
               <select
                 id="gender"
