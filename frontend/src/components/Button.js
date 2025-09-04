@@ -1,7 +1,7 @@
 // frontend/src/components/Button.js
 import React from 'react';
 
-const Button = ({ children, variant = 'primary', className = '', ...rest }) => {
+const Button = ({ children, variant = 'primary', className = '', animated = true, ...rest }) => {
   const base = 'btn';
   let variantClass = 'btn-primary';
   
@@ -22,8 +22,10 @@ const Button = ({ children, variant = 'primary', className = '', ...rest }) => {
       variantClass = 'btn-primary';
   }
   
+  const animationClass = animated ? 'transition-all hover-lift' : '';
+  
   return (
-    <button className={`${base} ${variantClass} ${className}`} {...rest}>
+    <button className={`${base} ${variantClass} ${animationClass} ${className}`} {...rest}>
       {children}
     </button>
   );

@@ -89,14 +89,14 @@ const Navbar = () => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <header className="modern-navbar">
+    <header className="modern-navbar animate-slide-in-top">
       <div className="nav-container">
         {/* Brand Section */}
         <div className="nav-brand">
-          <Link to="/" className="brand-link">
-            <div className="brand-logo">
+          <Link to="/" className="brand-link hover-scale">
+            <div className="brand-logo animate-pulse">
               <img src="/logo.png" alt="LitBuddy Logo" className="logo-image" />
-              <div className="logo-glow"></div>
+              <div className="logo-glow animate-glow"></div>
             </div>
             <div className="brand-text">
               <div className="brand-name">LitBuddy</div>
@@ -109,21 +109,21 @@ const Navbar = () => {
         <nav className="nav-menu" aria-label="Main navigation">
           <Link 
             to="/" 
-            className={`nav-link ${isActive('/') ? 'active' : ''}`}
+            className={`nav-link hover-lift ${isActive('/') ? 'active' : ''}`}
           >
             <FiBookOpen className="nav-icon" />
             <span>Home</span>
           </Link>
           <Link 
             to="/suggestions" 
-            className={`nav-link ${isActive('/suggestions') ? 'active' : ''}`}
+            className={`nav-link hover-lift ${isActive('/suggestions') ? 'active' : ''}`}
           >
             <FiSearch className="nav-icon" />
             <span>Discover</span>
           </Link>
           <Link 
             to="/matches" 
-            className={`nav-link ${isActive('/matches') ? 'active' : ''}`}
+            className={`nav-link hover-lift ${isActive('/matches') ? 'active' : ''}`}
           >
             <FiUsers className="nav-icon" />
             <span>Matches</span>
@@ -134,15 +134,15 @@ const Navbar = () => {
         <div className="nav-actions">
           {/* Theme Toggle */}
           <button
-            className="theme-toggle"
+            className="theme-toggle hover-scale"
             title="Toggle theme"
             onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
             aria-label="Toggle theme"
           >
-            <div className="theme-icon">
+            <div className="theme-icon animate-pulse">
               {theme === 'dark' ? <FiSun /> : <FiMoon />}
             </div>
-            <div className="theme-ripple"></div>
+            <div className="theme-ripple animate-glow"></div>
           </button>
 
           {/* User Actions */}

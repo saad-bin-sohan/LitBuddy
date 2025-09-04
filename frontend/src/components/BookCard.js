@@ -1,14 +1,19 @@
 import React from 'react';
 import './BookCard.css';
+import ScrollAnimation from './ScrollAnimation';
 
-const BookCard = ({ book, onAddToList, onEdit, onDelete, showActions = true }) => {
+const BookCard = ({ book, onAddToList, onEdit, onDelete, showActions = true, animated = true }) => {
   const handleAddToList = (status) => {
     onAddToList(book._id, status);
   };
 
+  const CardWrapper = animated ? ScrollAnimation : 'div';
+  const cardProps = animated ? { animation: 'fade-in-up', delay: 0.1 } : {};
+
   return (
-    <div className="book-card">
-      <div className="book-cover">
+    <CardWrapper {...cardProps}>
+      <div className="book-card hover-lift">
+        <div className="book-cover">
         {book.coverImage ? (
           <img src={book.coverImage} alt={book.title} />
         ) : (
@@ -47,13 +52,13 @@ const BookCard = ({ book, onAddToList, onEdit, onDelete, showActions = true }) =
         <div className="book-actions">
           <div className="add-to-list-buttons">
             <button 
-              className="btn btn-primary btn-sm"
+              className="btn btn-primary btn-sm hover-scale"
               onClick={() => handleAddToList('want-to-read')}
             >
               Want to Read
             </button>
             <button 
-              className="btn btn-success btn-sm"
+              className="btn btn-success btn-sm hover-scale"
               onClick={() => handleAddToList('currently-reading')}
             >
               Currently Reading
@@ -62,13 +67,13 @@ const BookCard = ({ book, onAddToList, onEdit, onDelete, showActions = true }) =
           
           <div className="book-management-buttons">
             <button 
-              className="btn btn-outline btn-sm"
+              className="btn btn-outline btn-sm hover-scale"
               onClick={() => onEdit(book)}
             >
               Edit
             </button>
             <button 
-              className="btn btn-danger btn-sm"
+              className="btn btn-danger btn-sm hover-scale"
               onClick={() => onDelete(book._id)}
             >
               Delete
@@ -77,6 +82,7 @@ const BookCard = ({ book, onAddToList, onEdit, onDelete, showActions = true }) =
         </div>
       )}
     </div>
+    </CardWrapper>
   );
 };
 
