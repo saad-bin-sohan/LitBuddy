@@ -8,10 +8,17 @@ const socketUtil = (() => {
   }
 })();
 
-// Try to load a STOMP util if available (utils/stomp.js). This file is optional and may not exist yet.
+// Prefer the in-app STOMP broker first
+let stompBroker = null;
+try {
+  stompBroker = require('../utils/stompBroker');
+} catch (e) {
+  stompBroker = null;
+}
+
+// Legacy external STOMP util (optional)
 let stompUtil = null;
 try {
-  // we keep this in try/catch so code continues to work if utils/stomp.js is not added yet
   stompUtil = require('../utils/stomp');
 } catch (e) {
   stompUtil = null;
@@ -50,51 +57,37 @@ async function createAndSend({ userId, type = 'system', title = '', body = '', d
     createdAt: doc.createdAt,
   };
 
-  // 1) Preferred: publish via STOMP util if available
+  // 1) Preferred: publish via in-app STOMP broker (unified destination)
   try {
-    if (stompUtil) {
-      // Support two common shapes for the stomp util:
-      //  - stompUtil.publish(destination, payload)  (returns Promise or void)
-      //  - stompUtil.getClient() -> stomp client with .publish({destination, body})
-      if (typeof stompUtil.publish === 'function') {
-        // choose a per-user queue destination
-        try {
-          const dest = `/user/${userId}/queue/notifications`;
-          // allow publish to be sync or async
-          await Promise.resolve(stompUtil.publish(dest, payload));
-        } catch (err) {
-          console.error('notificationService: stompUtil.publish failed', err);
-        }
-      } else if (typeof stompUtil.getClient === 'function') {
-        try {
-          const client = stompUtil.getClient();
-          if (client) {
-            // if client exposes a "publish" like @stomp/stompjs Client
-            if (typeof client.publish === 'function') {
-              client.publish({
-                destination: `/user/${userId}/queue/notifications`,
-                body: JSON.stringify(payload),
-              });
-            } else {
-              // If the client doesn't have publish, skip gracefully
-            }
-          }
-        } catch (err) {
-          console.error('notificationService: stompUtil.getClient().publish failed', err);
-        }
-      } else {
-        // unknown shape - skip and fallback
-      }
-
-      // After attempting STOMP publish, return the DB doc (don't attempt socket.io)
+    if (stompBroker && typeof stompBroker.publish === 'function') {
+      const dest = `/topic/user.${userId}.notifications`;
+      await Promise.resolve(stompBroker.publish(dest, payload));
       return doc;
     }
   } catch (err) {
-    // Non-fatal — log and fall through to socket.io fallback
-    console.error('notificationService: error while trying STOMP publish', err);
+    console.error('notificationService: error while trying in-app STOMP publish', err);
   }
 
-  // 2) Fallback: legacy socket.io
+  // 2) Secondary: legacy external STOMP util if available
+  try {
+    if (stompUtil) {
+      const dest = `/user/${userId}/queue/notifications`;
+      if (typeof stompUtil.publish === 'function') {
+        await Promise.resolve(stompUtil.publish(dest, payload));
+        return doc;
+      } else if (typeof stompUtil.getClient === 'function') {
+        const client = stompUtil.getClient();
+        if (client && typeof client.publish === 'function') {
+          client.publish({ destination: dest, body: JSON.stringify(payload) });
+          return doc;
+        }
+      }
+    }
+  } catch (err) {
+    console.error('notificationService: external STOMP publish failed', err);
+  }
+
+  // 3) Fallback: legacy socket.io
   try {
     const io = socketUtil && typeof socketUtil.getIO === 'function' ? socketUtil.getIO() : null;
     if (io) {

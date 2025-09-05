@@ -165,6 +165,9 @@ app.use('/api/books', require('./routes/bookRoutes'));
 app.use('/api/reading-progress', require('./routes/readingProgressRoutes'));
 app.use('/api/reading-goals', require('./routes/readingGoalRoutes'));
 
+// Challenge routes
+app.use('/api/challenges', require('./routes/challengeRoutes'));
+
 // GoodReads integration routes
 app.use('/api/goodreads', require('./routes/goodreadsRoutes'));
 
