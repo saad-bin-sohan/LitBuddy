@@ -8,6 +8,30 @@ import Card from '../components/Card';
 import { AuthContext } from '../contexts/AuthContext';
 import { getStompClient, subscribe, unsubscribe, send } from '../stompClient';
 
+// Safe formatter for various location shapes similar to Matches page
+function formatLocation(loc) {
+  if (!loc) return '';
+  if (typeof loc === 'string') return loc;
+  if (Array.isArray(loc)) return loc.join(', ');
+  // GeoJSON Point
+  if (loc.type && Array.isArray(loc.coordinates)) {
+    const [lng, lat] = loc.coordinates;
+    if (typeof lat === 'number' && typeof lng === 'number') {
+      return `${lat.toFixed(3)}, ${lng.toFixed(3)}`;
+    }
+    return String(loc.coordinates);
+  }
+  if (typeof loc.latitude === 'number' && typeof loc.longitude === 'number') {
+    return `${loc.latitude.toFixed(3)}, ${loc.longitude.toFixed(3)}`;
+  }
+  if (loc.city || loc.name) return loc.city || loc.name;
+  try {
+    return JSON.stringify(loc);
+  } catch (e) {
+    return String(loc);
+  }
+}
+
 const Chats = () => {
   const { user } = useContext(AuthContext);
   const [chats, setChats] = useState([]);
@@ -177,7 +201,7 @@ const Chats = () => {
                           <div className="participant-meta-modern">
                             {!isActive && <span className="status-text-modern">⏸️ Paused</span>}
                             {other?.location && (
-                              <span className="location-text-modern">📍 {other.location}</span>
+                              <span className="location-text-modern">📍 {formatLocation(other.location)}</span>
                             )}
                           </div>
                         </div>

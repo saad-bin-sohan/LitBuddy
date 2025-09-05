@@ -13,7 +13,7 @@
 
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FiLogOut, FiMessageSquare, FiMenu, FiSun, FiMoon, FiX, FiUser, FiSettings, FiBookOpen, FiUsers, FiSearch } from 'react-icons/fi';
+import { FiLogOut, FiMessageSquare, FiMenu, FiSun, FiMoon, FiX, FiUser, FiSettings, FiBookOpen, FiUsers, FiSearch, FiAward, FiTrendingUp } from 'react-icons/fi';
 import { AuthContext } from '../contexts/AuthContext';
 import NotificationCenter from './NotificationCenter';
 import Avatar from './Avatar';
@@ -165,6 +165,18 @@ const Navbar = () => {
                 <span className="action-label">Reading</span>
               </Link>
 
+              {/* Challenges Link */}
+              <Link to="/challenges" className="nav-action-btn challenges-btn" title="Reading Challenges" aria-label="Reading Challenges">
+                <FiAward />
+                <span className="action-label">Challenges</span>
+              </Link>
+
+              {/* Achievements Link */}
+              <Link to="/achievements" className="nav-action-btn achievements-btn" title="Achievements" aria-label="Achievements">
+                <FiTrendingUp />
+                <span className="action-label">Achievements</span>
+              </Link>
+
               {/* Profile Dropdown */}
               <div className="profile-dropdown" ref={profileDropdownRef}>
                 <button
@@ -281,10 +293,24 @@ const Navbar = () => {
               <span>Matches</span>
             </Link>
             {user && (
-              <Link to="/chats" className="mobile-nav-link">
-                <FiMessageSquare />
-                <span>Chats</span>
-              </Link>
+              <>
+                <Link to="/chats" className="mobile-nav-link">
+                  <FiMessageSquare />
+                  <span>Chats</span>
+                </Link>
+                <Link to="/reading-progress" className="mobile-nav-link">
+                  <FiBookOpen />
+                  <span>Reading Progress</span>
+                </Link>
+                <Link to="/challenges" className="mobile-nav-link">
+                  <FiAward />
+                  <span>Challenges</span>
+                </Link>
+                <Link to="/achievements" className="mobile-nav-link">
+                  <FiTrendingUp />
+                  <span>Achievements</span>
+                </Link>
+              </>
             )}
           </nav>
 

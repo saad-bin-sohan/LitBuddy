@@ -2,6 +2,9 @@ import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { getMyProfile } from '../api/profileApi';
 import PropTypes from 'prop-types';
 
+// Use the same API base URL as other API modules
+const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001/api';
+
 export const AuthContext = createContext({
   user: null,
   loading: true,
@@ -13,6 +16,15 @@ export const AuthContext = createContext({
   markProfileComplete: async () => {},
   token: null,
 });
+
+// Custom hook to use auth context
+export const useAuth = () => {
+  const context = React.useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -41,7 +53,7 @@ export const AuthProvider = ({ children }) => {
   const login = useCallback(async ({ email, password, deviceId }) => {
     try {
       setLoading(true);
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, deviceId }),
@@ -72,7 +84,7 @@ export const AuthProvider = ({ children }) => {
   const register = useCallback(async (formData) => {
     try {
       setLoading(true);
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -97,7 +109,7 @@ export const AuthProvider = ({ children }) => {
   // Logout
   const logout = useCallback(async () => {
     try {
-      await fetch('/api/auth/logout', {
+      await fetch(`${API_URL}/auth/logout`, {
         method: 'POST',
         credentials: 'include', // send cookies
       });

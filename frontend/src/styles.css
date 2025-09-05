@@ -6,6 +6,24 @@
    ====================== */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
 
+/* ======================
+   Global Responsive Base
+   ====================== */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  width: 100%;
+}
+
 :root {
   /* Primitive Color Tokens */
   --color-white: rgba(255, 255, 255, 1);
@@ -1060,6 +1078,15 @@ select.form-control {
     rgba(var(--color-info-rgb, 98, 108, 113), var(--status-border-opacity));
 }
 
+/* Main Content Layout */
+.main-content {
+  min-height: 80vh;
+  padding: var(--space-20);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 /* Container layout */
 .container {
   width: 100%;
@@ -1067,6 +1094,8 @@ select.form-control {
   margin-left: auto;
   padding-right: var(--space-16);
   padding-left: var(--space-16);
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 @media (min-width: 640px) {
@@ -1087,6 +1116,19 @@ select.form-control {
 @media (min-width: 1280px) {
   .container {
     max-width: var(--container-xl);
+  }
+}
+
+/* Main Content Responsive */
+@media (max-width: 768px) {
+  .main-content {
+    padding: var(--space-16);
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: var(--space-12);
   }
 }
 
@@ -1172,6 +1214,26 @@ select.form-control {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
+}
+
+/* Additional Responsive Utilities */
+.overflow-x-hidden {
+  overflow-x: hidden;
+}
+.w-full {
+  width: 100%;
+}
+.max-w-full {
+  max-width: 100%;
+}
+.min-w-0 {
+  min-width: 0;
+}
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
+.flex-shrink-1 {
+  flex-shrink: 1;
 }
 
 :focus-visible {
@@ -1426,7 +1488,9 @@ a:hover { color: var(--color-primary-hover); }
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: var(--space-16);
+  gap: var(--space-12);
+  flex-shrink: 0;
+  min-width: 0;
 }
 
 /* Theme Toggle */
@@ -1485,8 +1549,8 @@ a:hover { color: var(--color-primary-hover); }
 .nav-action-btn {
   display: flex;
   align-items: center;
-  gap: var(--space-8);
-  padding: var(--space-10) var(--space-16);
+  gap: var(--space-6);
+  padding: var(--space-8) var(--space-10);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   background: var(--color-surface);
@@ -1494,6 +1558,8 @@ a:hover { color: var(--color-primary-hover); }
   text-decoration: none;
   font-weight: var(--font-weight-medium);
   transition: all var(--transition-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nav-action-btn:hover {
@@ -1897,6 +1963,18 @@ a:hover { color: var(--color-primary-hover); }
 }
 
 /* Responsive Design */
+@media (max-width: 1200px) {
+  .nav-action-btn .action-label {
+    display: none;
+  }
+  
+  .nav-action-btn {
+    padding: var(--space-8);
+    min-width: 40px;
+    justify-content: center;
+  }
+}
+
 @media (max-width: 1024px) {
   .nav-menu {
     display: none;
@@ -1907,12 +1985,16 @@ a:hover { color: var(--color-primary-hover); }
     align-items: center;
     justify-content: center;
   }
+  
+  .nav-actions {
+    gap: var(--space-8);
+  }
 }
 
 @media (max-width: 768px) {
   .nav-container {
     padding: 0 var(--space-16);
-    gap: var(--space-16);
+    gap: var(--space-12);
   }
   
   .brand-tagline {
@@ -1921,6 +2003,15 @@ a:hover { color: var(--color-primary-hover); }
   
   .action-label {
     display: none;
+  }
+  
+  .nav-actions {
+    gap: var(--space-6);
+  }
+  
+  .nav-action-btn {
+    padding: var(--space-6);
+    min-width: 36px;
   }
   
   .profile-trigger {
@@ -1940,6 +2031,7 @@ a:hover { color: var(--color-primary-hover); }
 @media (max-width: 480px) {
   .nav-container {
     padding: 0 var(--space-12);
+    gap: var(--space-8);
   }
   
   .brand-logo {
@@ -1950,6 +2042,15 @@ a:hover { color: var(--color-primary-hover); }
   
   .brand-name {
     font-size: var(--font-size-lg);
+  }
+  
+  .nav-actions {
+    gap: var(--space-4);
+  }
+  
+  .nav-action-btn {
+    padding: var(--space-4);
+    min-width: 32px;
   }
   
   .auth-buttons {

@@ -17,7 +17,7 @@ const Footer = () => {
               <img src="/logo.png" alt="LitBuddy Logo" className="footer-logo-image" />
               <div className="footer-logo-text">
                 <div className="footer-brand-name">LitBuddy</div>
-                <div className="footer-brand-tagline">Connect through the love of reading</div>
+                <div className="footer-brand-tagline">Developed by Sohan</div>
               </div>
             </div>
             <p className="footer-description">

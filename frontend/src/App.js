@@ -19,6 +19,8 @@ import Chats from './pages/Chats';
 import ReadingProgress from './pages/ReadingProgress';
 import CreateBook from './pages/CreateBook';
 import SearchBooks from './pages/SearchBooks';
+import Challenges from './pages/Challenges';
+import Achievements from './pages/Achievements';
 
 // NEW pages for password reset
 import PasswordResetRequest from './pages/PasswordResetRequest';
@@ -41,7 +43,7 @@ const AuthRedirectWrapper = ({ children }) => {
 };
 
 const App = () => {
-  const { user, loading, isProfileComplete } = useContext(AuthContext);
+  const { user, loading, isProfileComplete, isAdmin } = useContext(AuthContext);
 
   if (loading) return <p>Loading...</p>;
 
@@ -50,7 +52,7 @@ const App = () => {
       <Router>
         <AuthRedirectWrapper>
           <Navbar />
-          <main style={{ minHeight: '80vh', padding: '20px' }}>
+          <main className="main-content">
             <Routes>
               <Route path="/" element={<Home />} />
 
@@ -102,8 +104,12 @@ const App = () => {
               <Route path="/create-book" element={user ? <CreateBook /> : <Navigate to="/login" />} />
               <Route path="/search-books" element={user ? <SearchBooks /> : <Navigate to="/login" />} />
 
+              {/* Reading Challenges */}
+              <Route path="/challenges" element={user ? <Challenges /> : <Navigate to="/login" />} />
+              <Route path="/achievements" element={user ? <Achievements /> : <Navigate to="/login" />} />
+
               {/* Admin */}
-              <Route path="/admin/reports" element={user?.isAdmin ? <AdminReports /> : <Navigate to="/" />} />
+              <Route path="/admin/reports" element={isAdmin ? <AdminReports /> : <Navigate to="/" />} />
 
               {/* Password reset (public) */}
               <Route path="/password-reset-request" element={<PasswordResetRequest />} />
