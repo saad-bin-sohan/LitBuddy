@@ -121,12 +121,19 @@ const Navbar = () => {
             <FiSearch className="nav-icon" />
             <span>Discover</span>
           </Link>
-          <Link 
-            to="/matches" 
+          <Link
+            to="/matches"
             className={`nav-link hover-lift ${isActive('/matches') ? 'active' : ''}`}
           >
             <FiUsers className="nav-icon" />
             <span>Matches</span>
+          </Link>
+          <Link
+            to="/clubs"
+            className={`nav-link hover-lift ${isActive('/clubs') ? 'active' : ''}`}
+          >
+            <FiUsers className="nav-icon" />
+            <span>Clubs</span>
           </Link>
         </nav>
 
@@ -291,6 +298,10 @@ const Navbar = () => {
             <Link to="/matches" className="mobile-nav-link">
               <FiUsers />
               <span>Matches</span>
+            </Link>
+            <Link to="/clubs" className="mobile-nav-link">
+              <FiUsers />
+              <span>Clubs</span>
             </Link>
             {user && (
               <>

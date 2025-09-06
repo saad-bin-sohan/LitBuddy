@@ -1,0 +1,353 @@
+.club-details-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.club-details-header {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 30px;
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.club-header-info {
+  display: flex;
+  align-items: center;
+}
+
+.club-theme-icon-large {
+  font-size: 48px;
+  margin-right: 20px;
+}
+
+.club-header-info h1 {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.club-meta {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.club-theme-badge {
+  background: #007bff;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.club-header-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.club-details-tabs {
+  display: flex;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px 8px 0 0;
+  margin-bottom: 0;
+}
+
+.tab {
+  padding: 15px 25px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  color: #666;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  color: #333;
+}
+
+.tab.active {
+  color: #007bff;
+  border-bottom-color: #007bff;
+}
+
+.club-details-content {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  padding: 30px;
+}
+
+/* Overview Tab */
+.club-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.club-description-section h3,
+.club-current-book-section h3,
+.club-rules-section h3,
+.club-genres-section h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.club-description-section p,
+.club-rules-section p {
+  color: #666;
+  line-height: 1.6;
+}
+
+.current-book-card {
+  display: flex;
+  gap: 20px;
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.book-cover {
+  width: 80px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.book-info h4 {
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.book-info p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.book-selected-date {
+  margin-top: 8px !important;
+  font-style: italic;
+}
+
+.genre-tags {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.genre-tag {
+  background: #e9ecef;
+  color: #495057;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+}
+
+/* Members Tab */
+.club-members h3 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.members-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.member-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.member-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.member-avatar {
+  flex-shrink: 0;
+}
+
+.member-details h4 {
+  margin: 0 0 5px 0;
+  color: #333;
+}
+
+.member-role {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.role-owner {
+  background: #dc3545;
+  color: white;
+}
+
+.role-moderator {
+  background: #ffc107;
+  color: #333;
+}
+
+.role-member {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.member-joined {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  margin-top: 2px;
+}
+
+.member-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Chats Tab */
+.club-chats h3 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.chats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.chat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.chat-info h4 {
+  margin: 0 0 5px 0;
+  color: #333;
+}
+
+.chat-info p {
+  margin: 0 0 8px 0;
+  color: #666;
+}
+
+.chat-stats {
+  font-size: 14px;
+  color: #666;
+}
+
+.no-chats {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.no-chats p {
+  margin: 5px 0;
+}
+
+/* Error State */
+.error-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.error-state h2 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .club-details-container {
+    padding: 15px;
+  }
+
+  .club-details-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .club-header-info {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .club-meta {
+    justify-content: center;
+  }
+
+  .club-header-actions {
+    justify-content: center;
+  }
+
+  .club-details-tabs {
+    flex-direction: column;
+  }
+
+  .tab {
+    border-bottom: none;
+    border-right: 3px solid transparent;
+  }
+
+  .tab.active {
+    border-bottom-color: transparent;
+    border-right-color: #007bff;
+  }
+
+  .members-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .member-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+
+  .member-actions {
+    justify-content: center;
+  }
+
+  .chat-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+
+  .current-book-card {
+    flex-direction: column;
+    text-align: center;
+  }
+}

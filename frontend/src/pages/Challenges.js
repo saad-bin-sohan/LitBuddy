@@ -263,7 +263,17 @@ const Challenges = () => {
         <p>Join exciting reading challenges and compete with fellow book lovers!</p>
         {isAdminUser && (
           <div style={{ marginTop: 15 }}>
-            <button className="btn btn-secondary" onClick={() => setShowCreateModal(true)}>
+            <button 
+              className="btn btn-primary" 
+              onClick={() => setShowCreateModal(true)}
+              style={{ 
+                backgroundColor: '#28a745', 
+                borderColor: '#28a745',
+                color: 'white',
+                fontWeight: 'bold',
+                boxShadow: '0 2px 4px rgba(40, 167, 69, 0.3)'
+              }}
+            >
               + Create Challenge
             </button>
           </div>

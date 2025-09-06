@@ -28,6 +28,12 @@ import AddReview from './pages/AddReview';
 import PasswordResetRequest from './pages/PasswordResetRequest';
 import PasswordReset from './pages/PasswordReset';
 
+// Book Clubs pages
+import ClubList from './pages/ClubList';
+import ClubDetails from './pages/ClubDetails';
+import GroupChat from './pages/GroupChat';
+import ClubCreationForm from './pages/ClubCreationForm';
+
 // 🔑 Component wrapper to handle auto-redirect for first-time setup
 const AuthRedirectWrapper = ({ children }) => {
   const { user, isProfileComplete } = useContext(AuthContext); // Add isProfileComplete
@@ -110,6 +116,13 @@ const App = () => {
               {/* Reading Challenges */}
               <Route path="/challenges" element={user ? <Challenges /> : <Navigate to="/login" />} />
               <Route path="/achievements" element={user ? <Achievements /> : <Navigate to="/login" />} />
+
+              {/* Book Clubs */}
+              <Route path="/clubs" element={user ? <ClubList /> : <Navigate to="/login" />} />
+              <Route path="/clubs/create" element={user ? <ClubCreationForm /> : <Navigate to="/login" />} />
+              <Route path="/clubs/:clubId" element={user ? <ClubDetails /> : <Navigate to="/login" />} />
+              <Route path="/clubs/:clubId/chat" element={user ? <GroupChat /> : <Navigate to="/login" />} />
+              <Route path="/clubs/:clubId/chat/:chatId" element={user ? <GroupChat /> : <Navigate to="/login" />} />
 
               {/* Admin */}
               <Route path="/admin/reports" element={isAdmin ? <AdminReports /> : <Navigate to="/" />} />

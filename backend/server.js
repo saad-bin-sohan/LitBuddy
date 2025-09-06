@@ -168,6 +168,10 @@ app.use('/api/reading-goals', require('./routes/readingGoalRoutes'));
 // Challenge routes
 app.use('/api/challenges', require('./routes/challengeRoutes'));
 
+// Club routes
+app.use('/api/clubs', require('./routes/clubRoutes'));
+app.use('/api/group-chats', require('./routes/groupChatRoutes'));
+
 // Google Books integration routes
 app.use('/api/googlebooks', require('./routes/googleBooksRoutes'));
 
