@@ -69,8 +69,17 @@ const searchBooks = asyncHandler(async (req, res) => {
 // @desc    Get book by ID
 // @route   GET /api/books/:id
 // @access  Private
+const { isValidObjectId } = require('../utils/objectIdValidator');
+
 const getBookById = asyncHandler(async (req, res) => {
-  const book = await Book.findById(req.params.id);
+  const bookId = req.params.id;
+
+  if (!isValidObjectId(bookId)) {
+    res.status(400);
+    throw new Error('Invalid book ID');
+  }
+
+  const book = await Book.findById(bookId);
 
   if (!book) {
     res.status(404);

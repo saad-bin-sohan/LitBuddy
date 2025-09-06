@@ -21,6 +21,8 @@ import CreateBook from './pages/CreateBook';
 import SearchBooks from './pages/SearchBooks';
 import Challenges from './pages/Challenges';
 import Achievements from './pages/Achievements';
+import BookDetailsPage from './pages/BookDetailsPage';
+import AddReview from './pages/AddReview';
 
 // NEW pages for password reset
 import PasswordResetRequest from './pages/PasswordResetRequest';
@@ -103,6 +105,7 @@ const App = () => {
               <Route path="/reading-progress" element={user ? <ReadingProgress /> : <Navigate to="/login" />} />
               <Route path="/create-book" element={user ? <CreateBook /> : <Navigate to="/login" />} />
               <Route path="/search-books" element={user ? <SearchBooks /> : <Navigate to="/login" />} />
+              <Route path="/add-review" element={user ? <AddReview /> : <Navigate to="/login" />} />
 
               {/* Reading Challenges */}
               <Route path="/challenges" element={user ? <Challenges /> : <Navigate to="/login" />} />
@@ -114,6 +117,9 @@ const App = () => {
               {/* Password reset (public) */}
               <Route path="/password-reset-request" element={<PasswordResetRequest />} />
               <Route path="/password-reset" element={<PasswordReset />} />
+
+              {/* Book details (public) */}
+              <Route path="/book/:bookId" element={<BookDetailsPage />} />
             </Routes>
           </main>
           <Footer />

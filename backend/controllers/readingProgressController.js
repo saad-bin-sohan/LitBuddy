@@ -7,13 +7,18 @@ const asyncHandler = require('express-async-handler');
 // @route   POST /api/reading-progress
 // @access  Private
 const addBookToList = asyncHandler(async (req, res) => {
-  const { bookId, status, totalPages, startDate } = req.body;
+  let { bookId, status, totalPages, startDate } = req.body;
 
   // Check if book exists
   const book = await Book.findById(bookId);
   if (!book) {
     res.status(404);
     throw new Error('Book not found');
+  }
+
+  // Set totalPages from book if not provided
+  if (!totalPages) {
+    totalPages = book.pageCount || 0;
   }
 
   // Check if already in list

@@ -135,7 +135,7 @@ app.use(
   '/uploads',
   express.static(upload.UPLOADS_DIR, {
     setHeaders(res) {
-      res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     },
   })
 );
@@ -168,8 +168,17 @@ app.use('/api/reading-goals', require('./routes/readingGoalRoutes'));
 // Challenge routes
 app.use('/api/challenges', require('./routes/challengeRoutes'));
 
-// GoodReads integration routes
-app.use('/api/goodreads', require('./routes/goodreadsRoutes'));
+// Google Books integration routes
+app.use('/api/googlebooks', require('./routes/googleBooksRoutes'));
+
+// Import the review routes
+const reviewRoutes = require('./routes/reviewRoutes');
+
+// Use the review routes
+app.use('/api/reviews', reviewRoutes);
+
+// Mount admin routes for user management and suspension
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 // 10. Error handling middlewares
 app.use(notFound);

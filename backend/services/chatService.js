@@ -250,7 +250,7 @@ async function resumeChat(requesterId, chatId) {
 /**
  * Append a message to a chat
  */
-async function appendMessage(senderId, chatId, text) {
+async function appendMessage(senderId, chatId, text, attachments = []) {
   const chat = await Chat.findById(chatId);
   if (!chat) {
     const err = new Error('Chat not found');
@@ -271,7 +271,7 @@ async function appendMessage(senderId, chatId, text) {
     throw err;
   }
 
-  const message = { sender: toObjectId(senderId), text, timestamp: new Date() };
+  const message = { sender: toObjectId(senderId), text, attachments, timestamp: new Date() };
   chat.messages.push(message);
   chat.lastActive = new Date();
   await chat.save();

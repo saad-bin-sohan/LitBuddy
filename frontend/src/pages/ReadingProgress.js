@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { readingProgressApi } from '../api/readingProgressApi';
 import { readingGoalApi } from '../api/readingGoalApi';
-import { bookApi } from '../api/bookApi';
-import BookCard from '../components/BookCard';
 import ReadingProgressCard from '../components/ReadingProgressCard';
-import GoodReadsSearch from '../components/GoodReadsSearch';
+import GoogleBooksSearch from '../components/GoogleBooksSearch';
 import './ReadingProgress.css';
 
 const ReadingProgress = () => {
@@ -22,7 +20,7 @@ const ReadingProgress = () => {
   const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showGoodReadsSearch, setShowGoodReadsSearch] = useState(false);
+  const [showGoogleBooksSearch, setShowGoogleBooksSearch] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -49,28 +47,7 @@ const ReadingProgress = () => {
     }
   };
 
-  const handleAddBookToList = async (bookId, status) => {
-    try {
-      // For now, we'll assume the book exists and has page count
-      // In a real app, you'd get this from the book data
-      const response = await readingProgressApi.addBookToList({
-        bookId,
-        status,
-        totalPages: 300 // Default page count, should come from book data
-      });
 
-      // Update the lists
-      setReadingLists(prev => ({
-        ...prev,
-        [status]: [...prev[status], response]
-      }));
-
-      // Reload data to get updated stats
-      loadData();
-    } catch (err) {
-      setError(err.message);
-    }
-  };
 
   const handleUpdateProgress = async (progressId, updates) => {
     try {
@@ -110,15 +87,18 @@ const ReadingProgress = () => {
     <div className="reading-progress-page">
       <div className="page-header">
         <h1>Reading Progress</h1>
-        <div className="header-actions">
+      <div className="header-actions">
           <button className="btn btn-primary" onClick={handleCreateBook}>
             Add New Book
           </button>
           <button className="btn btn-outline" onClick={handleSearchBooks}>
             Search Books
           </button>
-          <button className="btn btn-success" onClick={() => setShowGoodReadsSearch(true)}>
-            Search GoodReads
+          <button className="btn btn-success" onClick={() => setShowGoogleBooksSearch(true)}>
+            Search Google Books
+          </button>
+          <button className="btn btn-info" onClick={() => navigate('/add-review')}>
+            Add Review / Rating
           </button>
         </div>
       </div>
@@ -336,13 +316,13 @@ const ReadingProgress = () => {
         </div>
       )}
 
-      {showGoodReadsSearch && (
-        <GoodReadsSearch
+      {showGoogleBooksSearch && (
+        <GoogleBooksSearch
           onImportBook={(book) => {
             // Refresh the data after importing
             loadData();
           }}
-          onClose={() => setShowGoodReadsSearch(false)}
+          onClose={() => setShowGoogleBooksSearch(false)}
         />
       )}
     </div>

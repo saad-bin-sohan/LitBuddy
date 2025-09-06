@@ -15,6 +15,7 @@ const Chat = () => {
 
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [statusMessage, setStatusMessage] = useState('');
   const [chatMeta, setChatMeta] = useState({
     status: 'active',
@@ -37,6 +38,7 @@ const Chat = () => {
   const lastLocalStatusChangeRef = useRef(null);
   const scrollRef = useRef();
   const messageInputRef = useRef();
+  const fileInputRef = useRef();
   const subscriptionsRef = useRef([]);
 
   // --- Helpers ---
@@ -179,7 +181,8 @@ const Chat = () => {
   const handleSend = async (e) => {
     e && e.preventDefault();
     const content = newMessage.trim();
-    if (!content) return;
+    const hasContent = content || selectedFiles.length > 0;
+    if (!hasContent) return;
     if (chatMeta.status !== 'active') {
       setStatusMessage('Conversation is paused. Resume to send messages.');
       return;
@@ -189,15 +192,23 @@ const Chat = () => {
       const optimistic = {
         _id: `temp-${Date.now()}`,
         text: content,
+        attachments: selectedFiles.map(f => ({
+          filename: f.name,
+          originalname: f.name,
+          mimetype: f.type,
+          size: f.size,
+          url: '', // Will be filled by backend
+        })),
         sender: { _id: user?._id, displayName: user?.displayName || user?.name },
         timestamp: new Date().toISOString(),
         _optimistic: true,
       };
       setMessages((prev) => [...prev, optimistic]);
       setNewMessage('');
+      setSelectedFiles([]);
       if (messageInputRef.current) messageInputRef.current.style.height = 'auto';
 
-      const res = await sendMessage(chatId, content);
+      const res = await sendMessage(chatId, content, selectedFiles);
       if (res?.messages && Array.isArray(res.messages)) {
         setMessages(res.messages);
       } else if (res?.message) {
@@ -264,6 +275,29 @@ const Chat = () => {
     const ta = e.target;
     ta.style.height = 'auto';
     ta.style.height = `${Math.min(300, ta.scrollHeight)}px`;
+  };
+
+  // --- File handlers ---
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    const validFiles = files.filter(f => {
+      const isValidType = f.type.startsWith('image/') || f.type === 'application/pdf';
+      const isValidSize = f.size <= 8 * 1024 * 1024; // 8MB limit
+      return isValidType && isValidSize;
+    });
+    if (validFiles.length !== files.length) {
+      setStatusMessage('Some files were skipped (unsupported type or too large)');
+      setTimeout(() => setStatusMessage(''), 3000);
+    }
+    setSelectedFiles(prev => [...prev, ...validFiles].slice(0, 5)); // Max 5 files
+  };
+
+  const removeFile = (index) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const openFileDialog = () => {
+    fileInputRef.current?.click();
   };
 
   // --- Reporting helpers ---
@@ -415,6 +449,96 @@ const Chat = () => {
                         {m.text}
                       </div>
 
+                      {/* Attachments */}
+                      {m.attachments && m.attachments.length > 0 && (
+                        <div className="message-attachments">
+                          {m.attachments.map((attachment, idx) => (
+                            <div key={idx} className="attachment-item">
+                              {attachment.mimetype.startsWith('image/') ? (
+                                <div className="image-attachment-container">
+                                  <img
+                                    src={attachment.url}
+                                    alt={attachment.originalname}
+                                    className="attachment-image"
+                                    onClick={() => window.open(attachment.url, '_blank')}
+                                    style={{ maxWidth: '200px', maxHeight: '200px', cursor: 'pointer', borderRadius: '8px' }}
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                      e.target.nextSibling.style.display = 'block';
+                                    }}
+                                  />
+                                  <div className="image-error" style={{ display: 'none', color: '#666', fontSize: '12px' }}>
+                                    Image failed to load
+                                  </div>
+                                  <div className="attachment-actions">
+                                    <button
+                                      type="button"
+                                      className="download-btn"
+                                      onClick={async () => {
+                                        try {
+                                          const response = await fetch(attachment.url);
+                                          const blob = await response.blob();
+                                          const url = window.URL.createObjectURL(blob);
+                                          const link = document.createElement('a');
+                                          link.href = url;
+                                          link.download = attachment.originalname;
+                                          link.click();
+                                          window.URL.revokeObjectURL(url);
+                                        } catch (error) {
+                                          console.error('Download failed:', error);
+                                          setStatusMessage('Download failed');
+                                          setTimeout(() => setStatusMessage(''), 3000);
+                                        }
+                                      }}
+                                      title="Download image"
+                                    >
+                                      ⬇️
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="file-attachment-container">
+                                  <a
+                                    href={attachment.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="attachment-link"
+                                    download={attachment.originalname}
+                                  >
+                                    📄 {attachment.originalname}
+                                  </a>
+                                  <div className="attachment-actions">
+                                    <button
+                                      type="button"
+                                      className="download-btn"
+                                      onClick={async () => {
+                                        try {
+                                          const response = await fetch(attachment.url);
+                                          const blob = await response.blob();
+                                          const url = window.URL.createObjectURL(blob);
+                                          const link = document.createElement('a');
+                                          link.href = url;
+                                          link.download = attachment.originalname;
+                                          link.click();
+                                          window.URL.revokeObjectURL(url);
+                                        } catch (error) {
+                                          console.error('Download failed:', error);
+                                          setStatusMessage('Download failed');
+                                          setTimeout(() => setStatusMessage(''), 3000);
+                                        }
+                                      }}
+                                      title="Download file"
+                                    >
+                                      ⬇️
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
                       <div className="message-footer-modern">
                         <div className="message-time-modern">{ts}</div>
                         
@@ -457,11 +581,11 @@ const Chat = () => {
                 placeholder={chatMeta.status === 'active' ? 'Type your message here...' : 'Conversation is paused'}
                 value={newMessage}
                 onChange={handleInputChange}
-                onKeyPress={(e) => { 
-                  if (e.key === 'Enter' && !e.shiftKey) { 
-                    e.preventDefault(); 
-                    handleSend(); 
-                  } 
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
                 }}
                 disabled={chatMeta.status !== 'active'}
                 rows="1"
@@ -474,14 +598,55 @@ const Chat = () => {
               )}
             </div>
 
-            <Button 
-              type="submit" 
-              className="send-button-modern"
-              disabled={chatMeta.status !== 'active' || !newMessage.trim()}
-            >
-              <span className="send-icon">💬</span>
-              Send
-            </Button>
+            {/* Selected Files Preview */}
+            {selectedFiles.length > 0 && (
+              <div className="selected-files-preview">
+                {selectedFiles.map((file, index) => (
+                  <div key={index} className="file-preview-item">
+                    <span className="file-name">{file.name}</span>
+                    <button
+                      type="button"
+                      className="remove-file-btn"
+                      onClick={() => removeFile(index)}
+                      aria-label={`Remove ${file.name}`}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="composer-actions">
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,.pdf"
+                onChange={handleFileSelect}
+                style={{ display: 'none' }}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                className="attach-button-modern"
+                onClick={openFileDialog}
+                disabled={chatMeta.status !== 'active'}
+                title="Attach files (images or PDFs)"
+              >
+                <span className="attach-icon">📎</span>
+                Attach
+              </Button>
+
+              <Button
+                type="submit"
+                className="send-button-modern"
+                disabled={chatMeta.status !== 'active' || (!newMessage.trim() && selectedFiles.length === 0)}
+              >
+                <span className="send-icon">💬</span>
+                Send
+              </Button>
+            </div>
           </form>
         </div>
 

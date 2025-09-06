@@ -3,8 +3,23 @@ const mongoose = require('mongoose');
 
 const messageSchema = new mongoose.Schema({
   sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  text: { type: String, required: true, trim: true },
+  text: { type: String, trim: true },
+  attachments: [{
+    filename: { type: String, required: true },
+    originalname: { type: String, required: true },
+    mimetype: { type: String, required: true },
+    size: { type: Number, required: true },
+    url: { type: String, required: true },
+  }],
   timestamp: { type: Date, default: Date.now },
+});
+
+// Custom validation: either text or attachments must be present
+messageSchema.pre('validate', function(next) {
+  if (!this.text && (!this.attachments || this.attachments.length === 0)) {
+    this.invalidate('text', 'Either text or attachments must be provided');
+  }
+  next();
 });
 
 const chatSchema = new mongoose.Schema(

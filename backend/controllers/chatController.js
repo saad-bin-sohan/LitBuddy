@@ -54,15 +54,39 @@ const listChats = asyncHandler(async (req, res) => {
  * POST /api/chat/message/:chatId
  * Append a message to chat
  */
+const upload = require('../middleware/uploadMiddleware');
+
 const sendMessage = asyncHandler(async (req, res) => {
+  // Use upload middleware to handle file uploads (max 5 files)
+  await new Promise((resolve, reject) => {
+    upload.array('attachments', 5)(req, res, (err) => {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
+
   const { text } = req.body;
-  if (!text || typeof text !== 'string' || !text.trim()) {
+
+  // Validate text or attachments presence
+  const hasText = text && typeof text === 'string' && text.trim();
+  const hasFiles = req.savedFiles && req.savedFiles.length > 0;
+
+  if (!hasText && !hasFiles) {
     res.status(400);
-    throw new Error('Message text required');
+    throw new Error('Message text or attachments required');
   }
 
+  // Prepare attachments metadata if any
+  const attachments = (req.savedFiles || []).map(f => ({
+    filename: f.filename,
+    originalname: f.originalname,
+    mimetype: f.mimetype,
+    size: f.size,
+    url: f.url,
+  }));
+
   try {
-    const chat = await chatService.appendMessage(req.user._id, req.params.chatId, text.trim());
+    const chat = await chatService.appendMessage(req.user._id, req.params.chatId, hasText ? text.trim() : '', attachments);
     res.json(chat);
   } catch (err) {
     if (err && err.status === 409) {

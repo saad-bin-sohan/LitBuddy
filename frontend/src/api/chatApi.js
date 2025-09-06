@@ -74,14 +74,20 @@ export const getMyChats = async () => {
  * Send message
  * POST /api/chat/message/:chatId
  */
-export const sendMessage = async (chatId, text) => {
+export const sendMessage = async (chatId, text, files = []) => {
+  const formData = new FormData();
+  if (text) {
+    formData.append('text', text);
+  }
+  if (files && files.length > 0) {
+    for (const file of files) {
+      formData.append('attachments', file);
+    }
+  }
   const res = await fetch(`${API_URL}/chat/message/${chatId}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     credentials: 'include', // Use cookies instead of Authorization header
-    body: JSON.stringify({ text }),
+    body: formData,
   });
   const data = await parseJsonSafe(res);
   if (!res.ok) {

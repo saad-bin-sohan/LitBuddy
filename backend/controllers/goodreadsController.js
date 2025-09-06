@@ -131,13 +131,13 @@ const importBookFromGoodreads = asyncHandler(async (req, res) => {
     });
 
     // Add to reading list if status is provided
-    if (status && status !== 'want-to-read') {
+    if (status) {
       const ReadingProgress = require('../models/readingProgressModel');
       await ReadingProgress.create({
         user: req.user.id,
         book: book._id,
         status,
-        totalPages: book.pageCount,
+        totalPages: book.pageCount || totalPages,
         startDate: new Date()
       });
     }
