@@ -163,25 +163,25 @@ const Navbar = () => {
               {/* Chats Link */}
               <Link to="/chats" className="nav-action-btn chats-btn" title="Chats" aria-label="Chats">
                 <FiMessageSquare />
-                <span className="action-label">Chats</span>
+                <span className="action-label"></span>
               </Link>
 
               {/* Reading Progress Link */}
               <Link to="/reading-progress" className="nav-action-btn reading-btn" title="Reading Progress" aria-label="Reading Progress">
                 <FiBookOpen />
-                <span className="action-label">Reading</span>
+                <span className="action-label"></span>
               </Link>
 
               {/* Challenges Link */}
               <Link to="/challenges" className="nav-action-btn challenges-btn" title="Reading Challenges" aria-label="Reading Challenges">
                 <FiAward />
-                <span className="action-label">Challenges</span>
+                <span className="action-label"></span>
               </Link>
 
               {/* Achievements Link */}
               <Link to="/achievements" className="nav-action-btn achievements-btn" title="Achievements" aria-label="Achievements">
                 <FiTrendingUp />
-                <span className="action-label">Achievements</span>
+                <span className="action-label"></span>
               </Link>
 
               {/* Profile Dropdown */}
