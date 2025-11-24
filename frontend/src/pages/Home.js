@@ -124,7 +124,7 @@ const Home = () => {
         <div className="container">
           <div className="stats-grid">
             {stats.map((stat, index) => (
-              <ScrollAnimation key={index} animation="bounce-in" delay={index * 0.1}>
+              <ScrollAnimation key={index} animation="bounce-in" delay={index * 0.1} repeat>
                 <div className="stat-item hover-scale">
                   <div className="stat-number animate-pulse">{stat.number}</div>
                   <div className="stat-label">{stat.label}</div>
@@ -138,7 +138,7 @@ const Home = () => {
       {/* Features Section */}
       <section className="features-section">
         <div className="container">
-          <ScrollAnimation animation="fade-in-up" delay={0.1}>
+          <ScrollAnimation animation="fade-in-up" delay={0.1} repeat>
             <div className="section-header">
               <h2>Why choose LitBuddy?</h2>
               <p>Everything you need to connect with fellow book lovers</p>
@@ -147,7 +147,7 @@ const Home = () => {
           
           <div className="features-grid">
             {features.map((feature, index) => (
-              <ScrollAnimation key={feature.title} animation="fade-in-up" delay={0.2 + index * 0.1}>
+              <ScrollAnimation key={feature.title} animation="fade-in-up" delay={0.2 + index * 0.1} repeat>
                 <Card className="feature-card hover-lift">
                   <div className="feature-icon animate-float" style={{backgroundColor: feature.color}}>
                     <span>{feature.icon}</span>
@@ -166,7 +166,7 @@ const Home = () => {
       {/* CTA Section */}
       <section className="cta-section">
         <div className="container">
-          <ScrollAnimation animation="fade-in-up" delay={0.1}>
+          <ScrollAnimation animation="fade-in-up" delay={0.1} repeat>
             <div className="cta-content">
               <h2>Ready to find your reading community?</h2>
               <p>Join thousands of readers who are already connecting and sharing their love for books.</p>

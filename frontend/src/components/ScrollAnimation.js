@@ -9,6 +9,7 @@ const ScrollAnimation = ({
   rootMargin = '0px 0px -50px 0px',
   delay = 0,
   duration = 0.6,
+  repeat = false,
   ...props 
 }) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -18,9 +19,13 @@ const ScrollAnimation = ({
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !hasAnimated) {
+        if (entry.isIntersecting && (!hasAnimated || repeat)) {
           setIsVisible(true);
-          setHasAnimated(true);
+          if (!repeat) {
+            setHasAnimated(true);
+          }
+        } else if (!entry.isIntersecting && repeat) {
+          setIsVisible(false);
         }
       },
       {
@@ -29,16 +34,18 @@ const ScrollAnimation = ({
       }
     );
 
-    if (ref.current) {
-      observer.observe(ref.current);
+    const current = ref.current;
+
+    if (current) {
+      observer.observe(current);
     }
 
     return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
+      if (current) {
+        observer.unobserve(current);
       }
     };
-  }, [threshold, rootMargin, hasAnimated]);
+  }, [threshold, rootMargin, hasAnimated, repeat]);
 
   const getAnimationClass = () => {
     const baseClass = 'scroll-animate';
