@@ -16,7 +16,7 @@ const Register = () => {
     password: '',
     age: '',
     gender: '',
-    acceptedTerms: false
+    acceptedTerms: true
   });
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
