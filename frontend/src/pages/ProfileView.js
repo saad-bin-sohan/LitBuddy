@@ -2,7 +2,6 @@
 
 import React, { useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
-import ReportButton from '../components/ReportButton';
 
 const ProfileView = () => {
   const { user } = useContext(AuthContext);

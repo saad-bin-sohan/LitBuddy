@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   getUserAchievements, 
@@ -22,19 +22,12 @@ const Achievements = () => {
     pages: 1,
     total: 0
   });
+  const currentPage = pagination.current;
 
-  useEffect(() => {
-    if (activeTab === 'achievements') {
-      loadAchievements();
-    } else {
-      loadLeaderboard();
-    }
-  }, [activeTab, period, pagination.current]);
-
-  const loadAchievements = async () => {
+  const loadAchievements = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await getUserAchievements(pagination.current, 20);
+      const response = await getUserAchievements(currentPage, 20);
       setAchievements(response.data);
       setTotalPoints(response.totalPoints);
       setPagination(response.pagination);
@@ -43,9 +36,9 @@ const Achievements = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage]);
 
-  const loadLeaderboard = async () => {
+  const loadLeaderboard = useCallback(async () => {
     try {
       setLoading(true);
       const response = await getGlobalLeaderboard(period);
@@ -55,7 +48,15 @@ const Achievements = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [period]);
+
+  useEffect(() => {
+    if (activeTab === 'achievements') {
+      loadAchievements();
+    } else {
+      loadLeaderboard();
+    }
+  }, [activeTab, loadAchievements, loadLeaderboard]);
 
   const handleMarkAsRead = async (achievementId) => {
     try {

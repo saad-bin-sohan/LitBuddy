@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { createClub } from '../api/clubApi';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './ClubCreationForm.css';
 
 const ClubCreationForm = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({

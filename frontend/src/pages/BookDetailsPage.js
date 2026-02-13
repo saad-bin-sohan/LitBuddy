@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiBookOpen, FiUser, FiCalendar, FiFileText, FiStar } from 'react-icons/fi';
 import { bookApi } from '../api/bookApi';
@@ -14,11 +14,7 @@ const BookDetailsPage = () => {
   const [error, setError] = useState('');
   const [reviewsKey, setReviewsKey] = useState(0); // Key to force re-render of BookReviews
 
-  useEffect(() => {
-    fetchBookDetails();
-  }, [bookId]);
-
-  const fetchBookDetails = async () => {
+  const fetchBookDetails = useCallback(async () => {
     try {
       setLoading(true);
       const bookData = await bookApi.getBookById(bookId);
@@ -28,7 +24,11 @@ const BookDetailsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [bookId]);
+
+  useEffect(() => {
+    fetchBookDetails();
+  }, [fetchBookDetails]);
 
   const handleBack = () => {
     navigate(-1);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { getGroupChat, sendGroupMessage } from '../api/groupChatApi';
 import { subscribe, unsubscribe } from '../stompClient';
@@ -8,7 +8,7 @@ import Button from '../components/Button';
 import './GroupChat.css';
 
 const GroupChat = () => {
-  const { clubId, chatId } = useParams();
+  const { chatId } = useParams();
   const { user } = useContext(AuthContext);
 
   const [chat, setChat] = useState(null);

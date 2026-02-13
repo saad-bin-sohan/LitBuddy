@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getClub, leaveClub, promoteMember, demoteMember, removeMember } from '../api/clubApi';
@@ -18,11 +18,7 @@ const ClubDetails = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [managingMember, setManagingMember] = useState(null);
 
-  useEffect(() => {
-    loadClubData();
-  }, [clubId]);
-
-  const loadClubData = async () => {
+  const loadClubData = useCallback(async () => {
     try {
       setLoading(true);
       const [clubData, chatsData] = await Promise.all([
@@ -40,7 +36,11 @@ const ClubDetails = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [clubId, navigate]);
+
+  useEffect(() => {
+    loadClubData();
+  }, [loadClubData]);
 
   const handleLeaveClub = async () => {
     if (!window.confirm('Are you sure you want to leave this club?')) return;

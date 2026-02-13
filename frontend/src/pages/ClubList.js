@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getClubs, joinClub, leaveClub } from '../api/clubApi';
 import { Link } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './ClubList.css';
 
 const ClubList = () => {
-  const { user } = useAuth();
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -16,11 +14,7 @@ const ClubList = () => {
   });
   const [joiningClub, setJoiningClub] = useState(null);
 
-  useEffect(() => {
-    loadClubs();
-  }, [filters]);
-
-  const loadClubs = async () => {
+  const loadClubs = useCallback(async () => {
     try {
       setLoading(true);
       const response = await getClubs(filters);
@@ -30,7 +24,11 @@ const ClubList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
+
+  useEffect(() => {
+    loadClubs();
+  }, [loadClubs]);
 
   const handleJoinClub = async (clubId) => {
     setJoiningClub(clubId);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiBook, FiUser, FiHash, FiImage, FiFileText, FiTag, FiCalendar, FiGlobe, FiSave, FiArrowLeft } from 'react-icons/fi';
+import { FiBook, FiUser, FiHash, FiImage, FiFileText, FiCalendar, FiGlobe, FiSave, FiArrowLeft } from 'react-icons/fi';
 import { bookApi } from '../api/bookApi';
 import './CreateBook.css';
 

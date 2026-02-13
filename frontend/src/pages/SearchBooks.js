@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiFilter, FiX, FiArrowLeft, FiBookOpen, FiUser, FiCalendar, FiFileText } from 'react-icons/fi';
+import { FiSearch, FiFilter, FiX, FiArrowLeft, FiBookOpen } from 'react-icons/fi';
 import { bookApi } from '../api/bookApi';
 import { readingProgressApi } from '../api/readingProgressApi';
 import BookCard from '../components/BookCard';
@@ -35,13 +35,7 @@ const SearchBooks = () => {
     { value: 'completed', label: 'Completed' }
   ];
 
-  useEffect(() => {
-    if (searchQuery || searchFilters.author || searchFilters.genre) {
-      performSearch();
-    }
-  }, [searchQuery, searchFilters]);
-
-  const performSearch = async () => {
+  const performSearch = useCallback(async () => {
     if (!searchQuery && !searchFilters.author && !searchFilters.genre) {
       setBooks([]);
       return;
@@ -64,7 +58,13 @@ const SearchBooks = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery, searchFilters]);
+
+  useEffect(() => {
+    if (searchQuery || searchFilters.author || searchFilters.genre) {
+      performSearch();
+    }
+  }, [searchQuery, searchFilters, performSearch]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -104,7 +104,6 @@ const SearchBooks = () => {
 
     try {
       const promises = selectedBooks.map(bookId => {
-        const book = books.find(b => b._id === bookId);
         return readingProgressApi.addToList({
           bookId,
           listType: selectedList,

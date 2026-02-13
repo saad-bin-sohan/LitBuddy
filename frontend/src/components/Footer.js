@@ -1,7 +1,7 @@
 // frontend/src/components/Footer.js
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FiHeart, FiGithub, FiTwitter, FiMail, FiBookOpen, FiUsers, FiMessageSquare, FiShield } from 'react-icons/fi';
+import { FiHeart, FiGithub, FiTwitter, FiMail, FiBookOpen, FiUsers, FiMessageSquare } from 'react-icons/fi';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();

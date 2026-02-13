@@ -1,6 +1,6 @@
 // frontend/src/components/GoogleAuth.js
 
-import React, { useContext, useEffect } from 'react';
+import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
 import { AuthContext } from '../contexts/AuthContext';

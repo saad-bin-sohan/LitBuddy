@@ -1,12 +1,11 @@
 // frontend/src/pages/Chats.js
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMyChats } from '../api/chatApi';
 import Avatar from '../components/Avatar';
 import Button from '../components/Button';
 import Card from '../components/Card';
 import { AuthContext } from '../contexts/AuthContext';
-import { getStompClient, subscribe, unsubscribe, send } from '../stompClient';
 
 // Safe formatter for various location shapes similar to Matches page
 function formatLocation(loc) {
@@ -39,7 +38,7 @@ const Chats = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const loadChats = async (retryCount = 0) => {
+  const loadChats = useCallback(async (retryCount = 0) => {
     try {
       setLoading(true);
       setError('');
@@ -47,40 +46,36 @@ const Chats = () => {
       setChats(list);
     } catch (e) {
       console.error('Error loading chats:', e);
-              if (e.status === 400) {
-          setError('Invalid session. Please log in again.');
-        } else if (e.status === 401) {
-          setError('Please log in to view your chats');
-        } else if (e.status === 403) {
-          setError('Access denied. Please check your account status.');
-        } else if (e.status === 404) {
-          setError('User not found. Please check your account.');
-        } else if (e.status === 500) {
-          setError('Server error. Please try again later.');
-        } else if (e.status === 503) {
-          setError('Service temporarily unavailable. Please try again later.');
-        } else if (e.status === 408) {
-          setError('Request timeout. Please try again.');
-        } else if (retryCount < 2) {
-          // Retry on network errors
-          console.log(`Retrying... attempt ${retryCount + 1}`);
-          setTimeout(() => loadChats(retryCount + 1), 1000 * (retryCount + 1));
-          return;
-        } else {
-          setError(e.message || 'Failed to load chats');
-        }
-      } finally {
+      if (e.status === 400) {
+        setError('Invalid session. Please log in again.');
+      } else if (e.status === 401) {
+        setError('Please log in to view your chats');
+      } else if (e.status === 403) {
+        setError('Access denied. Please check your account status.');
+      } else if (e.status === 404) {
+        setError('User not found. Please check your account.');
+      } else if (e.status === 500) {
+        setError('Server error. Please try again later.');
+      } else if (e.status === 503) {
+        setError('Service temporarily unavailable. Please try again later.');
+      } else if (e.status === 408) {
+        setError('Request timeout. Please try again.');
+      } else if (retryCount < 2) {
+        // Retry on network errors
+        console.log(`Retrying... attempt ${retryCount + 1}`);
+        setTimeout(() => loadChats(retryCount + 1), 1000 * (retryCount + 1));
+        return;
+      } else {
+        setError(e.message || 'Failed to load chats');
+      }
+    } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    let mounted = true;
-    if (mounted) {
-      loadChats();
-    }
-    return () => { mounted = false; };
-  }, []);
+    loadChats();
+  }, [loadChats]);
 
   const formatLastMessageTime = (timestamp) => {
     if (!timestamp) return '';

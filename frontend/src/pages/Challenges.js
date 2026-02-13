@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   getChallenges, 
@@ -49,14 +49,7 @@ const Challenges = () => {
     }
   });
 
-  useEffect(() => {
-    loadChallenges();
-    if (user) {
-      loadUserChallenges();
-    }
-  }, [user, filters]);
-
-  const loadChallenges = async () => {
+  const loadChallenges = useCallback(async () => {
     try {
       setLoading(true);
       const response = await getChallenges(filters);
@@ -66,7 +59,7 @@ const Challenges = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   const handleCreateChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -151,14 +144,21 @@ const Challenges = () => {
     }
   };
 
-  const loadUserChallenges = async () => {
+  const loadUserChallenges = useCallback(async () => {
     try {
       const response = await getUserChallenges();
       setUserChallenges(response.data);
     } catch (error) {
       console.error('Error loading user challenges:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadChallenges();
+    if (user) {
+      loadUserChallenges();
+    }
+  }, [user, loadChallenges, loadUserChallenges]);
 
   const handleJoinChallenge = async (challengeId) => {
     try {

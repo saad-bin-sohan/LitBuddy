@@ -1,5 +1,5 @@
 // frontend/src/contexts/NotificationContext.js
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { AuthContext } from './AuthContext';
 import { fetchNotifications, markNotificationRead } from '../api/notificationApi';
 import { initStomp, getStompClient, subscribe, unsubscribe } from '../stompClient';
@@ -14,7 +14,7 @@ export const NotificationProvider = ({ children }) => {
   const { user, token } = useContext(AuthContext);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [subDest, setSubDest] = useState(null);
+  const subDestRef = useRef(null);
 
   const normalize = (res) => {
     if (!res) return [];
@@ -42,8 +42,10 @@ export const NotificationProvider = ({ children }) => {
 
   useEffect(() => {
     if (!user || !token) {
-      if (subDest) unsubscribe(subDest);
-      setSubDest(null);
+      if (subDestRef.current) {
+        unsubscribe(subDestRef.current);
+        subDestRef.current = null;
+      }
       setNotifications([]);
       setUnreadCount(0);
       return;
@@ -56,9 +58,14 @@ export const NotificationProvider = ({ children }) => {
     const trySubscribe = () => {
       const client = getStompClient();
       if (client && client.connected) {
-        if (subDest && subDest !== desiredDest) unsubscribe(subDest);
-        setupNotificationSubscription(client, desiredDest);
-        setSubDest(desiredDest);
+        if (subDestRef.current && subDestRef.current !== desiredDest) {
+          unsubscribe(subDestRef.current);
+          subDestRef.current = null;
+        }
+        if (subDestRef.current !== desiredDest) {
+          setupNotificationSubscription(desiredDest);
+          subDestRef.current = desiredDest;
+        }
         // Load history once
         refresh();
         return true;
@@ -74,11 +81,14 @@ export const NotificationProvider = ({ children }) => {
     }
 
     return () => {
-      if (desiredDest) unsubscribe(desiredDest);
+      if (subDestRef.current === desiredDest) {
+        unsubscribe(desiredDest);
+        subDestRef.current = null;
+      }
     };
   }, [user, token, refresh]);
 
-  const setupNotificationSubscription = (client, destination) => {
+  const setupNotificationSubscription = (destination) => {
     subscribe(destination, (notif) => {
       setNotifications((prev) => [notif, ...prev]);
       setUnreadCount((prev) => prev + 1);
