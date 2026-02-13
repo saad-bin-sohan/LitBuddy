@@ -2117,7 +2117,7 @@ a:hover { color: var(--color-primary-hover); }
 .modern-footer {
   background: var(--color-surface);
   border-top: 1px solid var(--color-card-border);
-  margin-top: var(--space-64);
+  margin-top: var(--space-40);
   position: relative;
   overflow: hidden;
   display: block;
@@ -2143,7 +2143,7 @@ a:hover { color: var(--color-primary-hover); }
 .footer-container {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: var(--space-48) var(--space-24);
+  padding: var(--space-32) var(--space-24);
   display: block;
   width: 100%;
   flex-shrink: 0;
@@ -2159,8 +2159,8 @@ a:hover { color: var(--color-primary-hover); }
 .footer-main {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-  gap: var(--space-40);
-  margin-bottom: var(--space-48);
+  gap: var(--space-32);
+  margin-bottom: var(--space-32);
   align-items: start;
   width: 100%;
   flex-shrink: 0;
@@ -2172,7 +2172,7 @@ a:hover { color: var(--color-primary-hover); }
   grid-template-rows: auto;
   background: transparent;
   border-radius: var(--radius-xl);
-  padding: var(--space-32);
+  padding: var(--space-20);
   box-shadow: none;
   border: 1px solid transparent;
 }
@@ -2194,7 +2194,7 @@ a:hover { color: var(--color-primary-hover); }
   display: flex;
   align-items: center;
   gap: var(--space-12);
-  margin-bottom: var(--space-20);
+  margin-bottom: var(--space-12);
 }
 
 .footer-logo-icon {
@@ -2229,7 +2229,7 @@ a:hover { color: var(--color-primary-hover); }
 .footer-description {
   color: var(--color-text-secondary);
   line-height: 1.6;
-  margin-bottom: var(--space-24);
+  margin-bottom: var(--space-16);
   font-size: var(--font-size-base);
 }
 
@@ -2265,7 +2265,7 @@ a:hover { color: var(--color-primary-hover); }
 .footer-links {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-32);
+  gap: var(--space-24);
   min-height: 0;
   align-items: start;
   width: 100%;
@@ -2298,7 +2298,7 @@ a:hover { color: var(--color-primary-hover); }
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text);
-  margin-bottom: var(--space-20);
+  margin-bottom: var(--space-16);
   position: relative;
   white-space: nowrap;
 }
@@ -2306,9 +2306,9 @@ a:hover { color: var(--color-primary-hover); }
 .footer-section-title::after {
   content: '';
   position: absolute;
-  bottom: -8px;
+  bottom: -6px;
   left: 0;
-  width: 24px;
+  width: 20px;
   height: 2px;
   background: var(--color-primary);
   border-radius: 1px;
@@ -2320,7 +2320,7 @@ a:hover { color: var(--color-primary-hover); }
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-12);
+  gap: var(--space-10);
   min-height: 0;
   width: 100%;
   flex-shrink: 0;
@@ -2355,18 +2355,18 @@ a:hover { color: var(--color-primary-hover); }
 /* Footer Bottom */
 .footer-bottom {
   border-top: 1px solid rgba(var(--color-border-rgb), 0.12);
-  padding-top: var(--space-32);
-  margin-top: var(--space-16);
+  padding-top: var(--space-20);
+  margin-top: var(--space-8);
 }
 
 .footer-bottom-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: var(--space-24);
+  gap: var(--space-16);
   background: transparent;
   border-radius: var(--radius-lg);
-  padding: var(--space-20) var(--space-24);
+  padding: var(--space-12) var(--space-16);
   box-shadow: none;
   border: 1px solid transparent;
 }
@@ -2374,7 +2374,7 @@ a:hover { color: var(--color-primary-hover); }
 .footer-copyright {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: var(--space-6);
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
 }
@@ -2392,13 +2392,13 @@ a:hover { color: var(--color-primary-hover); }
 
 .footer-stats {
   display: flex;
-  gap: var(--space-24);
+  gap: var(--space-16);
 }
 
 .footer-stats .stat-item {
   display: flex;
   align-items: center;
-  gap: var(--space-8);
+  gap: var(--space-6);
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
@@ -2420,13 +2420,13 @@ a:hover { color: var(--color-primary-hover); }
   align-items: center;
   justify-content: center;
   gap: var(--space-16);
-  margin-top: var(--space-32);
+  margin-top: var(--space-16);
   opacity: 0.6;
 }
 
 .decoration-line {
   height: 1px;
-  width: 60px;
+  width: 44px;
   background: var(--color-card-border);
 }
 
@@ -2446,7 +2446,7 @@ a:hover { color: var(--color-primary-hover); }
 @media (max-width: 1024px) {
   .footer-main {
     grid-template-columns: 1fr 1fr;
-    gap: var(--space-32);
+    gap: var(--space-24);
   }
   
   .footer-brand {
@@ -2456,23 +2456,23 @@ a:hover { color: var(--color-primary-hover); }
   
   .footer-links {
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-24);
+    gap: var(--space-20);
   }
 }
 
 @media (max-width: 768px) {
   .footer-container {
-    padding: var(--space-32) var(--space-24);
+    padding: var(--space-24) var(--space-20);
   }
   
   .footer-main {
     grid-template-columns: 1fr;
-    gap: var(--space-24);
+    gap: var(--space-20);
   }
   
   .footer-links {
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-20);
+    gap: var(--space-16);
   }
   
   .footer-bottom-content {
@@ -2480,18 +2480,19 @@ a:hover { color: var(--color-primary-hover); }
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
-    gap: var(--space-16);
+    gap: var(--space-12);
     text-align: center;
   }
   
   .footer-stats {
+    gap: var(--space-12);
     justify-content: center;
   }
 }
 
 @media (max-width: 480px) {
   .footer-container {
-    padding: var(--space-24) var(--space-16);
+    padding: var(--space-20) var(--space-16);
   }
   
   .footer-logo {
@@ -2506,14 +2507,14 @@ a:hover { color: var(--color-primary-hover); }
   
   .footer-links {
     grid-template-columns: 1fr;
-    gap: var(--space-16);
+    gap: var(--space-12);
   }
   
   .footer-bottom-content {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
-    gap: var(--space-12);
+    gap: var(--space-10);
   }
   
   .footer-copyright {
@@ -2525,7 +2526,7 @@ a:hover { color: var(--color-primary-hover); }
   .footer-stats {
     flex-direction: row;
     flex-wrap: wrap;
-    gap: var(--space-16);
+    gap: var(--space-12);
     align-items: center;
     justify-content: center;
   }
