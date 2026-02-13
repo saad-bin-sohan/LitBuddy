@@ -1,5 +1,5 @@
 // frontend/src/pages/Home.js
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import Card from '../components/Card';
 import Button from '../components/Button';
@@ -33,14 +33,6 @@ const stats = [
 ];
 
 const Home = () => {
-  useEffect(() => {
-    // Add entrance animation to the page
-    document.body.classList.add('page-loaded');
-    return () => {
-      document.body.classList.remove('page-loaded');
-    };
-  }, []);
-
   return (
     <div className="home-page animate-fade-in">
       {/* Hero Section */}
@@ -52,50 +44,41 @@ const Home = () => {
         
         <div className="container">
           <div className="hero-content">
-            <div className="hero-text">
-              <ScrollAnimation animation="fade-in-down" delay={0.1}>
-                <div className="hero-badge animate-float">
+            <ScrollAnimation animation="fade-in-up" delay={0.1}>
+              <div className="hero-text">
+                <div className="hero-badge">
                   <span className="badge-icon">📚</span>
                   <span>Welcome to LitBuddy</span>
                 </div>
-              </ScrollAnimation>
-              
-              <ScrollAnimation animation="fade-in-up" delay={0.2}>
                 <h1 className="hero-title">
                   Find readers. Start conversations. 
                   <span className="gradient-text"> Build your reading circle.</span>
                 </h1>
-              </ScrollAnimation>
-              
-              <ScrollAnimation animation="fade-in-up" delay={0.3}>
                 <p className="hero-description">
                   Discover people who care about the same books and ideas. Private chat, 
                   safe controls, and simple workflows to connect with fellow book lovers.
                 </p>
-              </ScrollAnimation>
-              
-              <ScrollAnimation animation="fade-in-up" delay={0.4}>
                 <div className="hero-actions">
                   <Link to="/matches">
-                    <Button className="hero-cta hover-lift">
+                    <Button className="hero-cta">
                       <span>Find matches</span>
                       <span className="arrow">→</span>
                     </Button>
                   </Link>
                   <Link to="/register">
-                    <Button variant="ghost" className="hero-secondary hover-lift">
+                    <Button variant="ghost" className="hero-secondary">
                       Join for free
                     </Button>
                   </Link>
                 </div>
-              </ScrollAnimation>
-            </div>
+              </div>
+            </ScrollAnimation>
             
-            <ScrollAnimation animation="fade-in-right" delay={0.5}>
+            <ScrollAnimation animation="fade-in-up" delay={0.2}>
               <div className="hero-visual">
-                <div className="hero-card hover-lift">
+                <div className="hero-card">
                   <div className="card-header">
-                    <div className="card-avatar animate-pulse">
+                    <div className="card-avatar">
                       <span>📖</span>
                     </div>
                     <div className="card-info">
@@ -107,6 +90,9 @@ const Home = () => {
                     <img 
                       alt="Reading together" 
                       src="https://electricliterature.com/wp-content/uploads/2021/11/Best-Book-Cover-Electric-Lit-2021-1.png" 
+                      decoding="async"
+                      width="900"
+                      height="1200"
                     />
                     <div className="image-overlay">
                       <span></span>
@@ -122,34 +108,34 @@ const Home = () => {
       {/* Stats Section */}
       <section className="stats-section">
         <div className="container">
-          <div className="stats-grid">
-            {stats.map((stat, index) => (
-              <ScrollAnimation key={index} animation="bounce-in" delay={index * 0.1} repeat>
-                <div className="stat-item hover-scale">
-                  <div className="stat-number animate-pulse">{stat.number}</div>
+          <ScrollAnimation animation="fade-in-up" delay={0.1}>
+            <div className="stats-grid">
+              {stats.map((stat, index) => (
+                <div key={index} className="stat-item">
+                  <div className="stat-number">{stat.number}</div>
                   <div className="stat-label">{stat.label}</div>
                 </div>
-              </ScrollAnimation>
-            ))}
-          </div>
+              ))}
+            </div>
+          </ScrollAnimation>
         </div>
       </section>
 
       {/* Features Section */}
       <section className="features-section">
         <div className="container">
-          <ScrollAnimation animation="fade-in-up" delay={0.1} repeat>
+          <ScrollAnimation animation="fade-in-up" delay={0.1}>
             <div className="section-header">
               <h2>Why choose LitBuddy?</h2>
               <p>Everything you need to connect with fellow book lovers</p>
             </div>
           </ScrollAnimation>
           
-          <div className="features-grid">
-            {features.map((feature, index) => (
-              <ScrollAnimation key={feature.title} animation="fade-in-up" delay={0.2 + index * 0.1} repeat>
-                <Card className="feature-card hover-lift">
-                  <div className="feature-icon animate-float" style={{backgroundColor: feature.color}}>
+          <ScrollAnimation animation="fade-in-up" delay={0.15}>
+            <div className="features-grid">
+              {features.map((feature) => (
+                <Card key={feature.title} className="feature-card">
+                  <div className="feature-icon" style={{ backgroundColor: feature.color }}>
                     <span>{feature.icon}</span>
                   </div>
                   <div className="feature-content">
@@ -157,25 +143,25 @@ const Home = () => {
                     <p>{feature.desc}</p>
                   </div>
                 </Card>
-              </ScrollAnimation>
-            ))}
-          </div>
+              ))}
+            </div>
+          </ScrollAnimation>
         </div>
       </section>
 
       {/* CTA Section */}
       <section className="cta-section">
         <div className="container">
-          <ScrollAnimation animation="fade-in-up" delay={0.1} repeat>
+          <ScrollAnimation animation="fade-in-up" delay={0.1}>
             <div className="cta-content">
               <h2>Ready to find your reading community?</h2>
               <p>Join thousands of readers who are already connecting and sharing their love for books.</p>
               <div className="cta-actions">
                 <Link to="/register">
-                  <Button className="cta-primary hover-lift">Get Started</Button>
+                  <Button className="cta-primary">Get Started</Button>
                 </Link>
                 <Link to="/matches">
-                  <Button variant="ghost" className="cta-secondary hover-lift">Browse Matches</Button>
+                  <Button variant="ghost" className="cta-secondary">Browse Matches</Button>
                 </Link>
               </div>
             </div>

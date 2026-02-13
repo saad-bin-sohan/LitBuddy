@@ -6,7 +6,6 @@ import { startChat } from '../api/chatApi';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import Avatar from '../components/Avatar';
-import ScrollAnimation from '../components/ScrollAnimation';
 
 /**
  * safe formatter for various location shapes
@@ -72,14 +71,11 @@ const Matches = () => {
 
   return (
     <main className="container animate-fade-in">
-      <ScrollAnimation animation="fade-in-up" delay={0.1}>
-        <h2>Your Matches</h2>
-      </ScrollAnimation>
-      {msg && <ScrollAnimation animation="fade-in-up" delay={0.2}><p className="muted">{msg}</p></ScrollAnimation>}
+      <h2>Your Matches</h2>
+      {msg && <p className="muted">{msg}</p>}
       <div style={{ marginTop: 12 }} className="l-grid">
-        {matches.map((u, index) => (
-          <ScrollAnimation key={u._id} animation="fade-in-up" delay={0.3 + index * 0.1}>
-            <Card className="match-card">
+        {matches.map((u) => (
+          <Card key={u._id} className="match-card">
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', width: '100%' }}>
               <Avatar src={u.profilePhoto} name={u.name || u.displayName} size={64} />
               <div style={{ flex: 1 }}>
@@ -98,7 +94,6 @@ const Matches = () => {
               </div>
             </div>
           </Card>
-          </ScrollAnimation>
         ))}
       </div>
     </main>

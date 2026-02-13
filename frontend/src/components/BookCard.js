@@ -1,19 +1,16 @@
 import React from 'react';
 import './BookCard.css';
-import ScrollAnimation from './ScrollAnimation';
 
 const BookCard = ({ book, onAddToList, onEdit, onDelete, showActions = true, animated = true }) => {
   const handleAddToList = (status) => {
     onAddToList(book._id, status);
   };
 
-  const CardWrapper = animated ? ScrollAnimation : 'div';
-  const cardProps = animated ? { animation: 'fade-in-up', delay: 0.1 } : {};
+  const cardClassName = animated ? 'book-card hover-lift' : 'book-card';
 
   return (
-    <CardWrapper {...cardProps}>
-      <div className="book-card hover-lift">
-        <div className="book-cover">
+    <div className={cardClassName}>
+      <div className="book-cover">
         {book.coverImage ? (
           <img src={book.coverImage} alt={book.title} />
         ) : (
@@ -82,7 +79,6 @@ const BookCard = ({ book, onAddToList, onEdit, onDelete, showActions = true, ani
         </div>
       )}
     </div>
-    </CardWrapper>
   );
 };
 

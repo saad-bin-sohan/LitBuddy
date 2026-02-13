@@ -15,17 +15,26 @@ const ScrollAnimation = ({
   const [isVisible, setIsVisible] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
   const ref = useRef(null);
+  // Keep prop compatibility while enforcing one-time reveal behavior.
+  void repeat;
 
   useEffect(() => {
+    if (hasAnimated) {
+      return undefined;
+    }
+
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+      setIsVisible(true);
+      setHasAnimated(true);
+      return undefined;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && (!hasAnimated || repeat)) {
+        if (entry.isIntersecting && !hasAnimated) {
           setIsVisible(true);
-          if (!repeat) {
-            setHasAnimated(true);
-          }
-        } else if (!entry.isIntersecting && repeat) {
-          setIsVisible(false);
+          setHasAnimated(true);
+          observer.unobserve(entry.target);
         }
       },
       {
@@ -45,7 +54,7 @@ const ScrollAnimation = ({
         observer.unobserve(current);
       }
     };
-  }, [threshold, rootMargin, hasAnimated, repeat]);
+  }, [threshold, rootMargin, hasAnimated]);
 
   const getAnimationClass = () => {
     const baseClass = 'scroll-animate';
