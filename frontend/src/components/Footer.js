@@ -21,13 +21,13 @@ const Footer = () => {
               </div>
             </div>
             <p className="footer-description">
-              Join thousands of readers who are already connecting, sharing, and building meaningful conversations around their favorite books.
+              Join hundreds of readers who are already connecting, sharing, and building meaningful conversations around their favorite books.
             </p>
             <div className="footer-social">
-              <a href="https://github.com/saad-bin-sohan" className="social-link" aria-label="GitHub">
+              <a href="https://github.com/saad-bin-sohan" className="social-link" aria-label="GitHub" target="_blank" rel="noopener noreferrer">
                 <FiGithub />
               </a>
-              <a href="https://twitter.com" className="social-link" aria-label="Twitter">
+              <a href="https://twitter.com" className="social-link" aria-label="Twitter" target="_blank" rel="noopener noreferrer">
                 <FiTwitter />
               </a>
               <a href="mailto:hello@litbuddy.com" className="social-link" aria-label="Email">
@@ -89,19 +89,19 @@ const Footer = () => {
                 Made with <FiHeart className="heart-icon" /> for readers worldwide
               </span>
             </div>
-            
+
             <div className="footer-stats">
               <div className="stat-item">
                 <FiBookOpen className="stat-icon" />
-                <span>50K+ Books</span>
+                <span>100+ Books</span>
               </div>
               <div className="stat-item">
                 <FiUsers className="stat-icon" />
-                <span>10K+ Readers</span>
+                <span>100+ Readers</span>
               </div>
               <div className="stat-item">
                 <FiMessageSquare className="stat-icon" />
-                <span>100K+ Messages</span>
+                <span>40+ Messages</span>
               </div>
             </div>
           </div>
