@@ -1,0 +1,29 @@
+const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001/api';
+
+async function parseJsonSafe(res) {
+  try {
+    return await res.json();
+  } catch {
+    return {};
+  }
+}
+
+async function postSubmission(path, payload) {
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    credentials: 'include',
+  });
+  const data = await parseJsonSafe(res);
+  if (!res.ok) throw new Error(data.message || 'Failed to submit request');
+  return data;
+}
+
+export function sendContact(payload) {
+  return postSubmission('/support/contact', payload);
+}
+
+export function sendFeedback(payload) {
+  return postSubmission('/support/feedback', payload);
+}

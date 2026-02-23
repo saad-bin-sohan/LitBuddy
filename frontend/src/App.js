@@ -23,6 +23,22 @@ import Challenges from './pages/Challenges';
 import Achievements from './pages/Achievements';
 import BookDetailsPage from './pages/BookDetailsPage';
 import AddReview from './pages/AddReview';
+import AboutPage from './pages/AboutPage';
+import HelpCenterPage from './pages/HelpCenterPage';
+import FaqPage from './pages/FaqPage';
+import ContactPage from './pages/ContactPage';
+import FeedbackPage from './pages/FeedbackPage';
+import BlogPage from './pages/BlogPage';
+import BlogPostPage from './pages/BlogPostPage';
+import CareersPage from './pages/CareersPage';
+import CareerDetailsPage from './pages/CareerDetailsPage';
+import PressKitPage from './pages/PressKitPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsPage from './pages/TermsPage';
+import CookiePolicyPage from './pages/CookiePolicyPage';
+import CommunityGuidelinesPage from './pages/CommunityGuidelinesPage';
+import AdminContent from './pages/AdminContent';
+import AdminSupportInbox from './pages/AdminSupportInbox';
 
 // NEW pages for password reset
 import PasswordResetRequest from './pages/PasswordResetRequest';
@@ -126,6 +142,8 @@ const App = () => {
 
               {/* Admin */}
               <Route path="/admin/reports" element={isAdmin ? <AdminReports /> : <Navigate to="/" />} />
+              <Route path="/admin/content" element={isAdmin ? <AdminContent /> : <Navigate to="/" />} />
+              <Route path="/admin/support" element={isAdmin ? <AdminSupportInbox /> : <Navigate to="/" />} />
 
               {/* Password reset (public) */}
               <Route path="/password-reset-request" element={<PasswordResetRequest />} />
@@ -133,6 +151,22 @@ const App = () => {
 
               {/* Book details (public) */}
               <Route path="/book/:bookId" element={<BookDetailsPage />} />
+
+              {/* Public footer pages */}
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/help" element={<HelpCenterPage />} />
+              <Route path="/faq" element={<FaqPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/feedback" element={<FeedbackPage />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/blog/:slug" element={<BlogPostPage />} />
+              <Route path="/careers" element={<CareersPage />} />
+              <Route path="/careers/:slug" element={<CareerDetailsPage />} />
+              <Route path="/press" element={<PressKitPage />} />
+              <Route path="/privacy" element={<PrivacyPolicyPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/cookies" element={<CookiePolicyPage />} />
+              <Route path="/guidelines" element={<CommunityGuidelinesPage />} />
             </Routes>
           </main>
           <Footer />

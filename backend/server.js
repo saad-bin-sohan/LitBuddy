@@ -149,6 +149,8 @@ app.use('/api/match', require('./routes/matchRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/report', require('./routes/reportRoutes'));
 app.use('/api/password', require('./routes/passwordRoutes'));
+app.use('/api/content', require('./routes/contentRoutes'));
+app.use('/api/support', require('./routes/supportRoutes'));
 
 // notifications (if present)
 try {
@@ -183,6 +185,8 @@ app.use('/api/reviews', reviewRoutes);
 
 // Mount admin routes for user management and suspension
 app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/admin/content', require('./routes/adminContentRoutes'));
+app.use('/api/admin/support', require('./routes/adminSupportRoutes'));
 
 // 10. Error handling middlewares
 app.use(notFound);
