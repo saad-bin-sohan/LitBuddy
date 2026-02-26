@@ -46,16 +46,19 @@ const NotificationCenter = () => {
 
   const panelStyle = {
     position: 'absolute',
+    top: 'calc(100% + 10px)',
     right: 0,
-    width: 320,
-    maxHeight: 420,
+    width: 'min(320px, calc(100vw - 24px))',
+    maxWidth: 'min(320px, calc(100vw - 24px))',
+    maxHeight: 'min(420px, calc(100dvh - 120px))',
     overflowY: 'auto',
     background: 'white',
     boxShadow: '0 12px 28px rgba(0,0,0,0.15)',
     borderRadius: 14,
     padding: 12,
     zIndex: 1000,
-    border: '1px solid rgba(0,0,0,0.06)'
+    border: '1px solid rgba(0,0,0,0.06)',
+    boxSizing: 'border-box'
   };
 
   const itemStyle = {
@@ -66,7 +69,7 @@ const NotificationCenter = () => {
   };
 
   return (
-    <div style={{ position: 'relative', display: 'inline-block', marginLeft: 12 }}>
+    <div style={{ position: 'relative', display: 'inline-block', marginLeft: 0, flexShrink: 0 }}>
       <button
         onClick={() => setOpen((s) => !s)}
         onMouseEnter={() => setHovered(true)}
