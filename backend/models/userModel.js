@@ -155,7 +155,7 @@ userSchema.methods.hasRole = function (role) {
  *  - Hash password when modified (only for non-Google users).
  *  - Handle Google OAuth users properly.
  */
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', async function () {
   try {
     // Sync role/isAdmin
     // If isAdmin was set to true, ensure role === 'admin'
@@ -181,18 +181,17 @@ userSchema.pre('save', async function (next) {
 
     // For Google OAuth users, don't hash password (they don't have one)
     if (this.isGoogleUser) {
-      return next();
+      return;
     }
 
     // Hash password when changed (only for non-Google users)
     if (!this.isModified('password')) {
-      return next();
+      return;
     }
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    return next();
   } catch (err) {
-    return next(err);
+    throw err;
   }
 });
 
