@@ -8,14 +8,6 @@
       "destination": "https://litbuddy.onrender.com/api/$1"
     },
     {
-      "source": "/ws",
-      "destination": "https://litbuddy.onrender.com/ws"
-    },
-    {
-      "source": "/ws/(.*)",
-      "destination": "https://litbuddy.onrender.com/ws/$1"
-    },
-    {
       "source": "/uploads/(.*)",
       "destination": "https://litbuddy.onrender.com/uploads/$1"
     },
@@ -26,7 +18,7 @@
   ],
   "env": {
     "VITE_API_BASE_URL": "/api",
-    "VITE_WS_BASE_URL": "/ws",
+    "VITE_WS_BASE_URL": "wss://litbuddy.onrender.com/ws",
     "VITE_GOOGLE_CLIENT_ID": "751790859074-vuu7gn21egi6r723kb27vt3ppdiihfs5.apps.googleusercontent.com"
   }
 }

@@ -84,6 +84,18 @@ const protect = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (decoded && decoded.scope === 'ws') {
+      requestLogger.warn(
+        {
+          path: req.originalUrl || req.url,
+          source,
+        },
+        'auth.scope_invalid_for_route'
+      );
+      if (source === 'cookie') clearAuthCookies(res);
+      return unauthorized(res, 'AUTH_TOKEN_SCOPE_INVALID', 'Not authorized, token scope invalid');
+    }
+
     const user = await User.findById(decoded.id).select('-password');
 
     if (!user) {

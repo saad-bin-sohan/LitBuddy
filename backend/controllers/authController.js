@@ -9,6 +9,7 @@
  */
 
 const asyncHandler = require('express-async-handler');
+const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 const OTP = require('../models/otpModel');
 const generateToken = require('../utils/generateToken');
@@ -24,6 +25,12 @@ const getClientIp = (req) => {
   if (xff) return xff.split(',')[0].trim();
   return req.connection?.remoteAddress || req.ip;
 };
+
+function getWsTokenTtlSeconds() {
+  const parsed = Number.parseInt(process.env.WS_TOKEN_TTL || '120', 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return 120;
+  return parsed;
+}
 
 function sanitizeUserForResponse(user) {
   // user is a mongoose document or plain object
@@ -267,10 +274,37 @@ const getUserProfile = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc Issue short-lived websocket token
+// @route GET /api/auth/ws-token
+// @access Private
+const issueWsToken = asyncHandler(async (req, res) => {
+  const userId = req.user?._id || req.user?.id;
+  if (!userId) {
+    res.status(401);
+    throw new Error('Not authenticated');
+  }
+
+  const expiresInSeconds = getWsTokenTtlSeconds();
+  const token = jwt.sign(
+    {
+      id: String(userId),
+      scope: 'ws',
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: expiresInSeconds,
+    }
+  );
+
+  res.set('Cache-Control', 'no-store');
+  res.json({ token, expiresInSeconds });
+});
+
 module.exports = {
   registerUser,
   loginUser,
   loginWithOtp,
   getUserProfile,
+  issueWsToken,
   logoutUser, // exported for route mounting
 };

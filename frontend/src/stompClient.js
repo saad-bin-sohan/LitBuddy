@@ -1,5 +1,5 @@
 import { Client } from '@stomp/stompjs';
-import { WS_URL } from './api/httpClient';
+import { WS_URL, apiJson } from './api/httpClient';
 
 let stompClient = null;
 let subscriptions = {};
@@ -9,13 +9,30 @@ function normalizeWsUrl(rawUrl) {
   return rawUrl.replace(/\/+$/, '');
 }
 
+function withQueryToken(url, token) {
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}token=${encodeURIComponent(token)}`;
+}
+
+async function fetchWsToken() {
+  const data = await apiJson('/auth/ws-token');
+  if (!data || !data.token) {
+    throw new Error('Failed to fetch websocket token');
+  }
+  return data.token;
+}
+
 export function initStomp() {
-  if (stompClient && stompClient.connected) return stompClient;
+  if (stompClient && (stompClient.connected || stompClient.active)) return stompClient;
 
   const wsUrl = normalizeWsUrl(WS_URL);
 
   stompClient = new Client({
-    webSocketFactory: () => new WebSocket(wsUrl),
+    beforeConnect: async () => {
+      const wsToken = await fetchWsToken();
+      const tokenizedUrl = withQueryToken(wsUrl, wsToken);
+      stompClient.webSocketFactory = () => new WebSocket(tokenizedUrl);
+    },
     connectHeaders: {},
     reconnectDelay: 5000,
     debug: (str) => console.log('[STOMP]', str),

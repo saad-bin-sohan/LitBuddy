@@ -7,6 +7,7 @@ const {
   loginUser,
   loginWithOtp,
   getUserProfile,
+  issueWsToken,
   logoutUser,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
@@ -19,5 +20,6 @@ router.post('/logout', logoutUser);
 
 // Private
 router.get('/profile', protect, getUserProfile);
+router.get('/ws-token', protect, issueWsToken);
 
 module.exports = router;
