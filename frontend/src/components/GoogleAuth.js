@@ -5,102 +5,78 @@ import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
 import { AuthContext } from '../contexts/AuthContext';
 import { googleAuthCallback } from '../api/authApi';
+import { IS_GOOGLE_AUTH_ENABLED } from '../api/httpClient';
 
-const GoogleAuth = ({ onSuccess, onError, buttonText = "Sign up with Google", className = "" }) => {
+const GoogleAuthButton = ({ onSuccess, onError, buttonText = 'Sign up with Google', className = '' }) => {
   const { setUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleGoogleSuccess = async (response) => {
     try {
-      console.log('Google response:', response);
-      
       let googleData;
-      
-      // Handle different response formats based on flow type
+
       if (response.credential) {
-        // Implicit flow - credential is a JWT token
-        console.log('Using implicit flow with credential');
         try {
           if (typeof response.credential !== 'string') {
             throw new Error('Credential is not a string');
           }
-          
+
           const parts = response.credential.split('.');
           if (parts.length !== 3) {
             throw new Error('Invalid JWT format: expected 3 parts');
           }
-          
+
           const payload = JSON.parse(atob(parts[1]));
-          console.log('Decoded payload:', payload);
           googleData = {
             googleId: payload.sub,
             email: payload.email,
             name: payload.name,
-            picture: payload.picture
+            picture: payload.picture,
           };
-        } catch (parseError) {
-          console.error('Error parsing credential:', parseError);
+        } catch {
           throw new Error('Failed to parse Google credential');
         }
       } else if (response.access_token) {
-        // Auth code flow - we need to get user info from Google
-        console.log('Using auth code flow with access_token');
         try {
           const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
             headers: {
               Authorization: `Bearer ${response.access_token}`,
             },
           });
-          
+
           if (!userInfoResponse.ok) {
             throw new Error('Failed to fetch user info from Google');
           }
-          
+
           const userInfo = await userInfoResponse.json();
-          console.log('User info from Google:', userInfo);
           googleData = {
             googleId: userInfo.id,
             email: userInfo.email,
             name: userInfo.name,
-            picture: userInfo.picture
+            picture: userInfo.picture,
           };
-        } catch (fetchError) {
-          console.error('Error fetching user info:', fetchError);
+        } catch {
           throw new Error('Failed to get user information from Google');
         }
       } else {
-        console.error('Unexpected response format:', response);
         throw new Error('Unexpected Google response format');
       }
 
       if (!googleData.googleId || !googleData.email) {
-        console.error('Missing required data:', googleData);
         throw new Error('Missing required Google user information');
       }
 
-      console.log('Sending to backend:', googleData);
-
-      // Call our backend to handle the Google OAuth
       const data = await googleAuthCallback(googleData);
-      
-      console.log('Backend response:', data);
-      
-      // Set user in context
       setUser(data.user);
-      
-      // Call onSuccess callback if provided
+
       if (onSuccess) {
         onSuccess(data.user);
+      } else if (!data.user.hasCompletedSetup) {
+        navigate('/profile-setup');
       } else {
-        // Default behavior: redirect to profile setup if not completed
-        if (!data.user.hasCompletedSetup) {
-          navigate('/profile-setup');
-        } else {
-          navigate('/my-profile');
-        }
+        navigate('/my-profile');
       }
     } catch (error) {
-      console.error('Google authentication error:', error);
       if (onError) {
         onError(error.message || 'Google authentication failed');
       }
@@ -109,13 +85,12 @@ const GoogleAuth = ({ onSuccess, onError, buttonText = "Sign up with Google", cl
 
   const login = useGoogleLogin({
     onSuccess: handleGoogleSuccess,
-    onError: (error) => {
-      console.error('Google OAuth error:', error);
+    onError: () => {
       if (onError) {
         onError('Google authentication failed. Please try again.');
       }
     },
-    flow: 'implicit', // Changed from 'auth-code' to 'implicit' for simpler handling
+    flow: 'implicit',
   });
 
   return (
@@ -137,15 +112,15 @@ const GoogleAuth = ({ onSuccess, onError, buttonText = "Sign up with Google", cl
         fontWeight: '500',
         cursor: 'pointer',
         transition: 'all 0.2s ease',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       }}
       onMouseEnter={(e) => {
-        e.target.style.backgroundColor = '#f8f9fa';
-        e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+        e.currentTarget.style.backgroundColor = '#f8f9fa';
+        e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
       }}
       onMouseLeave={(e) => {
-        e.target.style.backgroundColor = '#fff';
-        e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+        e.currentTarget.style.backgroundColor = '#fff';
+        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
       }}
     >
       <svg width="20" height="20" viewBox="0 0 24 24">
@@ -169,6 +144,11 @@ const GoogleAuth = ({ onSuccess, onError, buttonText = "Sign up with Google", cl
       {buttonText}
     </button>
   );
+};
+
+const GoogleAuth = (props) => {
+  if (!IS_GOOGLE_AUTH_ENABLED) return null;
+  return <GoogleAuthButton {...props} />;
 };
 
 export default GoogleAuth;

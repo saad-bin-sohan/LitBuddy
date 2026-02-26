@@ -125,10 +125,17 @@ npm install
 
 Create a `.env` file in the `frontend` directory:
 ```env
+# Required Vite build-time variables
 VITE_GOOGLE_CLIENT_ID=your_google_client_id
 VITE_API_BASE_URL=/api
 VITE_WS_BASE_URL=/ws
+
+# Local dev proxy target
 VITE_DEV_API_TARGET=http://localhost:5001
+
+# Legacy CRA-style keys (fallback only; do not rely on these for Vite deploys)
+# REACT_APP_BACKEND_URL=https://your-backend-name.onrender.com/api
+# REACT_APP_GOOGLE_CLIENT_ID=your_google_client_id
 ```
 
 Start the frontend development server:
@@ -145,6 +152,11 @@ The application should now be running at `http://localhost:3000`.
 The application is configured for easy deployment:
 - **Backend:** Ready for platforms like **Render** or **Heroku**. Includes `render.yaml` and health check endpoints.
 - **Frontend:** Optimized for **Vercel** with Vite output (`dist`) and rewrites for `/api`, `/ws`, and `/uploads`.
+
+For Vercel production builds, set these project Environment Variables and redeploy:
+- `VITE_GOOGLE_CLIENT_ID`
+- `VITE_API_BASE_URL` (recommended: `/api`)
+- `VITE_WS_BASE_URL` (recommended: `/ws`)
 
 ### Blue/Green Rollout Gate (Recommended)
 1. Deploy backend and frontend to green environment with production secrets.

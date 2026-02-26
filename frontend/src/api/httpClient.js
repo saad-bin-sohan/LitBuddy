@@ -41,6 +41,7 @@ export const WS_URL = normalizeWsBase(
 
 export const GOOGLE_CLIENT_ID =
   readEnv('VITE_GOOGLE_CLIENT_ID', 'REACT_APP_GOOGLE_CLIENT_ID') || '';
+export const IS_GOOGLE_AUTH_ENABLED = Boolean(String(GOOGLE_CLIENT_ID || '').trim());
 
 export function apiUrl(path = '') {
   if (!path) return API_URL;

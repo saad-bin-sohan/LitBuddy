@@ -4,6 +4,7 @@ import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { register } from '../api/authApi';
 import { AuthContext } from '../contexts/AuthContext';
+import { IS_GOOGLE_AUTH_ENABLED } from '../api/httpClient';
 import Button from '../components/Button';
 import GoogleAuth from '../components/GoogleAuth';
 
@@ -70,17 +71,21 @@ const Register = () => {
         )}
 
         {/* Google OAuth Button */}
-        <div className="auth-divider">
-          <GoogleAuth 
-            buttonText="Sign up with Google"
-            onError={(error) => setError(error)}
-            className="google-auth-btn"
-          />
-        </div>
+        {IS_GOOGLE_AUTH_ENABLED && (
+          <>
+            <div className="auth-divider">
+              <GoogleAuth
+                buttonText="Sign up with Google"
+                onError={(nextError) => setError(nextError)}
+                className="google-auth-btn"
+              />
+            </div>
 
-        <div className="auth-divider">
-          <span className="divider-text">or</span>
-        </div>
+            <div className="auth-divider">
+              <span className="divider-text">or</span>
+            </div>
+          </>
+        )}
 
         {/* Registration Form */}
         <form onSubmit={handleSubmit} className="auth-form">

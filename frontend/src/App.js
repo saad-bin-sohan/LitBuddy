@@ -39,7 +39,7 @@ import CookiePolicyPage from './pages/CookiePolicyPage';
 import CommunityGuidelinesPage from './pages/CommunityGuidelinesPage';
 import AdminContent from './pages/AdminContent';
 import AdminSupportInbox from './pages/AdminSupportInbox';
-import { GOOGLE_CLIENT_ID } from './api/httpClient';
+import { GOOGLE_CLIENT_ID, IS_GOOGLE_AUTH_ENABLED } from './api/httpClient';
 
 // NEW pages for password reset
 import PasswordResetRequest from './pages/PasswordResetRequest';
@@ -72,107 +72,115 @@ const App = () => {
 
   if (loading) return <p>Loading...</p>;
 
+  const appContent = (
+    <Router>
+      <AuthRedirectWrapper>
+        <Navbar />
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+
+            {/* Auth */}
+            <Route
+              path="/login"
+              element={
+                !user
+                  ? <Login />
+                  : <Navigate to={isProfileComplete ? '/' : '/profile-setup'} replace />
+                }
+            />
+            <Route
+              path="/register"
+              element={
+                !user
+                  ? <Register />
+                  : <Navigate to={isProfileComplete ? '/' : '/profile-setup'} replace />
+                }
+            />
+
+            {/* Profile routes */}
+            <Route
+              path="/profile-setup"
+              element={
+                user
+                  ? (isProfileComplete ? <Navigate to="/my-profile" replace /> : <ProfileSetup />)
+                  : <Navigate to="/login" />
+              }
+            />
+            <Route
+              path="/my-profile"
+              element={
+                user
+                  ? (isProfileComplete ? <ProfileView /> : <Navigate to="/profile-setup" replace />)
+                  : <Navigate to="/login" />
+              }
+            />
+
+            {/* User features */}
+            <Route path="/suggestions" element={user ? <MatchSuggestions /> : <Navigate to="/login" />} />
+            <Route path="/matches" element={user ? <Matches /> : <Navigate to="/login" />} />
+            <Route path="/chat/:chatId" element={user ? <Chat /> : <Navigate to="/login" />} />
+            <Route path="/chats" element={user ? <Chats /> : <Navigate to="/login" />} />
+            <Route path="/report/:userId" element={user ? <ReportUser /> : <Navigate to="/login" />} />
+            
+            {/* Reading Progress */}
+            <Route path="/reading-progress" element={user ? <ReadingProgress /> : <Navigate to="/login" />} />
+            <Route path="/create-book" element={user ? <CreateBook /> : <Navigate to="/login" />} />
+            <Route path="/search-books" element={user ? <SearchBooks /> : <Navigate to="/login" />} />
+            <Route path="/add-review" element={user ? <AddReview /> : <Navigate to="/login" />} />
+
+            {/* Reading Challenges */}
+            <Route path="/challenges" element={user ? <Challenges /> : <Navigate to="/login" />} />
+            <Route path="/achievements" element={user ? <Achievements /> : <Navigate to="/login" />} />
+
+            {/* Book Clubs */}
+            <Route path="/clubs" element={user ? <ClubList /> : <Navigate to="/login" />} />
+            <Route path="/clubs/create" element={user ? <ClubCreationForm /> : <Navigate to="/login" />} />
+            <Route path="/clubs/:clubId" element={user ? <ClubDetails /> : <Navigate to="/login" />} />
+            <Route path="/clubs/:clubId/chat" element={user ? <GroupChat /> : <Navigate to="/login" />} />
+            <Route path="/clubs/:clubId/chat/:chatId" element={user ? <GroupChat /> : <Navigate to="/login" />} />
+
+            {/* Admin */}
+            <Route path="/admin/reports" element={isAdmin ? <AdminReports /> : <Navigate to="/" />} />
+            <Route path="/admin/content" element={isAdmin ? <AdminContent /> : <Navigate to="/" />} />
+            <Route path="/admin/support" element={isAdmin ? <AdminSupportInbox /> : <Navigate to="/" />} />
+
+            {/* Password reset (public) */}
+            <Route path="/password-reset-request" element={<PasswordResetRequest />} />
+            <Route path="/password-reset" element={<PasswordReset />} />
+
+            {/* Book details (public) */}
+            <Route path="/book/:bookId" element={<BookDetailsPage />} />
+
+            {/* Public footer pages */}
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/help" element={<HelpCenterPage />} />
+            <Route path="/faq" element={<FaqPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/feedback" element={<FeedbackPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:slug" element={<BlogPostPage />} />
+            <Route path="/careers" element={<CareersPage />} />
+            <Route path="/careers/:slug" element={<CareerDetailsPage />} />
+            <Route path="/press" element={<PressKitPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/cookies" element={<CookiePolicyPage />} />
+            <Route path="/guidelines" element={<CommunityGuidelinesPage />} />
+          </Routes>
+        </main>
+        <Footer />
+      </AuthRedirectWrapper>
+    </Router>
+  );
+
+  if (!IS_GOOGLE_AUTH_ENABLED) {
+    return appContent;
+  }
+
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <Router>
-        <AuthRedirectWrapper>
-          <Navbar />
-          <main className="main-content">
-            <Routes>
-              <Route path="/" element={<Home />} />
-
-              {/* Auth */}
-              <Route
-                path="/login"
-                element={
-                  !user
-                    ? <Login />
-                    : <Navigate to={isProfileComplete ? '/' : '/profile-setup'} replace />
-                  }
-              />
-              <Route
-                path="/register"
-                element={
-                  !user
-                    ? <Register />
-                    : <Navigate to={isProfileComplete ? '/' : '/profile-setup'} replace />
-                  }
-              />
-
-              {/* Profile routes */}
-              <Route
-                path="/profile-setup"
-                element={
-                  user
-                    ? (isProfileComplete ? <Navigate to="/my-profile" replace /> : <ProfileSetup />)
-                    : <Navigate to="/login" />
-                }
-              />
-              <Route
-                path="/my-profile"
-                element={
-                  user
-                    ? (isProfileComplete ? <ProfileView /> : <Navigate to="/profile-setup" replace />)
-                    : <Navigate to="/login" />
-                }
-              />
-
-              {/* User features */}
-              <Route path="/suggestions" element={user ? <MatchSuggestions /> : <Navigate to="/login" />} />
-              <Route path="/matches" element={user ? <Matches /> : <Navigate to="/login" />} />
-              <Route path="/chat/:chatId" element={user ? <Chat /> : <Navigate to="/login" />} />
-              <Route path="/chats" element={user ? <Chats /> : <Navigate to="/login" />} />
-              <Route path="/report/:userId" element={user ? <ReportUser /> : <Navigate to="/login" />} />
-              
-              {/* Reading Progress */}
-              <Route path="/reading-progress" element={user ? <ReadingProgress /> : <Navigate to="/login" />} />
-              <Route path="/create-book" element={user ? <CreateBook /> : <Navigate to="/login" />} />
-              <Route path="/search-books" element={user ? <SearchBooks /> : <Navigate to="/login" />} />
-              <Route path="/add-review" element={user ? <AddReview /> : <Navigate to="/login" />} />
-
-              {/* Reading Challenges */}
-              <Route path="/challenges" element={user ? <Challenges /> : <Navigate to="/login" />} />
-              <Route path="/achievements" element={user ? <Achievements /> : <Navigate to="/login" />} />
-
-              {/* Book Clubs */}
-              <Route path="/clubs" element={user ? <ClubList /> : <Navigate to="/login" />} />
-              <Route path="/clubs/create" element={user ? <ClubCreationForm /> : <Navigate to="/login" />} />
-              <Route path="/clubs/:clubId" element={user ? <ClubDetails /> : <Navigate to="/login" />} />
-              <Route path="/clubs/:clubId/chat" element={user ? <GroupChat /> : <Navigate to="/login" />} />
-              <Route path="/clubs/:clubId/chat/:chatId" element={user ? <GroupChat /> : <Navigate to="/login" />} />
-
-              {/* Admin */}
-              <Route path="/admin/reports" element={isAdmin ? <AdminReports /> : <Navigate to="/" />} />
-              <Route path="/admin/content" element={isAdmin ? <AdminContent /> : <Navigate to="/" />} />
-              <Route path="/admin/support" element={isAdmin ? <AdminSupportInbox /> : <Navigate to="/" />} />
-
-              {/* Password reset (public) */}
-              <Route path="/password-reset-request" element={<PasswordResetRequest />} />
-              <Route path="/password-reset" element={<PasswordReset />} />
-
-              {/* Book details (public) */}
-              <Route path="/book/:bookId" element={<BookDetailsPage />} />
-
-              {/* Public footer pages */}
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/help" element={<HelpCenterPage />} />
-              <Route path="/faq" element={<FaqPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/feedback" element={<FeedbackPage />} />
-              <Route path="/blog" element={<BlogPage />} />
-              <Route path="/blog/:slug" element={<BlogPostPage />} />
-              <Route path="/careers" element={<CareersPage />} />
-              <Route path="/careers/:slug" element={<CareerDetailsPage />} />
-              <Route path="/press" element={<PressKitPage />} />
-              <Route path="/privacy" element={<PrivacyPolicyPage />} />
-              <Route path="/terms" element={<TermsPage />} />
-              <Route path="/cookies" element={<CookiePolicyPage />} />
-              <Route path="/guidelines" element={<CommunityGuidelinesPage />} />
-            </Routes>
-          </main>
-          <Footer />
-        </AuthRedirectWrapper>
-      </Router>
+      {appContent}
     </GoogleOAuthProvider>
   );
 };

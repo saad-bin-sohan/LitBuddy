@@ -18,9 +18,25 @@ import { AuthContext } from '../contexts/AuthContext';
 import NotificationCenter from './NotificationCenter';
 import Avatar from './Avatar';
 
+const safeReadTheme = () => {
+  try {
+    return localStorage.getItem('theme') || 'light';
+  } catch {
+    return 'light';
+  }
+};
+
+const safeWriteTheme = (value) => {
+  try {
+    localStorage.setItem('theme', value);
+  } catch {
+    // Ignore storage failures (private mode / disabled storage).
+  }
+};
+
 const Navbar = () => {
   const { user, setUser, logout, isAdmin } = useContext(AuthContext);
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+  const [theme, setTheme] = useState(safeReadTheme);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const navigate = useNavigate();
@@ -43,7 +59,7 @@ const Navbar = () => {
       // noop in environments where document isn't available
     }
 
-    localStorage.setItem('theme', theme);
+    safeWriteTheme(theme);
   }, [theme]);
 
   // Close dropdowns when clicking outside

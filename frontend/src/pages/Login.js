@@ -4,12 +4,29 @@ import React, { useState, useContext, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { login, requestOtp, loginWithOtp } from '../api/authApi';
 import { AuthContext } from '../contexts/AuthContext';
+import { IS_GOOGLE_AUTH_ENABLED } from '../api/httpClient';
 import Button from '../components/Button';
 import GoogleAuth from '../components/GoogleAuth';
 
 const makeDeviceId = () => {
   // simple unique id
   return `d_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+};
+
+const safeLocalStorageGet = (key) => {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const safeLocalStorageSet = (key, value) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Ignore storage failures (private mode / disabled storage).
+  }
 };
 
 const Login = () => {
@@ -32,10 +49,10 @@ const Login = () => {
   const [deviceId, setDeviceId] = useState(null);
 
   useEffect(() => {
-    let did = localStorage.getItem('litbuddy_device');
+    let did = safeLocalStorageGet('litbuddy_device');
     if (!did) {
       did = makeDeviceId();
-      localStorage.setItem('litbuddy_device', did);
+      safeLocalStorageSet('litbuddy_device', did);
     }
     setDeviceId(did);
   }, []);
@@ -223,23 +240,25 @@ const Login = () => {
           </form>
 
           {/* Google OAuth Button */}
-          <div className="auth-divider">
-            <GoogleAuth
-              buttonText="Sign in with Google"
-              onSuccess={(user) => {
-                // Redirect based on profile completion status
-                if (!user.hasCompletedSetup) {
-                  window.location.href = '/profile-setup';
-                } else {
-                  window.location.href = '/my-profile';
-                }
-              }}
-              onError={(error) => {
-                setError(error);
-              }}
-              className="google-auth-btn"
-            />
-          </div>
+          {IS_GOOGLE_AUTH_ENABLED && (
+            <div className="auth-divider">
+              <GoogleAuth
+                buttonText="Sign in with Google"
+                onSuccess={(user) => {
+                  // Redirect based on profile completion status
+                  if (!user.hasCompletedSetup) {
+                    window.location.href = '/profile-setup';
+                  } else {
+                    window.location.href = '/my-profile';
+                  }
+                }}
+                onError={(nextError) => {
+                  setError(nextError);
+                }}
+                className="google-auth-btn"
+              />
+            </div>
+          )}
           </>
         ) : (
           /* OTP Verification Flow */
