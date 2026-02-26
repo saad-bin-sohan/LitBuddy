@@ -20,6 +20,7 @@ const Report = require('../models/reportModel');
 const Media = require('../models/mediaModel');
 const User = require('../models/userModel');
 const notificationService = require('../services/notificationService'); // may exist in your repo
+const { getLogger } = require('../utils/logger');
 
 // Helper to require valid ObjectId
 function isValidId(id) {
@@ -89,6 +90,7 @@ const getReport = asyncHandler(async (req, res) => {
  * take other actions (suspend user).
  */
 const updateReportStatus = asyncHandler(async (req, res) => {
+  const requestLogger = getLogger(req);
   const { id } = req.params;
   const { status, moderatorNote, action } = req.body;
 
@@ -139,7 +141,7 @@ const updateReportStatus = asyncHandler(async (req, res) => {
           data: { suspendedUntil: until.toISOString(), moderatorId: req.user._id },
         });
       } catch (err) {
-        console.error('notify suspend failed', err);
+        requestLogger.error({ err, userId: String(uid), reportId: String(report._id) }, 'moderation.notify_suspend_failed');
       }
     }
   }
@@ -166,7 +168,10 @@ const updateReportStatus = asyncHandler(async (req, res) => {
       data: { reportId: report._id, status },
     });
   } catch (err) {
-    console.error('notify reporter failed', err);
+    requestLogger.error(
+      { err, reporterId: String(report.reporter._id), reportId: String(report._id) },
+      'moderation.notify_reporter_failed'
+    );
   }
 
   res.json({ message: 'Report updated', reportId: report._id, status });
@@ -197,6 +202,7 @@ const addModeratorNote = asyncHandler(async (req, res) => {
  * Body: { days, until, reason }
  */
 const suspendUser = asyncHandler(async (req, res) => {
+  const requestLogger = getLogger(req);
   const { id } = req.params; // user id
   const { days, until, reason } = req.body;
 
@@ -223,7 +229,7 @@ const suspendUser = asyncHandler(async (req, res) => {
       body: `Your account has been suspended until ${suspendedUntil.toISOString()}. ${reason ? 'Reason: ' + reason : ''}`,
     });
   } catch (err) {
-    console.error('notify suspendUser failed', err);
+    requestLogger.error({ err, userId: String(user._id) }, 'moderation.notify_suspend_user_failed');
   }
 
   res.json({ message: 'User suspended', user });
@@ -233,6 +239,7 @@ const suspendUser = asyncHandler(async (req, res) => {
  * Unsuspend user
  */
 const unsuspendUser = asyncHandler(async (req, res) => {
+  const requestLogger = getLogger(req);
   const { id } = req.params;
   if (!isValidId(id)) return res.status(400).json({ message: 'Invalid user id' });
 
@@ -247,7 +254,7 @@ const unsuspendUser = asyncHandler(async (req, res) => {
       body: 'Your account has been reinstated and you may log in again.',
     });
   } catch (err) {
-    console.error('notify unsuspend failed', err);
+    requestLogger.error({ err, userId: String(user._id) }, 'moderation.notify_unsuspend_failed');
   }
 
   res.json({ message: 'User unsuspended', user });

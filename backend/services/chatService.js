@@ -5,6 +5,7 @@ const Chat = require('../models/chatModel');
 const User = require('../models/userModel');
 const stompBroker = require('../utils/stompBroker');
 const notificationService = require('./notificationService');
+const { logger } = require('../utils/logger');
 
 /**
  * Convert input to ObjectId (safe)
@@ -38,9 +39,15 @@ function publishConversationStatus(chat) {
       stompBroker.publish(`/user/${p}/queue/conversation-status`, payload);
     }
     
-    console.log(`Published conversation status to ${chat.participants.length} participants`);
+    logger.debug(
+      {
+        chatId: String(chat._id),
+        participantCount: chat.participants.length,
+      },
+      'chat.status_published'
+    );
   } catch (err) {
-    console.error('publishConversationStatus error', err);
+    logger.error({ err, chatId: String(chat._id) }, 'chat.publish_status_failed');
   }
 }
 
@@ -116,14 +123,14 @@ async function listChatsForUser(userIdRaw) {
       throw err;
     }
   } catch (userError) {
-    console.error('Error validating user:', userError);
+    logger.error({ err: userError, userId: String(userIdRaw) }, 'chat.user_validation_failed');
     const err = new Error('Failed to validate user');
     err.status = 500;
     throw err;
   }
 
   try {
-    console.log(`Fetching chats for user: ${userId}`);
+    logger.debug({ userId: String(userId) }, 'chat.list_fetch_started');
     
     // Check database connection
     if (mongoose.connection.readyState !== 1) {
@@ -141,7 +148,7 @@ async function listChatsForUser(userIdRaw) {
     .sort({ lastActive: -1, updatedAt: -1 })
     .lean();
 
-    console.log(`Found ${chats.length} chats for user ${userId}`);
+    logger.debug({ userId: String(userId), chatCount: chats.length }, 'chat.list_fetch_completed');
 
     // Process each chat to add computed fields
     const processedChats = chats.map(chat => {
@@ -169,7 +176,14 @@ async function listChatsForUser(userIdRaw) {
           lastActivity: lastMessage ? lastMessage.timestamp : chat.lastActive || chat.updatedAt
         };
       } catch (chatError) {
-        console.error('Error processing chat:', chat._id, chatError);
+        logger.error(
+          {
+            err: chatError,
+            chatId: String(chat._id),
+            userId: String(userId),
+          },
+          'chat.list_item_processing_failed'
+        );
         // Return a minimal chat object if processing fails
         return {
           ...chat,
@@ -181,10 +195,16 @@ async function listChatsForUser(userIdRaw) {
       }
     });
 
-    console.log(`Processed ${processedChats.length} chats successfully`);
+    logger.debug(
+      {
+        userId: String(userId),
+        processedCount: processedChats.length,
+      },
+      'chat.list_processing_completed'
+    );
     return processedChats;
   } catch (error) {
-    console.error('Error in listChatsForUser:', error);
+    logger.error({ err: error, userId: String(userId) }, 'chat.list_failed');
     const err = new Error('Failed to fetch chats');
     err.status = 500;
     throw err;
@@ -292,9 +312,15 @@ async function appendMessage(senderId, chatId, text, attachments = []) {
       stompBroker.publish(`/user/${p}/queue/messages`, payload);
     }
     
-    console.log(`Published message to ${chat.participants.length} participants`);
+    logger.debug(
+      {
+        chatId: String(chat._id),
+        participantCount: chat.participants.length,
+      },
+      'chat.message_published'
+    );
   } catch (err) {
-    console.error('Error publishing STOMP message:', err);
+    logger.error({ err, chatId: String(chat._id) }, 'chat.publish_message_failed');
   }
 
   // Persist notification

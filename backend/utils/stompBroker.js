@@ -1,5 +1,6 @@
 const WebSocket = require('ws');
 const jwt = require('jsonwebtoken');
+const { logger } = require('./logger');
 
 let wss = null;
 let connections = new Map(); // Map connectionId to connection info
@@ -31,7 +32,7 @@ function initServer(server, options = {}) {
     const connectionId = Date.now() + Math.random();
     const userId = req.userId;
     
-    console.log(`STOMP WebSocket connected: user ${userId}`);
+    logger.info({ userId: String(userId) }, 'stomp.websocket_connected');
     
     // Store connection info
     connections.set(connectionId, {
@@ -55,12 +56,12 @@ function initServer(server, options = {}) {
         const frame = JSON.parse(data.toString());
         handleStompFrame(connectionId, frame);
       } catch (err) {
-        console.error('Error parsing STOMP frame:', err);
+        logger.error({ err, connectionId }, 'stomp.frame_parse_failed');
       }
     });
 
     ws.on('close', () => {
-      console.log(`STOMP WebSocket disconnected: user ${userId}`);
+      logger.info({ userId: String(userId) }, 'stomp.websocket_disconnected');
       // Remove all subscriptions for this connection
       const connection = connections.get(connectionId);
       if (connection) {
@@ -72,7 +73,7 @@ function initServer(server, options = {}) {
     });
 
     ws.on('error', (err) => {
-      console.error('WebSocket error:', err);
+      logger.error({ err, userId: String(userId) }, 'stomp.websocket_error');
     });
   });
 
@@ -88,13 +89,19 @@ function handleStompFrame(connectionId, frame) {
       const destination = frame.headers.destination;
       if (destination) {
         addSubscription(destination, connectionId);
-        console.log(`User ${connection.userId} subscribed to ${destination}`);
+        logger.debug(
+          { userId: String(connection.userId), destination },
+          'stomp.subscription_added'
+        );
       }
       break;
       
     case 'SEND':
       // Handle client sending messages (if needed)
-      console.log(`User ${connection.userId} sent message to ${frame.headers.destination}`);
+      logger.debug(
+        { userId: String(connection.userId), destination: frame.headers.destination },
+        'stomp.message_received'
+      );
       break;
       
     case 'DISCONNECT':
@@ -127,7 +134,7 @@ function removeSubscription(destination, connectionId) {
 
 function publish(destination, body, headers = {}) {
   if (!wss) {
-    console.warn('STOMP broker not initialized');
+    logger.warn({ destination }, 'stomp.publish_skipped_not_initialized');
     return;
   }
 
@@ -151,7 +158,7 @@ function publish(destination, body, headers = {}) {
         try {
           connection.ws.send(JSON.stringify(frame));
         } catch (err) {
-          console.error('Error sending STOMP message:', err);
+          logger.error({ err, destination }, 'stomp.publish_send_failed');
         }
       }
     });

@@ -18,6 +18,7 @@
 
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
+const { getLogger, logger } = require('../utils/logger');
 
 const looksLikeJwt = (t) =>
   typeof t === 'string' && /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/.test(t);
@@ -32,6 +33,7 @@ const cookieClearOptions = {
 };
 
 const protect = async (req, res, next) => {
+  const requestLogger = getLogger(req);
   let token;
   let source = 'none';
 
@@ -44,13 +46,27 @@ const protect = async (req, res, next) => {
   }
 
   if (!token) {
+    requestLogger.warn(
+      {
+        path: req.originalUrl || req.url,
+        source,
+        hasAuthorizationHeader: !!req.headers.authorization,
+        hasTokenCookie: !!(req.cookies && req.cookies.token),
+      },
+      'auth.no_token'
+    );
     return res.status(401).json({ message: 'Not authorized, no token' });
   }
 
   // Quick format check to avoid jwt.verify on obviously-bad tokens
   if (!looksLikeJwt(token)) {
-    console.warn(
-      `authMiddleware: malformed token from ${source} at ${req.originalUrl} — preview=${mask(token)}; clearing cookie if present`
+    requestLogger.warn(
+      {
+        path: req.originalUrl || req.url,
+        source,
+        tokenPreview: mask(token),
+      },
+      'auth.malformed_token'
     );
     if (source === 'cookie') {
       // clear cookie so browser/client can recover
@@ -66,6 +82,13 @@ const protect = async (req, res, next) => {
     const user = await User.findById(decoded.id).select('-password');
 
     if (!user) {
+      requestLogger.warn(
+        {
+          path: req.originalUrl || req.url,
+          source,
+        },
+        'auth.user_not_found'
+      );
       return res.status(401).json({ message: 'Not authorized, user not found' });
     }
 
@@ -75,6 +98,14 @@ const protect = async (req, res, next) => {
     const isAdmin = !!(user.isAdmin || user.role === 'admin');
 
     if (isSuspended && !isAdmin) {
+      requestLogger.warn(
+        {
+          path: req.originalUrl || req.url,
+          userId: String(user._id),
+          suspendedUntil: user.suspendedUntil,
+        },
+        'auth.suspended_user_blocked'
+      );
       return res.status(403).json({
         message: `Account suspended until ${user.suspendedUntil.toISOString()}`,
       });
@@ -83,16 +114,14 @@ const protect = async (req, res, next) => {
     req.user = user;
     return next();
   } catch (error) {
-    // Masked, helpful logging
-    console.error(
-      'authMiddleware error:',
-      error?.message || error,
-      'path:',
-      req.originalUrl,
-      'source:',
-      source,
-      'preview:',
-      mask(token)
+    requestLogger.warn(
+      {
+        err: error,
+        path: req.originalUrl || req.url,
+        source,
+        tokenPreview: mask(token),
+      },
+      'auth.token_verification_failed'
     );
 
     // Clear cookie to help client recover if token was from cookie
@@ -135,10 +164,7 @@ const verifyTokenForSocket = async (rawToken) => {
 
     return user;
   } catch (err) {
-    // Silent failure — handshake code will treat as unauthenticated
-    // but we log minimal info for debugging.
-    // Do not include token contents in logs.
-    // console.debug('verifyTokenForSocket failed:', err?.message || err);
+    logger.debug({ err }, 'auth.socket_token_verification_failed');
     return null;
   }
 };

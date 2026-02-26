@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const User = require('../models/userModel');
 const CityIndex = require('../models/cityIndexModel');
 const notificationService = require('../services/notificationService'); // NEW
+const { getLogger } = require('../utils/logger');
 /**
  * Helper: safe cast to ObjectId
  */
@@ -182,6 +183,7 @@ const getDailySuggestions = asyncHandler(async (req, res) => {
  * @access  Private
  */
 const likeUser = asyncHandler(async (req, res) => {
+  const requestLogger = getLogger(req);
   const likedUserId = req.params.id;
   if (!likedUserId) {
     res.status(400);
@@ -245,7 +247,14 @@ const likeUser = asyncHandler(async (req, res) => {
         data: { withUserId: currentUser._id },
       });
     } catch (err) {
-      console.error('Failed to create/send notifications for match:', err);
+      requestLogger.error(
+        {
+          err,
+          currentUserId: String(currentUser._id),
+          otherUserId: String(otherUser._id),
+        },
+        'match.notification_dispatch_failed'
+      );
     }
 
     return res.json({ message: 'It’s a match!', matchId: likedUserId });

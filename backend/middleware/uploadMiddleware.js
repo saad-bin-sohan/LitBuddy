@@ -28,6 +28,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
+const { getLogger, logger } = require('../utils/logger');
 
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.resolve(__dirname, '..', 'uploads');
 const UPLOADS_BASE_URL = (process.env.UPLOADS_BASE_URL || '/uploads').replace(/\/+$/, ''); // no trailing slash
@@ -39,7 +40,7 @@ const ALLOWED_FILE_TYPES = ALLOWED_FILE_TYPES_RAW.split(',').map((t) => t.trim()
 try {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 } catch (err) {
-  // ignore if already exists; let errors surface when writing
+  logger.warn({ err, uploadsDir: UPLOADS_DIR }, 'upload.ensure_directory_failed');
 }
 
 /**
@@ -201,15 +202,31 @@ function normalizeOne(f) {
  */
 function wrapUploader(mw) {
   return (req, res, next) => {
+    const requestLogger = getLogger(req);
     mw(req, res, async (err) => {
       if (err) {
         // translate multer errors into friendly JSON
         if (err instanceof multer.MulterError) {
           // common multer errors: LIMIT_FILE_SIZE, LIMIT_UNEXPECTED_FILE, etc.
           const msg = err.message || 'File upload error';
+          requestLogger.warn(
+            {
+              err,
+              path: req.originalUrl || req.url,
+              code: err.code || 'MULTER_ERROR',
+            },
+            'upload.middleware_error'
+          );
           return res.status(400).json({ message: msg, code: err.code || 'MULTER_ERROR' });
         }
         // unknown error
+        requestLogger.warn(
+          {
+            err,
+            path: req.originalUrl || req.url,
+          },
+          'upload.middleware_error'
+        );
         return res.status(400).json({ message: err.message || 'File upload error' });
       }
 
@@ -219,6 +236,13 @@ function wrapUploader(mw) {
       } catch (norErr) {
         // if normalization fails, attempt to remove newly saved files
         try { await removeFiles((req.savedFiles || []).map((f) => f.path)); } catch (_) {}
+        requestLogger.error(
+          {
+            err: norErr,
+            path: req.originalUrl || req.url,
+          },
+          'upload.normalization_failed'
+        );
         return res.status(500).json({ message: 'Failed to process uploaded files' });
       }
     });

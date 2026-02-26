@@ -23,6 +23,7 @@ const mongoose = require('mongoose');
 const User = require('../models/userModel');
 const Report = require('../models/reportModel');
 const notificationService = require('../services/notificationService');
+const { getLogger } = require('../utils/logger');
 
 /**
  * List users (paginated)
@@ -104,6 +105,7 @@ const getUser = asyncHandler(async (req, res) => {
  * Promote user to admin
  */
 const promoteToAdmin = asyncHandler(async (req, res) => {
+  const requestLogger = getLogger(req);
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ message: 'Invalid user id' });
 
@@ -120,7 +122,7 @@ const promoteToAdmin = asyncHandler(async (req, res) => {
       body: 'Your account has been granted administrative privileges.',
     });
   } catch (err) {
-    console.error('notify promoteToAdmin failed', err);
+    requestLogger.error({ err, userId: String(user._id) }, 'admin.notify_promote_failed');
   }
 
   res.json({ message: 'User promoted to admin', user });
@@ -130,6 +132,7 @@ const promoteToAdmin = asyncHandler(async (req, res) => {
  * Demote user from admin
  */
 const demoteFromAdmin = asyncHandler(async (req, res) => {
+  const requestLogger = getLogger(req);
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ message: 'Invalid user id' });
 
@@ -149,7 +152,7 @@ const demoteFromAdmin = asyncHandler(async (req, res) => {
       body: 'Your administrative privileges were removed by another administrator.',
     });
   } catch (err) {
-    console.error('notify demoteFromAdmin failed', err);
+    requestLogger.error({ err, userId: String(user._id) }, 'admin.notify_demote_failed');
   }
 
   res.json({ message: 'User demoted from admin', user });
@@ -162,6 +165,7 @@ const demoteFromAdmin = asyncHandler(async (req, res) => {
  *  - optional: reason
  */
 const suspendUser = asyncHandler(async (req, res) => {
+  const requestLogger = getLogger(req);
   const { id } = req.params;
   const { days, until, reason } = req.body;
 
@@ -189,7 +193,7 @@ const suspendUser = asyncHandler(async (req, res) => {
       data: { suspendedUntil: suspendedUntil.toISOString() },
     });
   } catch (err) {
-    console.error('notify suspendUser failed', err);
+    requestLogger.error({ err, userId: String(user._id) }, 'admin.notify_suspend_failed');
   }
 
   res.json({ message: 'User suspended', user });
@@ -199,6 +203,7 @@ const suspendUser = asyncHandler(async (req, res) => {
  * Unsuspend user (clear suspendedUntil)
  */
 const unsuspendUser = asyncHandler(async (req, res) => {
+  const requestLogger = getLogger(req);
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ message: 'Invalid user id' });
 
@@ -213,7 +218,7 @@ const unsuspendUser = asyncHandler(async (req, res) => {
       body: 'Your account has been reinstated and you may log in again.',
     });
   } catch (err) {
-    console.error('notify unsuspendUser failed', err);
+    requestLogger.error({ err, userId: String(user._id) }, 'admin.notify_unsuspend_failed');
   }
 
   res.json({ message: 'User unsuspended', user });
@@ -237,6 +242,7 @@ const resetReports = asyncHandler(async (req, res) => {
  * Body: { verified: true/false }
  */
 const verifyUser = asyncHandler(async (req, res) => {
+  const requestLogger = getLogger(req);
   const { id } = req.params;
   const { verified } = req.body;
 
@@ -254,7 +260,7 @@ const verifyUser = asyncHandler(async (req, res) => {
       body: verified ? 'Your account has been marked as verified by an administrator.' : 'Verification badge removed by an administrator.',
     });
   } catch (err) {
-    console.error('notify verifyUser failed', err);
+    requestLogger.error({ err, userId: String(user._id) }, 'admin.notify_verify_failed');
   }
 
   res.json({ message: `User verification updated to ${verified}`, user });

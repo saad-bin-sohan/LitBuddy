@@ -90,6 +90,12 @@ JWT_SECRET=your_jwt_secret_key
 FRONTEND_URL=http://localhost:3000
 FRONTEND_URLS=http://localhost:3000,http://localhost:5173
 
+# Logging / Observability
+LOG_LEVEL=info
+LOG_HTTP_SLOW_MS=1500
+LOG_REDACTION_MODE=balanced
+LOG_STACKS=true
+
 # Google OAuth
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret

@@ -1,6 +1,7 @@
 // backend/utils/socket.js
 let io = null;
 let userRooms = new Map(); // Map userId to socket
+const { logger } = require('./logger');
 
 /**
  * initIO(server) -> initializes socket.io and returns io instance.
@@ -51,9 +52,9 @@ function initIO(server) {
       // Join user's personal room
       socket.join(String(socket.userId));
       userRooms.set(String(socket.userId), socket);
-      console.log(`Socket connected: user ${socket.userId}`);
+      logger.debug({ userId: String(socket.userId) }, 'socket.user_connected');
     } else {
-      console.log('Socket connected (anonymous)');
+      logger.debug('socket.anonymous_connected');
     }
 
     socket.on('disconnect', () => {

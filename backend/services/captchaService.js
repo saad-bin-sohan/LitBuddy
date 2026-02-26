@@ -4,6 +4,8 @@
  * - If RECAPTCHA_SECRET is not configured, function returns { success: true, dev: true }
  * - Otherwise it posts to Google's API to verify using global fetch (Node 18+ / Node 22)
  */
+const { logger } = require('../utils/logger');
+
 async function verifyRecaptcha(token) {
   const secret = process.env.RECAPTCHA_SECRET;
   if (!secret) {
@@ -27,6 +29,7 @@ async function verifyRecaptcha(token) {
     const json = await res.json();
     return json;
   } catch (err) {
+    logger.error({ err }, 'captcha.verification_failed');
     return { success: false, error: 'captcha-verification-failed', details: err.message };
   }
 }

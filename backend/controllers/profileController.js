@@ -3,6 +3,7 @@
 const User = require('../models/userModel');
 const CityIndex = require('../models/cityIndexModel');
 const slugify = require('../utils/slugify');
+const { getLogger, summarizeObject } = require('../utils/logger');
 
 function sanitizeRadius(val, def = 25) {
   const n = Number(val);
@@ -11,6 +12,7 @@ function sanitizeRadius(val, def = 25) {
 }
 
 exports.getMyProfile = async (req, res) => {
+  const requestLogger = getLogger(req);
   try {
     const user = await User.findById(req.user.id).select('-password');
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -32,7 +34,13 @@ exports.getMyProfile = async (req, res) => {
 
     return res.json({ ...user.toObject(), location });
   } catch (err) {
-    console.error('getMyProfile error:', err);
+    requestLogger.error(
+      {
+        err,
+        userId: req.user && (req.user.id || req.user._id),
+      },
+      'profile.get_my_profile_failed'
+    );
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -40,6 +48,7 @@ exports.getMyProfile = async (req, res) => {
 // backend/controllers/profileController.js
 
 exports.updateUserProfile = async (req, res) => {
+  const requestLogger = getLogger(req);
   try {
     const userId = req.user.id;
 
@@ -59,6 +68,16 @@ exports.updateUserProfile = async (req, res) => {
     for (const k of allowed) {
       if (k in req.body) updates[k] = req.body[k];
     }
+
+    requestLogger.info(
+      {
+        userId,
+        changedFields: Object.keys(updates),
+        hasLocation: !!req.body.location,
+        body: summarizeObject(req.body, { maxDepth: 2 }),
+      },
+      'profile.update_attempt'
+    );
 
     // Check if required fields for profile setup are already complete in user's profile
     const requiredFields = ['name', 'age', 'gender'];
@@ -81,6 +100,14 @@ exports.updateUserProfile = async (req, res) => {
     }).select('-password');
 
     if (!user) return res.status(404).json({ message: 'User not found' });
+
+    requestLogger.info(
+      {
+        userId,
+        updatedFields: Object.keys(updates),
+      },
+      'profile.user_updated'
+    );
 
     // Handle location upsert if present
     if (req.body.location) {
@@ -133,6 +160,17 @@ exports.updateUserProfile = async (req, res) => {
         upsertDoc,
         { new: true, upsert: true, setDefaultsOnInsert: true }
       );
+
+      requestLogger.info(
+        {
+          userId,
+          hasValidCoordinates: validLatLng,
+          citySlug,
+          preferredSearchRadiusKm:
+            upsertDoc.preferredSearchRadiusKm == null ? null : upsertDoc.preferredSearchRadiusKm,
+        },
+        'profile.location_upserted'
+      );
     }
 
     const ci = await CityIndex.findOne({ user: user._id }).lean();
@@ -151,12 +189,19 @@ exports.updateUserProfile = async (req, res) => {
 
     res.json({ ...user.toObject(), location });
   } catch (err) {
-    console.error('updateUserProfile error:', err);
+    requestLogger.error(
+      {
+        err,
+        userId: req.user && (req.user.id || req.user._id),
+      },
+      'profile.update_failed'
+    );
     res.status(500).json({ message: 'Server error' });
   }
 };
 
 exports.getPublicProfile = async (req, res) => {
+  const requestLogger = getLogger(req);
   try {
     const { userId } = req.params;
 
@@ -178,7 +223,13 @@ exports.getPublicProfile = async (req, res) => {
 
     res.json({ ...user.toObject(), location: locationPublic });
   } catch (err) {
-    console.error('getPublicProfile error:', err);
+    requestLogger.error(
+      {
+        err,
+        targetUserId: req.params.userId,
+      },
+      'profile.get_public_profile_failed'
+    );
     res.status(500).json({ message: 'Server error' });
   }
 };

@@ -1,5 +1,6 @@
 // backend/services/notificationService.js
 const Notification = require('../models/notificationModel');
+const { logger } = require('../utils/logger');
 const socketUtil = (() => {
   try {
     return require('../utils/socket');
@@ -65,7 +66,7 @@ async function createAndSend({ userId, type = 'system', title = '', body = '', d
       return doc;
     }
   } catch (err) {
-    console.error('notificationService: error while trying in-app STOMP publish', err);
+    logger.error({ err, userId: String(userId) }, 'notification.in_app_stomp_publish_failed');
   }
 
   // 2) Secondary: legacy external STOMP util if available
@@ -84,7 +85,7 @@ async function createAndSend({ userId, type = 'system', title = '', body = '', d
       }
     }
   } catch (err) {
-    console.error('notificationService: external STOMP publish failed', err);
+    logger.error({ err, userId: String(userId) }, 'notification.external_stomp_publish_failed');
   }
 
   // 3) Fallback: legacy socket.io
@@ -94,12 +95,12 @@ async function createAndSend({ userId, type = 'system', title = '', body = '', d
       try {
         io.to(String(userId)).emit('notification', payload);
       } catch (err) {
-        console.error('notificationService emit error (socket.io)', err);
+        logger.error({ err, userId: String(userId) }, 'notification.socket_emit_failed');
       }
     }
   } catch (err) {
     // swallow
-    console.error('notificationService: socket.io fallback error', err);
+    logger.error({ err, userId: String(userId) }, 'notification.socket_fallback_failed');
   }
 
   return doc;

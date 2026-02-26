@@ -6,6 +6,7 @@ const generateResetToken = require('../utils/generateResetToken');
 const crypto = require('crypto');
 const { verifyRecaptcha } = require('../services/captchaService');
 const nodemailer = require('nodemailer');
+const { getLogger } = require('../utils/logger');
 
 // create transporter (reuse your EMAIL_USER / EMAIL_PASS env vars)
 const transporter = nodemailer.createTransport({
@@ -42,6 +43,7 @@ If you did not request this, you can safely ignore this email.`,
  * body: { email, recaptchaToken? }
  */
 const requestPasswordReset = asyncHandler(async (req, res) => {
+  const requestLogger = getLogger(req);
   const { email, recaptchaToken } = req.body;
   if (!email) {
     res.status(400);
@@ -71,9 +73,9 @@ const requestPasswordReset = asyncHandler(async (req, res) => {
 
     try {
       await sendResetEmail(email, resetLink);
-      console.log(`Password reset email sent to ${email}`);
+      requestLogger.info({ email }, 'password.reset_email_sent');
     } catch (err) {
-      console.error('Failed to send reset email:', err);
+      requestLogger.error({ err, email }, 'password.reset_email_send_failed');
       // swallow error for user-level response, admins can check logs
     }
   }

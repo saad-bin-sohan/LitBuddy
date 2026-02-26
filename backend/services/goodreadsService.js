@@ -1,5 +1,6 @@
 const axios = require('axios');
 const xml2js = require('xml2js');
+const { logger } = require('../utils/logger');
 
 class GoodReadsService {
   constructor() {
@@ -39,7 +40,7 @@ class GoodReadsService {
 
       return { totalResults: 0, results: [], currentPage: 1, totalPages: 0 };
     } catch (error) {
-      console.error('GoodReads search error:', error.message);
+      logger.error({ err: error, query, page }, 'goodreads.search_failed');
       throw new Error('Failed to search GoodReads');
     }
   }
@@ -65,7 +66,7 @@ class GoodReadsService {
 
       throw new Error('Book not found');
     } catch (error) {
-      console.error('GoodReads book fetch error:', error.message);
+      logger.error({ err: error, goodreadsId }, 'goodreads.get_book_failed');
       throw new Error('Failed to fetch book details');
     }
   }
@@ -91,7 +92,7 @@ class GoodReadsService {
 
       throw new Error('Book not found');
     } catch (error) {
-      console.error('GoodReads ISBN search error:', error.message);
+      logger.error({ err: error, isbn }, 'goodreads.get_book_by_isbn_failed');
       throw new Error('Failed to fetch book by ISBN');
     }
   }
@@ -173,7 +174,7 @@ class GoodReadsService {
 
       throw new Error('Author not found');
     } catch (error) {
-      console.error('GoodReads author fetch error:', error.message);
+      logger.error({ err: error, authorId }, 'goodreads.get_author_failed');
       throw new Error('Failed to fetch author information');
     }
   }

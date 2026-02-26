@@ -16,6 +16,14 @@ services:
         value: https://litbuddy.vercel.app
       - key: FRONTEND_URLS
         value: https://litbuddy.vercel.app
+      - key: LOG_LEVEL
+        value: info
+      - key: LOG_HTTP_SLOW_MS
+        value: "1500"
+      - key: LOG_REDACTION_MODE
+        value: balanced
+      - key: LOG_STACKS
+        value: "true"
       - key: GOOGLE_CLIENT_ID
         sync: false
     healthCheckPath: /api/health

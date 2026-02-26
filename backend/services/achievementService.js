@@ -1,6 +1,7 @@
 const Achievement = require('../models/achievementModel');
 const ReadingProgress = require('../models/readingProgressModel');
 const ReadingGoal = require('../models/readingGoalModel');
+const { logger } = require('../utils/logger');
 
 class AchievementService {
   // Check and award reading streak achievements
@@ -248,9 +249,9 @@ class AchievementService {
       await this.checkGenreExplorationAchievements(userId, genresRead);
       await this.checkPerfectStreakAchievements(userId, longestStreak);
 
-      console.log(`Achievement check completed for user ${userId}`);
+      logger.info({ userId: String(userId) }, 'achievement.check_completed');
     } catch (error) {
-      console.error('Error checking achievements:', error);
+      logger.error({ err: error, userId: String(userId) }, 'achievement.check_failed');
     }
   }
 
@@ -274,7 +275,7 @@ class AchievementService {
           .slice(0, 5)
       };
     } catch (error) {
-      console.error('Error getting achievement summary:', error);
+      logger.error({ err: error, userId: String(userId) }, 'achievement.summary_failed');
       return null;
     }
   }

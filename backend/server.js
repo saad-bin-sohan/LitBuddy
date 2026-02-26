@@ -8,12 +8,16 @@ const cors = require('cors');
 const http = require('http');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser'); // <-- added for parsing httpOnly cookies
+dotenv.config();
 
 // 2. Import custom modules
 const connectDB = require('./config/db');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 const socketUtil = require('./utils/socket'); // legacy socket.io helper (kept for fallback)
 const upload = require('./middleware/uploadMiddleware'); // for serving /uploads
+const requestContext = require('./middleware/requestContext');
+const httpEventLogger = require('./middleware/httpEventLogger');
+const { logger, sanitizeForLogs } = require('./utils/logger');
 
 // 2.5 Optional auth utils (we will use verify helper if present)
 let authUtils = null;
@@ -24,8 +28,25 @@ try {
   authUtils = null;
 }
 
-// 3. Load environment variables
-dotenv.config();
+process.on('unhandledRejection', (reason) => {
+  const rejectionError =
+    reason instanceof Error
+      ? reason
+      : new Error(typeof reason === 'string' ? reason : 'Unhandled rejection with non-error value');
+  logger.fatal(
+    { err: rejectionError, reason: sanitizeForLogs(reason, { maxDepth: 2 }) },
+    'process.unhandled_rejection'
+  );
+
+  // Preserve crash semantics for unhandled async failures.
+  setImmediate(() => {
+    throw rejectionError;
+  });
+});
+
+process.on('uncaughtExceptionMonitor', (err, origin) => {
+  logger.fatal({ err, origin }, 'process.uncaught_exception');
+});
 
 // 4. Connect to MongoDB
 connectDB();
@@ -36,12 +57,18 @@ const app = express();
 // Trust proxy (useful behind nginx/railway/vercel proxies)
 app.set('trust proxy', true);
 
+// Attach request id and request-scoped logger
+app.use(requestContext);
+
 // 6. Middleware to parse incoming JSON (increased limit for base64 image uploads)
 app.use(express.json({ limit: '12mb' }));
 app.use(express.urlencoded({ limit: '12mb', extended: true }));
 
 // Parse cookies so we can read httpOnly cookies in middleware/controllers
 app.use(cookieParser());
+
+// Log only errors and slow requests
+app.use(httpEventLogger);
 
 /**
  * 7. CORS
@@ -156,7 +183,7 @@ app.use('/api/support', require('./routes/supportRoutes'));
 try {
   app.use('/api/notifications', require('./routes/notificationRoutes'));
 } catch (err) {
-  // route might not exist yet — ignore
+  logger.warn({ err }, 'routes.notifications_mount_failed');
 }
 
 // NEW: subscription routes
@@ -228,11 +255,11 @@ try {
         allowedOrigins: ALLOWED 
       });
       app.set('stomp', stomp);
-      console.log('Realtime: STOMP broker initialized');
+      logger.info('realtime.stomp_initialized');
       realtimeInitialized = true;
     }
   } catch (stompErr) {
-    console.debug('STOMP broker init failed:', stompErr?.message);
+    logger.warn({ err: stompErr }, 'realtime.stomp_init_failed');
   }
 
   if (!realtimeInitialized) {
@@ -259,22 +286,25 @@ try {
       io.on('connection', (socket) => {
         if (socket.userId) {
           socket.join(String(socket.userId));
-          console.log(`Socket connected: user ${socket.userId}`);
+          logger.debug({ userId: String(socket.userId) }, 'realtime.socket_connected');
         } else {
-          console.log('Socket connected (anonymous)');
+          logger.debug('realtime.socket_connected_anonymous');
         }
         socket.on('disconnect', () => {});
       });
 
-      console.log('Realtime: Socket.IO initialized (legacy path)');
+      logger.info('realtime.socket_io_initialized');
     } catch (ioErr) {
-      console.warn('Socket.IO failed to initialize; continuing without realtime.', ioErr);
+      logger.warn({ err: ioErr }, 'realtime.socket_io_init_failed');
     }
   }
 } catch (err) {
-  console.warn('Realtime not initialized (continuing without realtime).', err);
+  logger.warn({ err }, 'realtime.initialization_failed');
 }
 
 server.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  logger.info(
+    { mode: process.env.NODE_ENV || 'development', port: Number(PORT) },
+    'server.started'
+  );
 });

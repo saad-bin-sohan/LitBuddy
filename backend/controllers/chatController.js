@@ -2,6 +2,7 @@
 
 const asyncHandler = require('express-async-handler');
 const chatService = require('../services/chatService');
+const { getLogger } = require('../utils/logger');
 
 /**
  * POST /api/chat/:userId
@@ -32,20 +33,21 @@ const startChat = asyncHandler(async (req, res) => {
  * List chats for the authenticated user
  */
 const listChats = asyncHandler(async (req, res) => {
+  const requestLogger = getLogger(req);
   try {
-    console.log(`List chats request from user: ${req.user._id}`);
+    requestLogger.debug({ userId: String(req.user && req.user._id) }, 'chat.list_request_received');
     
     // Validate user object
     if (!req.user || !req.user._id) {
-      console.error('Invalid user object in request');
+      requestLogger.warn('chat.invalid_user_in_request');
       return res.status(400).json({ message: 'Invalid user session' });
     }
     
     const chats = await chatService.listChatsForUser(req.user._id);
-    console.log(`Returning ${chats.length} chats for user ${req.user._id}`);
+    requestLogger.debug({ userId: String(req.user._id), chatCount: chats.length }, 'chat.list_response_ready');
     res.json(chats);
   } catch (err) {
-    console.error('Error in listChats controller:', err);
+    requestLogger.error({ err }, 'chat.list_controller_failed');
     throw err;
   }
 });

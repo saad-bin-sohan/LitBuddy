@@ -14,6 +14,7 @@ const asyncHandler = require('express-async-handler');
 const mongoose = require('mongoose');
 const Report = require('../models/reportModel');
 const User = require('../models/userModel');
+const { getLogger } = require('../utils/logger');
 
 let Chat = null;
 // Try to require Chat model if it exists (used to resolve message owner by messageId)
@@ -99,6 +100,7 @@ function buildEvidenceFromRequest(req) {
  * POST /api/report
  */
 const submitReport = asyncHandler(async (req, res) => {
+  const requestLogger = getLogger(req);
   const body = req.body || {};
   let { reportedUser, category: rawCategory, description, severity, context, messageId } = body;
 
@@ -132,7 +134,7 @@ const submitReport = asyncHandler(async (req, res) => {
       }
     } catch (err) {
       // ignore resolution errors — fall back to requiring reportedUser below
-      console.warn('reportController: message owner resolution failed', err?.message || err);
+      requestLogger.warn({ err, messageId }, 'report.message_owner_resolution_failed');
     }
   }
 
@@ -197,7 +199,7 @@ const submitReport = asyncHandler(async (req, res) => {
     await User.updateOne({ _id: reportedUser }, { $inc: { reportCount: 1 } });
   } catch (err) {
     // non-fatal; log for diagnostics
-    console.warn('reportController: failed to increment reportCount', err?.message || err);
+    requestLogger.warn({ err, reportedUser: String(reportedUser) }, 'report.increment_report_count_failed');
   }
 
   // --- SAFE population: use a query-based populate to avoid document.populate chaining issues ---
@@ -209,7 +211,7 @@ const submitReport = asyncHandler(async (req, res) => {
       .lean();
   } catch (err) {
     // fallback to returning the created doc as-is (best-effort)
-    console.warn('reportController: populate query failed', err?.message || err);
+    requestLogger.warn({ err, reportId: String(report._id) }, 'report.populate_failed');
     populatedReport = report && report.toObject ? report.toObject() : report;
   }
 

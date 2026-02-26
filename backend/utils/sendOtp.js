@@ -1,6 +1,7 @@
 // backend/utils/sendOtp.js
 const nodemailer = require('nodemailer');
 require('dotenv').config();
+const { logger } = require('./logger');
 
 // Email Transporter setup
 const transporter = nodemailer.createTransport({
@@ -21,13 +22,13 @@ const sendOtpEmail = async (email, code) => {
   };
 
   await transporter.sendMail(mailOptions);
-  console.log(`✅ OTP sent to email: ${email}`);
+  logger.info({ email }, 'otp.email_sent');
 };
 
 // Send OTP via SMS
 const sendOtpSMS = async (phone, code) => {
   if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
-    console.log(`[DEV MODE] Would send OTP "${code}" to phone: ${phone}`);
+    logger.info({ phone }, 'otp.sms_dev_mode_skip');
     return;
   }
 
@@ -40,7 +41,7 @@ const sendOtpSMS = async (phone, code) => {
     to: phone
   });
 
-  console.log(`✅ OTP sent to phone: ${phone}`);
+  logger.info({ phone }, 'otp.sms_sent');
 };
 
 module.exports = {

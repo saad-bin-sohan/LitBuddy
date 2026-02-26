@@ -1,7 +1,9 @@
 const Review = require('../models/reviewModel');
+const { getLogger } = require('../utils/logger');
 
 // Add a new review
 exports.addReview = async (req, res) => {
+  const requestLogger = getLogger(req);
   try {
     const { bookId, rating, reviewText, spoiler } = req.body;
     const userId = req.user.id; // Assuming user is authenticated
@@ -11,6 +13,13 @@ exports.addReview = async (req, res) => {
 
     res.status(201).json({ message: 'Review added successfully', review });
   } catch (error) {
+    requestLogger.error(
+      {
+        err: error,
+        userId: req.user && (req.user.id || req.user._id),
+      },
+      'review.add_failed'
+    );
     res.status(500).json({ message: 'Failed to add review', error: error.message });
   }
 };
@@ -19,6 +28,7 @@ exports.addReview = async (req, res) => {
 const { isValidObjectId } = require('../utils/objectIdValidator');
 
 exports.getReviewsByBook = async (req, res) => {
+  const requestLogger = getLogger(req);
   try {
     const { bookId } = req.params;
 
@@ -30,24 +40,40 @@ exports.getReviewsByBook = async (req, res) => {
 
     res.status(200).json(reviews);
   } catch (error) {
+    requestLogger.error(
+      {
+        err: error,
+        bookId: req.params.bookId,
+      },
+      'review.get_by_book_failed'
+    );
     res.status(500).json({ message: 'Failed to fetch reviews', error: error.message });
   }
 };
 
 // Get reviews by a user
 exports.getReviewsByUser = async (req, res) => {
+  const requestLogger = getLogger(req);
   try {
     const { userId } = req.params;
     const reviews = await Review.find({ userId }).populate('bookId', 'title');
 
     res.status(200).json(reviews);
   } catch (error) {
+    requestLogger.error(
+      {
+        err: error,
+        userId: req.params.userId,
+      },
+      'review.get_by_user_failed'
+    );
     res.status(500).json({ message: 'Failed to fetch reviews', error: error.message });
   }
 };
 
 // Edit a review
 exports.editReview = async (req, res) => {
+  const requestLogger = getLogger(req);
   try {
     const { reviewId } = req.params;
     const { rating, reviewText, spoiler } = req.body;
@@ -64,12 +90,20 @@ exports.editReview = async (req, res) => {
 
     res.status(200).json({ message: 'Review updated successfully', review });
   } catch (error) {
+    requestLogger.error(
+      {
+        err: error,
+        reviewId: req.params.reviewId,
+      },
+      'review.edit_failed'
+    );
     res.status(500).json({ message: 'Failed to update review', error: error.message });
   }
 };
 
 // Delete a review
 exports.deleteReview = async (req, res) => {
+  const requestLogger = getLogger(req);
   try {
     const { reviewId } = req.params;
 
@@ -81,6 +115,13 @@ exports.deleteReview = async (req, res) => {
 
     res.status(200).json({ message: 'Review deleted successfully' });
   } catch (error) {
+    requestLogger.error(
+      {
+        err: error,
+        reviewId: req.params.reviewId,
+      },
+      'review.delete_failed'
+    );
     res.status(500).json({ message: 'Failed to delete review', error: error.message });
   }
 };

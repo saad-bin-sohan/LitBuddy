@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { logger } = require('../utils/logger');
 
 class GoogleBooksService {
   constructor() {
@@ -43,7 +44,7 @@ class GoogleBooksService {
         totalPages
       };
     } catch (error) {
-      console.error('Google Books search error:', error.message);
+      logger.error({ err: error, query, page }, 'google_books.search_failed');
       throw new Error('Failed to search Google Books');
     }
   }
@@ -72,7 +73,7 @@ class GoogleBooksService {
 
       return this.formatDetailedBookData(data);
     } catch (error) {
-      console.error('Google Books book fetch error:', error.message);
+      logger.error({ err: error, volumeId }, 'google_books.get_book_failed');
       throw new Error('Failed to fetch book details');
     }
   }

@@ -1,5 +1,6 @@
 // backend/utils/stomp.js
 const stompit = require('stompit');
+const { logger } = require('./logger');
 
 let client = null;
 
@@ -16,15 +17,15 @@ function connect() {
 
   stompit.connect(connectOptions, (err, c) => {
     if (err) {
-      console.error('STOMP connection error:', err.message);
+      logger.error({ err }, 'stomp_legacy.connection_failed');
       setTimeout(connect, 5000); // retry after 5s
       return;
     }
     client = c;
-    console.log('Connected to STOMP broker');
+    logger.info('stomp_legacy.connected');
 
     client.on('error', (e) => {
-      console.error('STOMP client error:', e.message);
+      logger.error({ err: e }, 'stomp_legacy.client_error');
       client = null;
       setTimeout(connect, 5000);
     });
@@ -33,7 +34,7 @@ function connect() {
 
 function publish(destination, body, headers = {}) {
   if (!client) {
-    console.error('STOMP client not connected. Dropping message to', destination);
+    logger.error({ destination }, 'stomp_legacy.publish_dropped_client_not_connected');
     return;
   }
   const frame = client.send({
