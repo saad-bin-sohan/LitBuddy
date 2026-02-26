@@ -9,25 +9,20 @@
  */
 
 const asyncHandler = require('express-async-handler');
-const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
 const User = require('../models/userModel');
 const OTP = require('../models/otpModel');
-const { sendOtpEmail, sendOtpSMS } = require('../utils/sendOtp');
 const generateToken = require('../utils/generateToken');
+const {
+  AUTH_COOKIE_NAME,
+  getSetCookieOptions,
+  clearAuthCookies,
+} = require('../config/authCookie');
 
 // Helper: get client IP (behind proxies)
 const getClientIp = (req) => {
   const xff = req.headers['x-forwarded-for'] || req.headers['x-real-ip'];
   if (xff) return xff.split(',')[0].trim();
   return req.connection?.remoteAddress || req.ip;
-};
-
-const getAvailableMethods = (user) => {
-  const methods = [];
-  if (user.email) methods.push('email');
-  if (user.phone) methods.push('phone');
-  return methods;
 };
 
 function sanitizeUserForResponse(user) {
@@ -64,15 +59,6 @@ function sanitizeUserForResponse(user) {
     isGoogleUser: !!u.isGoogleUser,
   };
 }
-
-// Cookie options (used for setting and clearing cookie)
-const cookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'None',
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  path: '/',
-};
 
 // @desc Register new user
 // @route POST /api/auth/register
@@ -130,7 +116,7 @@ const registerUser = asyncHandler(async (req, res) => {
     const token = generateToken(user._id);
 
     // Set token in httpOnly cookie
-    res.cookie('token', token, cookieOptions);
+    res.cookie(AUTH_COOKIE_NAME, token, getSetCookieOptions());
 
     res.status(201).json({
       user: sanitizeUserForResponse(user),
@@ -184,7 +170,7 @@ const loginUser = asyncHandler(async (req, res) => {
   const token = generateToken(user._id);
 
   // Set token in httpOnly cookie
-  res.cookie('token', token, cookieOptions);
+  res.cookie(AUTH_COOKIE_NAME, token, getSetCookieOptions());
 
   res.json({
     user: sanitizeUserForResponse(user),
@@ -247,7 +233,7 @@ const loginWithOtp = asyncHandler(async (req, res) => {
   const token = generateToken(user._id);
 
   // Set token in httpOnly cookie
-  res.cookie('token', token, cookieOptions);
+  res.cookie(AUTH_COOKIE_NAME, token, getSetCookieOptions());
 
   res.json({
     user: sanitizeUserForResponse(user),
@@ -258,13 +244,7 @@ const loginWithOtp = asyncHandler(async (req, res) => {
 // @route POST /api/auth/logout
 // @access Public (client calls to clear cookie)
 const logoutUser = asyncHandler(async (req, res) => {
-  // Clear cookie (match path/flags used for setting)
-  res.clearCookie('token', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'None',
-    path: '/',
-  });
+  clearAuthCookies(res);
   res.status(200).json({ message: 'Logged out successfully' });
 });
 

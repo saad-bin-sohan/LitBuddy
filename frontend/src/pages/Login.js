@@ -52,8 +52,7 @@ const Login = () => {
     try {
       const data = await login({ ...form, deviceId });
       // success
-      localStorage.setItem('token', data.token);
-      setUser(data);
+      setUser(data.user);
     } catch (err) {
       // if server asked for OTP, err.body.otpRequired will be set
       if (err?.body?.otpRequired) {
@@ -93,9 +92,7 @@ const Login = () => {
         code: otpCode,
         deviceId,
       });
-      // success -> token returned
-      localStorage.setItem('token', data.token);
-      setUser(data);
+      setUser(data.user);
     } catch (err) {
       setError(err.message || 'OTP verification failed');
     } finally {

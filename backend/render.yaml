@@ -6,6 +6,8 @@ services:
     buildCommand: npm install
     startCommand: npm start
     envVars:
+      - key: NODE_VERSION
+        value: "22"
       - key: NODE_ENV
         value: production
       - key: MONGO_URI
@@ -16,6 +18,14 @@ services:
         value: https://litbuddy.vercel.app
       - key: FRONTEND_URLS
         value: https://litbuddy.vercel.app
+      - key: AUTH_COOKIE_NAME
+        value: token
+      - key: AUTH_COOKIE_SAME_SITE
+        value: Lax
+      - key: AUTH_COOKIE_SECURE
+        value: "true"
+      - key: AUTH_ALLOW_BEARER_FALLBACK
+        value: "true"
       - key: LOG_LEVEL
         value: info
       - key: LOG_HTTP_SLOW_MS

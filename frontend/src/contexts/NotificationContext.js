@@ -11,7 +11,7 @@ export const NotificationContext = createContext({
 });
 
 export const NotificationProvider = ({ children }) => {
-  const { user, token } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const subDestRef = useRef(null);
@@ -41,7 +41,7 @@ export const NotificationProvider = ({ children }) => {
   }, [user]);
 
   useEffect(() => {
-    if (!user || !token) {
+    if (!user) {
       if (subDestRef.current) {
         unsubscribe(subDestRef.current);
         subDestRef.current = null;
@@ -51,8 +51,7 @@ export const NotificationProvider = ({ children }) => {
       return;
     }
 
-    // Ensure STOMP is initialized with current token
-    initStomp(token);
+    initStomp();
 
     const desiredDest = `/topic/user.${user._id}.notifications`;
     const trySubscribe = () => {
@@ -86,7 +85,7 @@ export const NotificationProvider = ({ children }) => {
         subDestRef.current = null;
       }
     };
-  }, [user, token, refresh]);
+  }, [user, refresh]);
 
   const setupNotificationSubscription = (destination) => {
     subscribe(destination, (notif) => {

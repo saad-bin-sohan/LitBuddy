@@ -4,39 +4,19 @@
 import React, { useEffect, useState } from 'react';
 import AdminGuard from '../components/AdminGuard';
 import { getAllReports } from '../api/reportApi';
+import { API_URL } from '../api/httpClient';
 
 
 
 /**
  * AdminReports (robust)
  *
- * - Does NOT assume API_URL exists as an import (defensive).
- * - Normalizes backend base from REACT_APP_BACKEND_URL or infers a sensible default.
+ * - Uses shared API runtime configuration from httpClient.
  * - Uses getAllReports helper for listing.
  * - Uses direct fetch() to admin endpoints (constructed from BACKEND_API).
  */
-
-// Normalize backend base: strip trailing slashes and any trailing '/api'
-function normalizeBackendBase(raw) {
-  if (raw && typeof raw === 'string') {
-    let s = raw.trim();
-    s = s.replace(/\/+$/, ''); // remove trailing slashes
-    s = s.replace(/\/api\/?$/, ''); // remove trailing /api if present
-    if (s) return s;
-  }
-  // fallback: if frontend is on e.g. http://localhost:3000 assume backend at same host:5001
-  try {
-    const host = window?.location?.hostname || 'localhost';
-    const protocol = window?.location?.protocol || 'http:';
-    return `${protocol}//${host}:5001`;
-  } catch (e) {
-    return 'http://localhost:5001';
-  }
-}
-
-const RAW_BACKEND = process.env.REACT_APP_BACKEND_URL || '';
-const BACKEND_BASE = normalizeBackendBase(RAW_BACKEND);
-const BACKEND_API = `${BACKEND_BASE.replace(/\/$/, '')}/api`;
+const BACKEND_API = API_URL;
+const BACKEND_BASE = API_URL.replace(/\/api\/?$/, '');
 
 // Backend enum-ish options (match backend model)
 const STATUS_OPTIONS = ['Pending', 'Reviewed', 'Resolved'];

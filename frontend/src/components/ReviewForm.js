@@ -1,11 +1,10 @@
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../contexts/AuthContext';
-
-const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001/api';
+import { API_URL } from '../api/httpClient';
 
 const ReviewForm = ({ bookId, onReviewAdded }) => {
-  const { user, token } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const [rating, setRating] = useState(1);
   const [reviewText, setReviewText] = useState('');
   const [spoiler, setSpoiler] = useState(false);
@@ -27,7 +26,6 @@ const ReviewForm = ({ bookId, onReviewAdded }) => {
         spoiler,
       }, {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         withCredentials: true

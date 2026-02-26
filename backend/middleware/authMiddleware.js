@@ -1,48 +1,59 @@
-// backend/middleware/authMiddleware.js
-/**
- * protect middleware
- *  - Verifies JWT token and attaches user (without password) to req.user
- *  - Enforces suspension blocking for non-admin users (if suspendedUntil > now).
- *
- * Implementation: prefer token from httpOnly cookie `token`. For compatibility,
- * this will fall back to Authorization header if present.
- *
- * Extra: quick format-check to avoid calling jwt.verify on obviously-bad strings,
- * clear cookie when malformed/failed to help client self-heal, and mask logs.
- *
- * Additional export: verifyTokenForSocket(token)
- *  - Lightweight helper that accepts a raw token string (optionally prefixed with "Bearer ")
- *  - Returns the User document (without password) or null if invalid/not found/suspended.
- *  - Intended for use in realtime handshakes (STOMP / WebSocket servers).
- */
-
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 const { getLogger, logger } = require('../utils/logger');
+const {
+  AUTH_ALLOW_BEARER_FALLBACK,
+  readCookieToken,
+  clearAuthCookies,
+} = require('../config/authCookie');
 
-const looksLikeJwt = (t) =>
-  typeof t === 'string' && /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/.test(t);
+const LEGACY_INVALID_TOKEN_VALUES = new Set(['', 'undefined', 'null', 'nan']);
 
-const mask = (s) => (typeof s === 'string' ? `${s.slice(0, 8)}...len=${s.length}` : String(s));
+const looksLikeJwt = (value) =>
+  typeof value === 'string' && /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/.test(value);
 
-const cookieClearOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'None',
-  path: '/',
-};
+const mask = (value) =>
+  typeof value === 'string' ? `${value.slice(0, 8)}...len=${value.length}` : String(value);
+
+function normalizeToken(raw) {
+  if (raw === undefined || raw === null) return null;
+  const token = String(raw).trim();
+  if (LEGACY_INVALID_TOKEN_VALUES.has(token.toLowerCase())) return null;
+  return token || null;
+}
+
+function extractBearerToken(req) {
+  if (!AUTH_ALLOW_BEARER_FALLBACK) return null;
+  const header = req.headers && req.headers.authorization;
+  if (!header || typeof header !== 'string') return null;
+  if (!header.startsWith('Bearer ')) return null;
+  return normalizeToken(header.slice(7));
+}
+
+function unauthorized(res, code, message = 'Not authorized') {
+  return res.status(401).json({ message, code });
+}
 
 const protect = async (req, res, next) => {
   const requestLogger = getLogger(req);
-  let token;
   let source = 'none';
+  let token = null;
 
-  if (req.cookies && req.cookies.token) {
-    token = req.cookies.token;
+  const cookieToken = normalizeToken(readCookieToken(req));
+  if (cookieToken) {
+    token = cookieToken;
     source = 'cookie';
-  } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
-    source = 'auth header';
+  } else if (readCookieToken(req) && !cookieToken) {
+    source = 'cookie';
+    clearAuthCookies(res);
+  }
+
+  if (!token) {
+    const bearerToken = extractBearerToken(req);
+    if (bearerToken) {
+      token = bearerToken;
+      source = 'auth header';
+    }
   }
 
   if (!token) {
@@ -51,14 +62,13 @@ const protect = async (req, res, next) => {
         path: req.originalUrl || req.url,
         source,
         hasAuthorizationHeader: !!req.headers.authorization,
-        hasTokenCookie: !!(req.cookies && req.cookies.token),
+        hasTokenCookie: !!readCookieToken(req),
       },
       'auth.no_token'
     );
-    return res.status(401).json({ message: 'Not authorized, no token' });
+    return unauthorized(res, 'AUTH_NO_TOKEN', 'Not authorized, no token');
   }
 
-  // Quick format check to avoid jwt.verify on obviously-bad tokens
   if (!looksLikeJwt(token)) {
     requestLogger.warn(
       {
@@ -68,17 +78,12 @@ const protect = async (req, res, next) => {
       },
       'auth.malformed_token'
     );
-    if (source === 'cookie') {
-      // clear cookie so browser/client can recover
-      res.clearCookie('token', cookieClearOptions);
-    }
-    return res.status(401).json({ message: 'Not authorized, token malformed' });
+    if (source === 'cookie') clearAuthCookies(res);
+    return unauthorized(res, 'AUTH_TOKEN_MALFORMED', 'Not authorized, token malformed');
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Attach user data (minus password) to request
     const user = await User.findById(decoded.id).select('-password');
 
     if (!user) {
@@ -89,10 +94,9 @@ const protect = async (req, res, next) => {
         },
         'auth.user_not_found'
       );
-      return res.status(401).json({ message: 'Not authorized, user not found' });
+      return unauthorized(res, 'AUTH_USER_NOT_FOUND', 'Not authorized, user not found');
     }
 
-    // If suspendedUntil in the future and the user is NOT an admin, block access
     const now = new Date();
     const isSuspended = user.suspendedUntil && user.suspendedUntil > now;
     const isAdmin = !!(user.isAdmin || user.role === 'admin');
@@ -108,6 +112,7 @@ const protect = async (req, res, next) => {
       );
       return res.status(403).json({
         message: `Account suspended until ${user.suspendedUntil.toISOString()}`,
+        code: 'AUTH_SUSPENDED',
       });
     }
 
@@ -124,28 +129,21 @@ const protect = async (req, res, next) => {
       'auth.token_verification_failed'
     );
 
-    // Clear cookie to help client recover if token was from cookie
-    if (source === 'cookie') {
-      res.clearCookie('token', cookieClearOptions);
-    }
-    return res.status(401).json({ message: 'Not authorized, token failed' });
+    if (source === 'cookie') clearAuthCookies(res);
+    return unauthorized(res, 'AUTH_TOKEN_FAILED', 'Not authorized, token failed');
   }
 };
 
-/**
- * verifyTokenForSocket(token)
- * - Token may be "Bearer <token>" or raw token string.
- * - Returns User (without password) or null.
- * - Does not send HTTP responses (intended for handshake callbacks).
- */
 const verifyTokenForSocket = async (rawToken) => {
   try {
     if (!rawToken) return null;
+
     let token = rawToken;
     if (typeof token === 'string' && token.startsWith('Bearer ')) {
-      token = token.split(' ')[1];
+      token = token.slice(7);
     }
-    if (!looksLikeJwt(token)) return null;
+    token = normalizeToken(token);
+    if (!token || !looksLikeJwt(token)) return null;
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     if (!decoded || !decoded.id) return null;
@@ -153,14 +151,10 @@ const verifyTokenForSocket = async (rawToken) => {
     const user = await User.findById(decoded.id).select('-password');
     if (!user) return null;
 
-    // Check suspension (same logic as protect)
     const now = new Date();
     const isSuspended = user.suspendedUntil && user.suspendedUntil > now;
     const isAdmin = !!(user.isAdmin || user.role === 'admin');
-
-    if (isSuspended && !isAdmin) {
-      return null;
-    }
+    if (isSuspended && !isAdmin) return null;
 
     return user;
   } catch (err) {

@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const {
   createChallenge,
@@ -17,24 +18,31 @@ const {
 const { protect } = require('../middleware/authMiddleware');
 const { requireRole } = require('../middleware/rbacMiddleware');
 
+const validateChallengeId = (req, res, next) => {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(404).json({ message: 'Challenge not found', code: 'CHALLENGE_NOT_FOUND' });
+  }
+  return next();
+};
+
 // Public routes
 router.get('/', getChallenges);
-router.get('/:id', getChallengeById);
-router.get('/:id/leaderboard', getLeaderboard);
 router.get('/leaderboard/global', getGlobalLeaderboard);
+router.get('/:id/leaderboard', validateChallengeId, getLeaderboard);
+router.get('/:id', validateChallengeId, getChallengeById);
 
 // Protected routes
 router.use(protect);
 
-router.post('/:id/join', joinChallenge);
-router.delete('/:id/leave', leaveChallenge);
-router.put('/:id/progress', updateProgress);
 router.get('/user/me', getUserChallenges);
 router.get('/achievements', getUserAchievements);
 router.put('/achievements/:id/read', markAchievementRead);
+router.post('/:id/join', validateChallengeId, joinChallenge);
+router.delete('/:id/leave', validateChallengeId, leaveChallenge);
+router.put('/:id/progress', validateChallengeId, updateProgress);
 
 // Admin only routes
 router.post('/', requireRole('admin'), createChallenge);
-router.delete('/:id', requireRole('admin'), deleteChallenge);
+router.delete('/:id', validateChallengeId, requireRole('admin'), deleteChallenge);
 
 module.exports = router;

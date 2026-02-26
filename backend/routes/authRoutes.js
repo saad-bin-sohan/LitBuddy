@@ -7,6 +7,7 @@ const {
   loginUser,
   loginWithOtp,
   getUserProfile,
+  logoutUser,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -14,6 +15,7 @@ const { protect } = require('../middleware/authMiddleware');
 router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.post('/login-otp', loginWithOtp);
+router.post('/logout', logoutUser);
 
 // Private
 router.get('/profile', protect, getUserProfile);

@@ -1,20 +1,19 @@
-// frontend/src/stompClient.js
 import { Client } from '@stomp/stompjs';
+import { WS_URL } from './api/httpClient';
 
 let stompClient = null;
 let subscriptions = {};
 
-function backendBase() {
-  const raw = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
-  return raw.replace(/\/api\/?$/, '');
+function normalizeWsUrl(rawUrl) {
+  if (!rawUrl) return '/ws';
+  return rawUrl.replace(/\/+$/, '');
 }
 
-export function initStomp(token) {
+export function initStomp() {
   if (stompClient && stompClient.connected) return stompClient;
 
-  // Use WebSocket directly instead of SockJS for better STOMP compatibility
-  const wsUrl = `${backendBase().replace('http', 'ws')}/ws?token=${token}`;
-  
+  const wsUrl = normalizeWsUrl(WS_URL);
+
   stompClient = new Client({
     webSocketFactory: () => new WebSocket(wsUrl),
     connectHeaders: {},
@@ -44,7 +43,7 @@ export function subscribe(destination, callback) {
     console.warn('STOMP client not connected, cannot subscribe to:', destination);
     return null;
   }
-  
+
   try {
     const sub = stompClient.subscribe(destination, (message) => {
       try {
@@ -52,10 +51,10 @@ export function subscribe(destination, callback) {
         callback(payload);
       } catch (err) {
         console.error('Error parsing STOMP message:', err);
-        callback(message.body); // fallback to raw body
+        callback(message.body);
       }
     });
-    
+
     subscriptions[destination] = sub;
     console.log(`[STOMP] Subscribed to: ${destination}`);
     return sub;
@@ -82,11 +81,11 @@ export function send(destination, body) {
     console.warn('STOMP client not connected, cannot send to:', destination);
     return;
   }
-  
+
   try {
-    stompClient.publish({ 
-      destination, 
-      body: JSON.stringify(body) 
+    stompClient.publish({
+      destination,
+      body: JSON.stringify(body),
     });
   } catch (err) {
     console.error('Error sending STOMP message:', err);

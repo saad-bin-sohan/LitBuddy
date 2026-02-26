@@ -58,7 +58,7 @@
 ## 📋 Prerequisites
 
 Before you begin, ensure you have the following installed:
-- **Node.js** (v14 or higher)
+- **Node.js** (v22 or higher)
 - **npm** or **yarn**
 - **MongoDB** (Local instance or Atlas URI)
 
@@ -90,6 +90,12 @@ JWT_SECRET=your_jwt_secret_key
 FRONTEND_URL=http://localhost:3000
 FRONTEND_URLS=http://localhost:3000,http://localhost:5173
 
+# Auth cookie options
+AUTH_COOKIE_NAME=token
+AUTH_COOKIE_SAME_SITE=Lax
+AUTH_COOKIE_SECURE=false
+AUTH_ALLOW_BEARER_FALLBACK=true
+
 # Logging / Observability
 LOG_LEVEL=info
 LOG_HTTP_SLOW_MS=1500
@@ -119,13 +125,15 @@ npm install
 
 Create a `.env` file in the `frontend` directory:
 ```env
-REACT_APP_GOOGLE_CLIENT_ID=your_google_client_id
-REACT_APP_BACKEND_URL=http://localhost:5001/api
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+VITE_API_BASE_URL=/api
+VITE_WS_BASE_URL=/ws
+VITE_DEV_API_TARGET=http://localhost:5001
 ```
 
 Start the frontend development server:
 ```bash
-npm start
+npm run dev
 ```
 
 The application should now be running at `http://localhost:3000`.
@@ -136,7 +144,42 @@ The application should now be running at `http://localhost:3000`.
 
 The application is configured for easy deployment:
 - **Backend:** Ready for platforms like **Render** or **Heroku**. Includes `render.yaml` and health check endpoints.
-- **Frontend:** Optimized for **Vercel** or **Netlify**.
+- **Frontend:** Optimized for **Vercel** with Vite output (`dist`) and rewrites for `/api`, `/ws`, and `/uploads`.
+
+### Blue/Green Rollout Gate (Recommended)
+1. Deploy backend and frontend to green environment with production secrets.
+2. Run backend and frontend automated tests.
+3. Run backend E2E smoke script against green:
+   ```bash
+   cd backend
+   E2E_BASE_URL=https://litbuddy.onrender.com \
+   E2E_EMAIL=your_test_user@example.com \
+   E2E_PASSWORD=your_test_password \
+   npm run smoke:e2e
+   ```
+4. Shift a small traffic slice and monitor auth 401 rate, websocket connect success, and challenge endpoint errors.
+5. Promote to 100% when stable for at least 30 minutes.
+6. Rotate JWT secret for one-time re-login cutover.
+
+## ✅ Automated Checks
+
+Backend tests:
+```bash
+cd backend
+npm test
+```
+
+Frontend tests:
+```bash
+cd frontend
+npm test
+```
+
+Frontend production build:
+```bash
+cd frontend
+npm run build
+```
 
 ---
 

@@ -3,15 +3,7 @@
 const asyncHandler = require('express-async-handler');
 const User = require('../models/userModel');
 const generateToken = require('../utils/generateToken');
-
-// Cookie options (used for setting and clearing cookie)
-const cookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'None',
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  path: '/',
-};
+const { AUTH_COOKIE_NAME, getSetCookieOptions } = require('../config/authCookie');
 
 function sanitizeUserForResponse(user) {
   if (!user) return null;
@@ -98,7 +90,7 @@ const handleGoogleCallback = asyncHandler(async (req, res) => {
   const token = generateToken(user._id);
 
   // Set token in httpOnly cookie
-  res.cookie('token', token, cookieOptions);
+  res.cookie(AUTH_COOKIE_NAME, token, getSetCookieOptions());
 
   res.json({
     user: sanitizeUserForResponse(user),

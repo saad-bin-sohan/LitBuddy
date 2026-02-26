@@ -1,29 +1,10 @@
 // frontend/src/api/reportApi.js
 /**
  * reportApi.js
- * - Normalizes REACT_APP_BACKEND_URL so it works whether you set it to:
- *    http://localhost:5001
- *    http://localhost:5001/
- *    http://localhost:5001/api
- *    http://localhost:5001/api/
- *
  * - Exposes submitReport (supports FormData or plain object and upload progress),
  *   getAllReports, getReport, updateReportStatus, addModeratorNote.
  */
-
-function normalizeBaseUrl(raw) {
-  if (!raw) return 'http://localhost:5001';
-  let s = String(raw).trim();
-  // remove trailing slashes
-  s = s.replace(/\/+$/, '');
-  // if user provided only host w/o protocol (unlikely) we won't try to fix it here
-  return s;
-}
-
-const RAW_BACKEND = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
-const BACKEND_BASE = normalizeBaseUrl(RAW_BACKEND);
-// If the provided base already ends with '/api', use it as-is, otherwise append '/api'
-export const API_URL = BACKEND_BASE.endsWith('/api') ? BACKEND_BASE : `${BACKEND_BASE}/api`;
+import { API_URL } from './httpClient';
 
 /**
  * Helper: build query string from params object (ignores undefined/null/empty)

@@ -1,6 +1,6 @@
 // frontend/src/api/chatApi.js
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001/api';
+import { API_URL } from './httpClient';
 
 async function parseJsonSafe(res) {
   try {

@@ -109,7 +109,7 @@ challengeSchema.methods.updateParticipantProgress = function(userId, updates) {
   const participant = this.getParticipant(userId);
   if (participant) {
     Object.assign(participant.progress, updates);
-    participant.lastReadDate = new Date();
+    participant.progress.lastReadDate = new Date();
   }
   return participant;
 };
@@ -119,7 +119,8 @@ challengeSchema.methods.checkCompletion = function(userId) {
   const participant = this.getParticipant(userId);
   if (!participant) return false;
 
-  const { requirements, progress } = this;
+  const { requirements } = this;
+  const progress = participant.progress || {};
   
   const booksCompleted = progress.booksRead >= requirements.booksToRead;
   const pagesCompleted = progress.pagesRead >= requirements.pagesToRead;

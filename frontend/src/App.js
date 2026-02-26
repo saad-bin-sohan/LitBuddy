@@ -39,6 +39,7 @@ import CookiePolicyPage from './pages/CookiePolicyPage';
 import CommunityGuidelinesPage from './pages/CommunityGuidelinesPage';
 import AdminContent from './pages/AdminContent';
 import AdminSupportInbox from './pages/AdminSupportInbox';
+import { GOOGLE_CLIENT_ID } from './api/httpClient';
 
 // NEW pages for password reset
 import PasswordResetRequest from './pages/PasswordResetRequest';
@@ -72,7 +73,7 @@ const App = () => {
   if (loading) return <p>Loading...</p>;
 
   return (
-    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <Router>
         <AuthRedirectWrapper>
           <Navbar />
@@ -111,7 +112,7 @@ const App = () => {
                 path="/my-profile"
                 element={
                   user
-                    ? (isProfileComplete ? <ProfileView /> : <Navigate to="/my-profile" replace />)
+                    ? (isProfileComplete ? <ProfileView /> : <Navigate to="/profile-setup" replace />)
                     : <Navigate to="/login" />
                 }
               />

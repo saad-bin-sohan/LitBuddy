@@ -1,55 +1,125 @@
 const WebSocket = require('ws');
 const jwt = require('jsonwebtoken');
 const { logger } = require('./logger');
+const { AUTH_COOKIE_NAME } = require('../config/authCookie');
 
 let wss = null;
-let connections = new Map(); // Map connectionId to connection info
-let subscriptions = new Map(); // Map destination to array of connectionIds
+let connections = new Map();
+let subscriptions = new Map();
+
+function parseCookieHeader(rawHeader = '') {
+  const cookies = {};
+  if (!rawHeader || typeof rawHeader !== 'string') return cookies;
+
+  const parts = rawHeader.split(';');
+  for (const part of parts) {
+    const [rawKey, ...valueParts] = part.split('=');
+    const key = (rawKey || '').trim();
+    if (!key) continue;
+    const value = valueParts.join('=').trim();
+    cookies[key] = decodeURIComponent(value || '');
+  }
+  return cookies;
+}
+
+function tokenFromRequest(req) {
+  const cookies = parseCookieHeader(req.headers.cookie || '');
+  if (cookies[AUTH_COOKIE_NAME]) return cookies[AUTH_COOKIE_NAME];
+  if (AUTH_COOKIE_NAME !== 'token' && cookies.token) return cookies.token;
+
+  const authHeader = req.headers.authorization;
+  if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+    return authHeader.slice(7).trim();
+  }
+
+  try {
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const queryToken = url.searchParams.get('token');
+    if (queryToken) return queryToken.trim();
+  } catch (err) {
+    logger.debug({ err }, 'stomp.token_query_parse_failed');
+  }
+
+  return null;
+}
+
+function isOriginAllowed(origin, allowedOrigins) {
+  if (!origin) return true;
+  if (!allowedOrigins || allowedOrigins.size === 0) return true;
+  return allowedOrigins.has(origin);
+}
+
+async function defaultVerifyToken(rawToken) {
+  if (!rawToken) return null;
+  let token = String(rawToken).trim();
+  if (!token || token === 'undefined' || token === 'null') return null;
+  if (token.startsWith('Bearer ')) token = token.slice(7);
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.id) return null;
+    return { _id: decoded.id };
+  } catch (err) {
+    return null;
+  }
+}
 
 function initServer(server, options = {}) {
-  wss = new WebSocket.Server({ 
+  const allowedOrigins = new Set(Array.from(options.allowedOrigins || []));
+  const verifyToken =
+    typeof options.verifyToken === 'function' ? options.verifyToken : defaultVerifyToken;
+
+  wss = new WebSocket.Server({
     server,
     path: '/ws',
-    verifyClient: (info) => {
-      // Extract token from query string or headers
-      const url = new URL(info.req.url, `http://${info.req.headers.host}`);
-      const token = url.searchParams.get('token') || 
-                   info.req.headers.authorization?.replace('Bearer ', '');
-      
-      if (!token) return false;
-      
-      try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        info.req.userId = decoded.id;
-        return true;
-      } catch (err) {
-        return false;
+    verifyClient: (info, done) => {
+      const origin = info.req.headers.origin;
+      if (!isOriginAllowed(origin, allowedOrigins)) {
+        logger.warn({ origin }, 'stomp.origin_rejected');
+        return done(false, 403, 'Origin not allowed');
       }
-    }
+
+      const token = tokenFromRequest(info.req);
+      if (!token) {
+        logger.debug('stomp.token_missing');
+        return done(false, 401, 'Unauthorized');
+      }
+
+      Promise.resolve(verifyToken(token))
+        .then((user) => {
+          if (!user) return done(false, 401, 'Unauthorized');
+          info.req.userId = String(user._id || user.id);
+          return done(true);
+        })
+        .catch((err) => {
+          logger.debug({ err }, 'stomp.token_verification_failed');
+          return done(false, 401, 'Unauthorized');
+        });
+    },
   });
 
   wss.on('connection', (ws, req) => {
     const connectionId = Date.now() + Math.random();
     const userId = req.userId;
-    
+
     logger.info({ userId: String(userId) }, 'stomp.websocket_connected');
-    
-    // Store connection info
+
     connections.set(connectionId, {
       ws,
       userId,
-      subscriptions: new Set()
+      subscriptions: new Set(),
     });
 
-    // Send CONNECTED frame
-    ws.send(JSON.stringify({
-      command: 'CONNECTED',
-      version: '1.2',
-      headers: {
-        'heart-beat': '0,0',
-        'server': 'LitBuddy-STOMP/1.0'
-      }
-    }));
+    ws.send(
+      JSON.stringify({
+        command: 'CONNECTED',
+        version: '1.2',
+        headers: {
+          'heart-beat': '0,0',
+          server: 'LitBuddy-STOMP/1.0',
+        },
+      })
+    );
 
     ws.on('message', (data) => {
       try {
@@ -62,10 +132,9 @@ function initServer(server, options = {}) {
 
     ws.on('close', () => {
       logger.info({ userId: String(userId) }, 'stomp.websocket_disconnected');
-      // Remove all subscriptions for this connection
       const connection = connections.get(connectionId);
       if (connection) {
-        connection.subscriptions.forEach(destination => {
+        connection.subscriptions.forEach((destination) => {
           removeSubscription(destination, connectionId);
         });
       }
@@ -85,7 +154,7 @@ function handleStompFrame(connectionId, frame) {
   if (!connection) return;
 
   switch (frame.command) {
-    case 'SUBSCRIBE':
+    case 'SUBSCRIBE': {
       const destination = frame.headers.destination;
       if (destination) {
         addSubscription(destination, connectionId);
@@ -95,17 +164,16 @@ function handleStompFrame(connectionId, frame) {
         );
       }
       break;
-      
+    }
     case 'SEND':
-      // Handle client sending messages (if needed)
       logger.debug(
         { userId: String(connection.userId), destination: frame.headers.destination },
         'stomp.message_received'
       );
       break;
-      
     case 'DISCONNECT':
-      // Connection will be closed by WebSocket close event
+      break;
+    default:
       break;
   }
 }
@@ -115,7 +183,7 @@ function addSubscription(destination, connectionId) {
     subscriptions.set(destination, new Set());
   }
   subscriptions.get(destination).add(connectionId);
-  
+
   const connection = connections.get(connectionId);
   if (connection) {
     connection.subscriptions.add(destination);
@@ -145,24 +213,24 @@ function publish(destination, body, headers = {}) {
       destination,
       'content-type': 'application/json',
       'message-id': Date.now() + Math.random(),
-      ...headers
+      ...headers,
     },
-    body: messageBody
+    body: messageBody,
   };
 
   const destSubs = subscriptions.get(destination);
-  if (destSubs) {
-    destSubs.forEach(connectionId => {
-      const connection = connections.get(connectionId);
-      if (connection && connection.ws.readyState === WebSocket.OPEN) {
-        try {
-          connection.ws.send(JSON.stringify(frame));
-        } catch (err) {
-          logger.error({ err, destination }, 'stomp.publish_send_failed');
-        }
+  if (!destSubs) return;
+
+  destSubs.forEach((connectionId) => {
+    const connection = connections.get(connectionId);
+    if (connection && connection.ws.readyState === WebSocket.OPEN) {
+      try {
+        connection.ws.send(JSON.stringify(frame));
+      } catch (err) {
+        logger.error({ err, destination }, 'stomp.publish_send_failed');
       }
-    });
-  }
+    }
+  });
 }
 
 function getConnectionCount() {
@@ -173,9 +241,9 @@ function getSubscriptionCount() {
   return subscriptions.size;
 }
 
-module.exports = { 
-  initServer, 
-  publish, 
-  getConnectionCount, 
-  getSubscriptionCount 
+module.exports = {
+  initServer,
+  publish,
+  getConnectionCount,
+  getSubscriptionCount,
 };

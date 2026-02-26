@@ -1,6 +1,6 @@
 // frontend/src/api/profileApi.js
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001/api';
+import { API_URL } from './httpClient';
 
 // Fetch logged-in user's own full profile
 export const getMyProfile = async () => {

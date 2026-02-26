@@ -1,6 +1,6 @@
 // frontend/src/api/matchApi.js
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001/api';
+import { API_URL } from './httpClient';
 
 // Helper to parse JSON safely
 async function parseJsonSafe(res) {

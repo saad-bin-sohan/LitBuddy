@@ -8,6 +8,7 @@ const cors = require('cors');
 const http = require('http');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser'); // <-- added for parsing httpOnly cookies
+process.env.DOTENV_CONFIG_QUIET = process.env.DOTENV_CONFIG_QUIET || 'true';
 dotenv.config();
 
 // 2. Import custom modules
@@ -111,7 +112,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // handle preflight for all routes
+app.options(/.*/, cors(corsOptions)); // handle preflight for all routes
 
 // Extra safety: set headers explicitly and be origin-aware
 app.use((req, res, next) => {

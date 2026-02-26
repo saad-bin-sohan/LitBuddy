@@ -40,8 +40,7 @@ const Register = () => {
 
     try {
       const data = await register(form);
-      localStorage.setItem('token', data.token);
-      setUser(data);
+      setUser(data.user);
     } catch (err) {
       setError(err.message);
     } finally {

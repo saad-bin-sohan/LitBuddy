@@ -1,9 +1,12 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
-import { getMyProfile } from '../api/profileApi';
 import PropTypes from 'prop-types';
-
-// Use the same API base URL as other API modules
-const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001/api';
+import { getMyProfile } from '../api/profileApi';
+import {
+  login as loginRequest,
+  register as registerRequest,
+  logout as logoutRequest,
+} from '../api/authApi';
+import { clearLegacyTokenOnce } from '../api/httpClient';
 
 export const AuthContext = createContext({
   user: null,
@@ -11,13 +14,11 @@ export const AuthContext = createContext({
   isAdmin: false,
   login: async () => {},
   register: async () => {},
-  logout: () => {},
+  logout: async () => {},
   refreshUser: async () => {},
   markProfileComplete: async () => {},
-  token: null,
 });
 
-// Custom hook to use auth context
 export const useAuth = () => {
   const context = React.useContext(AuthContext);
   if (context === undefined) {
@@ -30,9 +31,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
-  const [token, setToken] = useState(localStorage.getItem('token') || null);
 
-  // Fetch current user from backend
   const refreshUser = useCallback(async () => {
     try {
       setLoading(true);
@@ -49,76 +48,43 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // Login
   const login = useCallback(async ({ email, password, deviceId }) => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, deviceId }),
-        credentials: 'include', // send cookies
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        if (data && data.otpRequired) {
-          return { otpRequired: true, methods: data.methods || [] };
-        }
-        throw new Error(data.message || 'Login failed');
+      const data = await loginRequest({ email, password, deviceId });
+      const nextUser = data?.user || null;
+      setUser(nextUser);
+      setIsProfileComplete(!!nextUser?.hasCompletedSetup);
+      return { success: true, user: nextUser };
+    } catch (error) {
+      if (error?.body?.otpRequired) {
+        return { otpRequired: true, methods: error.body.methods || [] };
       }
-
-      setUser(data.user);
-      setIsProfileComplete(!!data.user?.hasCompletedSetup);
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        setToken(data.token);
-      }
-      return { success: true };
+      throw error;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Register
   const register = useCallback(async (formData) => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-        credentials: 'include', // send cookies
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Registration failed');
-
-      setUser(data.user);
-      setIsProfileComplete(!!data.user?.hasCompletedSetup);
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        setToken(data.token);
-      }
-      return { success: true };
+      const data = await registerRequest(formData);
+      const nextUser = data?.user || null;
+      setUser(nextUser);
+      setIsProfileComplete(!!nextUser?.hasCompletedSetup);
+      return { success: true, user: nextUser };
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Logout
   const logout = useCallback(async () => {
     try {
-      await fetch(`${API_URL}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include', // send cookies
-      });
+      await logoutRequest();
+    } finally {
       setUser(null);
       setIsProfileComplete(false);
-      setToken(null);
-      localStorage.removeItem('token');
-    } catch {
-      // ignore errors
     }
   }, []);
 
@@ -128,13 +94,13 @@ export const AuthProvider = ({ children }) => {
 
   const isAdmin = !!(user && (user.isAdmin || user.role === 'admin'));
 
-  // On mount: refresh user from backend
   useEffect(() => {
+    clearLegacyTokenOnce();
     (async () => {
       try {
         await refreshUser();
       } catch {
-        // no session
+        // no active session
       }
     })();
   }, [refreshUser]);
@@ -152,7 +118,6 @@ export const AuthProvider = ({ children }) => {
         logout,
         refreshUser,
         markProfileComplete,
-        token,
       }}
     >
       {children}

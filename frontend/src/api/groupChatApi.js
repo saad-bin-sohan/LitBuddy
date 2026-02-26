@@ -1,96 +1,57 @@
-import axios from 'axios';
+import { apiJson, apiFetch, parseJsonSafe } from './httpClient';
 
-const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001/api';
+export const getGroupChats = async (clubId) => apiJson(`/group-chats/${clubId}`);
 
-// Helper function to get auth headers
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-};
+export const getGroupChat = async (chatId) => apiJson(`/group-chats/chat/${chatId}`);
 
-// Group chat operations
-export const getGroupChats = async (clubId) => {
-  const response = await axios.get(`${API_BASE_URL}/group-chats/${clubId}`, getAuthHeaders());
-  return response.data;
-};
+export const createGroupChat = async (clubId, chatData) =>
+  apiJson(`/group-chats/${clubId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(chatData),
+  });
 
-export const getGroupChat = async (chatId) => {
-  const response = await axios.get(`${API_BASE_URL}/group-chats/chat/${chatId}`, getAuthHeaders());
-  return response.data;
-};
+export const updateGroupChat = async (chatId, chatData) =>
+  apiJson(`/group-chats/chat/${chatId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(chatData),
+  });
 
-export const createGroupChat = async (clubId, chatData) => {
-  const response = await axios.post(
-    `${API_BASE_URL}/group-chats/${clubId}`,
-    chatData,
-    getAuthHeaders()
-  );
-  return response.data;
-};
+export const deleteGroupChat = async (chatId) =>
+  apiJson(`/group-chats/chat/${chatId}`, {
+    method: 'DELETE',
+  });
 
-export const updateGroupChat = async (chatId, chatData) => {
-  const response = await axios.put(
-    `${API_BASE_URL}/group-chats/chat/${chatId}`,
-    chatData,
-    getAuthHeaders()
-  );
-  return response.data;
-};
-
-export const deleteGroupChat = async (chatId) => {
-  const response = await axios.delete(
-    `${API_BASE_URL}/group-chats/chat/${chatId}`,
-    getAuthHeaders()
-  );
-  return response.data;
-};
-
-// Message operations
 export const sendGroupMessage = async (chatId, messageData) => {
   const formData = new FormData();
-
-  if (messageData.text) {
-    formData.append('text', messageData.text);
+  if (messageData.text) formData.append('text', messageData.text);
+  if (Array.isArray(messageData.attachments)) {
+    messageData.attachments.forEach((file) => formData.append('attachments', file));
   }
 
-  if (messageData.attachments && messageData.attachments.length > 0) {
-    messageData.attachments.forEach((file, index) => {
-      formData.append('attachments', file);
-    });
+  const response = await apiFetch(`/group-chats/message/${chatId}`, {
+    method: 'POST',
+    body: formData,
+  });
+  const data = await parseJsonSafe(response);
+  if (!response.ok) {
+    const error = new Error(data.message || 'Failed to send group message');
+    error.status = response.status;
+    error.body = data;
+    throw error;
   }
-
-  const response = await axios.post(
-    `${API_BASE_URL}/group-chats/message/${chatId}`,
-    formData,
-    {
-      ...getAuthHeaders(),
-      headers: {
-        ...getAuthHeaders().headers,
-        'Content-Type': 'multipart/form-data',
-      },
-    }
-  );
-  return response.data;
+  return data;
 };
 
-// Participant management
-export const addParticipant = async (chatId, userId) => {
-  const response = await axios.post(
-    `${API_BASE_URL}/group-chats/chat/${chatId}/participants`,
-    { userId },
-    getAuthHeaders()
-  );
-  return response.data;
-};
+export const addParticipant = async (chatId, userId) =>
+  apiJson(`/group-chats/chat/${chatId}/participants`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId }),
+  });
 
-export const removeParticipant = async (chatId, userId) => {
-  const response = await axios.delete(
-    `${API_BASE_URL}/group-chats/chat/${chatId}/participants/${userId}`,
-    getAuthHeaders()
-  );
-  return response.data;
-};
+export const removeParticipant = async (chatId, userId) =>
+  apiJson(`/group-chats/chat/${chatId}/participants/${userId}`, {
+    method: 'DELETE',
+  });

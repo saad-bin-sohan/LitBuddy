@@ -71,7 +71,6 @@ const Navbar = () => {
       if (typeof logout === 'function') {
         logout();
       } else {
-        try { localStorage.removeItem('token'); } catch (_) {}
         setUser?.(null);
       }
     } catch (_) {
