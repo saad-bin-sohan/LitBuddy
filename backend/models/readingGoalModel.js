@@ -1,22 +1,5 @@
 const mongoose = require('mongoose');
 
-const EMPTY_MONTH_GOALS = {
-  targetBooks: 0,
-  targetPages: 0,
-  targetMinutes: 0,
-  completedBooks: 0,
-  completedPages: 0,
-  completedMinutes: 0
-};
-
-const normalizeMonthKey = (month) => {
-  const parsed = Number.parseInt(String(month), 10);
-  if (!Number.isFinite(parsed) || parsed < 1 || parsed > 12) {
-    return null;
-  }
-  return String(parsed);
-};
-
 const readingGoalSchema = new mongoose.Schema(
   {
     user: {
@@ -76,30 +59,30 @@ readingGoalSchema.index({ user: 1, year: 1 }, { unique: true });
 readingGoalSchema.index({ user: 1, isActive: 1 });
 
 // Helper method to get current month's goals
-readingGoalSchema.methods.getCurrentMonthGoals = function(month = new Date().getMonth() + 1) {
-  const monthKey = normalizeMonthKey(month);
-  if (!monthKey) {
-    return { ...EMPTY_MONTH_GOALS };
-  }
-
-  const monthGoals = this.monthlyGoals.get(monthKey);
-  return monthGoals || { ...EMPTY_MONTH_GOALS };
+readingGoalSchema.methods.getCurrentMonthGoals = function() {
+  const currentMonth = new Date().getMonth() + 1; // getMonth() returns 0-11
+  return this.monthlyGoals.get(currentMonth) || {
+    targetBooks: 0,
+    targetPages: 0,
+    targetMinutes: 0,
+    completedBooks: 0,
+    completedPages: 0,
+    completedMinutes: 0
+  };
 };
 
 // Helper method to update monthly progress
 readingGoalSchema.methods.updateMonthlyProgress = function(month, updates) {
-  const monthKey = normalizeMonthKey(month);
-  if (!monthKey) {
-    const err = new Error('Month must be between 1 and 12');
-    err.statusCode = 400;
-    throw err;
-  }
-
-  const currentGoals = this.monthlyGoals.get(monthKey) || { ...EMPTY_MONTH_GOALS };
+  const currentGoals = this.monthlyGoals.get(month) || {
+    targetBooks: 0,
+    targetPages: 0,
+    targetMinutes: 0,
+    completedBooks: 0,
+    completedPages: 0,
+    completedMinutes: 0
+  };
   
-  this.monthlyGoals.set(monthKey, { ...currentGoals, ...(updates || {}) });
+  this.monthlyGoals.set(month, { ...currentGoals, ...updates });
 };
-
-readingGoalSchema.statics.normalizeMonthKey = normalizeMonthKey;
 
 module.exports = mongoose.model('ReadingGoal', readingGoalSchema);

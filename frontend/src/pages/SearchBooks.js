@@ -4,7 +4,6 @@ import { FiSearch, FiFilter, FiX, FiArrowLeft, FiBookOpen } from 'react-icons/fi
 import { bookApi } from '../api/bookApi';
 import { readingProgressApi } from '../api/readingProgressApi';
 import BookCard from '../components/BookCard';
-import { toApiReadingStatus } from '../utils/readingStatus';
 import './SearchBooks.css';
 
 const SearchBooks = () => {
@@ -107,7 +106,9 @@ const SearchBooks = () => {
       const promises = selectedBooks.map(bookId => {
         return readingProgressApi.addToList({
           bookId,
-          status: toApiReadingStatus(selectedList)
+          listType: selectedList,
+          status: selectedList === 'currently-reading' ? 'reading' : 
+                  selectedList === 'completed' ? 'completed' : 'want-to-read'
         });
       });
 

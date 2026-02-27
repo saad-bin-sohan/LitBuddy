@@ -1,36 +1,21 @@
 const ReadingGoal = require('../models/readingGoalModel');
+const ReadingProgress = require('../models/readingProgressModel');
 const asyncHandler = require('express-async-handler');
-
-const normalizeYear = (value) => {
-  const parsed = Number.parseInt(String(value), 10);
-  return Number.isFinite(parsed) ? parsed : new Date().getFullYear();
-};
-
-const isValidMonth = (month) => Boolean(ReadingGoal.normalizeMonthKey(month));
 
 // @desc    Create or update reading goals
 // @route   POST /api/reading-goals
 // @access  Private
 const setReadingGoals = asyncHandler(async (req, res) => {
   const { year, monthlyGoals, yearlyGoals } = req.body;
-  const currentYear = year ? normalizeYear(year) : new Date().getFullYear();
-
-  if (monthlyGoals) {
-    for (const month of Object.keys(monthlyGoals)) {
-      if (!isValidMonth(month)) {
-        res.status(400);
-        throw new Error('Month must be between 1 and 12');
-      }
-    }
-  }
+  const currentYear = year || new Date().getFullYear();
 
   let readingGoal = await ReadingGoal.findOne({ user: req.user.id, year: currentYear });
 
   if (readingGoal) {
     // Update existing goals
     if (monthlyGoals) {
-      Object.keys(monthlyGoals).forEach((month) => {
-        readingGoal.updateMonthlyProgress(month, monthlyGoals[month]);
+      Object.keys(monthlyGoals).forEach(month => {
+        readingGoal.updateMonthlyProgress(parseInt(month), monthlyGoals[month]);
       });
     }
 
@@ -44,6 +29,7 @@ const setReadingGoals = asyncHandler(async (req, res) => {
     readingGoal = await ReadingGoal.create({
       user: req.user.id,
       year: currentYear,
+      monthlyGoals: monthlyGoals || {},
       yearlyGoals: yearlyGoals || {
         targetBooks: 0,
         targetPages: 0,
@@ -53,13 +39,6 @@ const setReadingGoals = asyncHandler(async (req, res) => {
         completedMinutes: 0
       }
     });
-
-    if (monthlyGoals) {
-      Object.keys(monthlyGoals).forEach((month) => {
-        readingGoal.updateMonthlyProgress(month, monthlyGoals[month]);
-      });
-      await readingGoal.save();
-    }
   }
 
   res.json(readingGoal);
@@ -70,7 +49,7 @@ const setReadingGoals = asyncHandler(async (req, res) => {
 // @access  Private
 const getReadingGoals = asyncHandler(async (req, res) => {
   const { year } = req.query;
-  const currentYear = year ? normalizeYear(year) : new Date().getFullYear();
+  const currentYear = year || new Date().getFullYear();
 
   let readingGoal = await ReadingGoal.findOne({ user: req.user.id, year: currentYear });
 
@@ -158,16 +137,6 @@ const updateProgress = asyncHandler(async (req, res) => {
   const { month, updates } = req.body;
   const currentMonth = month || new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
-
-  if (!isValidMonth(currentMonth)) {
-    res.status(400);
-    throw new Error('Month must be between 1 and 12');
-  }
-
-  if (!updates || typeof updates !== 'object') {
-    res.status(400);
-    throw new Error('updates must be an object');
-  }
 
   let readingGoal = await ReadingGoal.findOne({ user: req.user.id, year: currentYear });
 

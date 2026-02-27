@@ -2,45 +2,12 @@ const ReadingProgress = require('../models/readingProgressModel');
 const Book = require('../models/bookModel');
 const ReadingGoal = require('../models/readingGoalModel');
 const asyncHandler = require('express-async-handler');
-const { isValidObjectId } = require('../utils/objectIdValidator');
-const { normalizeReadingStatus } = require('../utils/readingStatus');
-
-const toNonNegativeInt = (value, fallback = 0) => {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed < 0) return fallback;
-  return Math.floor(parsed);
-};
-
-const parseYear = (value) => {
-  const parsed = Number.parseInt(String(value), 10);
-  return Number.isFinite(parsed) ? parsed : new Date().getFullYear();
-};
-
-const calculateProgressPercentage = (currentPage, totalPages) => {
-  const safeTotal = toNonNegativeInt(totalPages, 0);
-  if (safeTotal <= 0) return 0;
-  const safeCurrent = toNonNegativeInt(currentPage, 0);
-  return Math.max(0, Math.min(100, Math.round((safeCurrent / safeTotal) * 100)));
-};
 
 // @desc    Add book to reading list
 // @route   POST /api/reading-progress
 // @access  Private
 const addBookToList = asyncHandler(async (req, res) => {
   let { bookId, status, totalPages, startDate } = req.body;
-  let normalizedStatus;
-
-  if (!isValidObjectId(bookId)) {
-    res.status(400);
-    throw new Error('Invalid book ID');
-  }
-
-  try {
-    normalizedStatus = normalizeReadingStatus(status, { defaultStatus: 'want-to-read' });
-  } catch (error) {
-    res.status(error.statusCode || 400);
-    throw error;
-  }
 
   // Check if book exists
   const book = await Book.findById(bookId);
@@ -49,13 +16,10 @@ const addBookToList = asyncHandler(async (req, res) => {
     throw new Error('Book not found');
   }
 
-  if (book.createdBy.toString() !== req.user.id) {
-    res.status(404);
-    throw new Error('Book not found');
-  }
-
   // Set totalPages from book if not provided
-  totalPages = toNonNegativeInt(totalPages, toNonNegativeInt(book.pageCount, 0));
+  if (!totalPages) {
+    totalPages = book.pageCount || 0;
+  }
 
   // Check if already in list
   const existingProgress = await ReadingProgress.findOne({
@@ -71,10 +35,10 @@ const addBookToList = asyncHandler(async (req, res) => {
   const readingProgress = await ReadingProgress.create({
     user: req.user.id,
     book: bookId,
-    status: normalizedStatus,
+    status,
     totalPages,
-    startDate: startDate ? new Date(startDate) : new Date(),
-    currentPage: normalizedStatus === 'currently-reading' ? 1 : 0
+    startDate: startDate || new Date(),
+    currentPage: status === 'currently-reading' ? 1 : 0
   });
 
   // Populate book details
@@ -87,10 +51,7 @@ const addBookToList = asyncHandler(async (req, res) => {
 // @route   PUT /api/reading-progress/:id
 // @access  Private
 const updateProgress = asyncHandler(async (req, res) => {
-  if (!isValidObjectId(req.params.id)) {
-    res.status(400);
-    throw new Error('Invalid reading progress ID');
-  }
+  const { currentPage, status, rating, review, notes, readingTime } = req.body;
 
   const readingProgress = await ReadingProgress.findById(req.params.id);
 
@@ -105,57 +66,22 @@ const updateProgress = asyncHandler(async (req, res) => {
     throw new Error('Not authorized to update this progress');
   }
 
-  const updates = {};
-  const allowedFields = ['currentPage', 'status', 'rating', 'review', 'notes', 'readingTime', 'totalPages'];
-  for (const field of allowedFields) {
-    if (Object.prototype.hasOwnProperty.call(req.body, field)) {
-      updates[field] = req.body[field];
-    }
+  // Update finish date if completing book
+  if (status === 'completed' && readingProgress.status !== 'completed') {
+    req.body.finishDate = new Date();
   }
 
-  if (Object.prototype.hasOwnProperty.call(updates, 'status')) {
-    try {
-      updates.status = normalizeReadingStatus(updates.status, {
-        defaultStatus: readingProgress.status,
-      });
-    } catch (error) {
-      res.status(error.statusCode || 400);
-      throw error;
-    }
-  }
-
-  if (Object.prototype.hasOwnProperty.call(updates, 'currentPage')) {
-    updates.currentPage = toNonNegativeInt(updates.currentPage, readingProgress.currentPage || 0);
-  }
-  if (Object.prototype.hasOwnProperty.call(updates, 'totalPages')) {
-    updates.totalPages = toNonNegativeInt(updates.totalPages, readingProgress.totalPages || 0);
-  }
-  if (Object.prototype.hasOwnProperty.call(updates, 'readingTime')) {
-    updates.readingTime = toNonNegativeInt(updates.readingTime, readingProgress.readingTime || 0);
-  }
-  if (Object.prototype.hasOwnProperty.call(updates, 'rating')) {
-    if (updates.rating === '' || updates.rating === null) {
-      updates.rating = null;
-    } else {
-      updates.rating = Number(updates.rating);
-    }
-  }
-
-  const nextStatus = updates.status || readingProgress.status;
-  if (nextStatus === 'completed' && readingProgress.status !== 'completed') {
-    updates.finishDate = new Date();
-  }
-
-  updates.lastReadAt = new Date();
+  // Update last read time
+  req.body.lastReadAt = new Date();
 
   const updatedProgress = await ReadingProgress.findByIdAndUpdate(
     req.params.id,
-    { $set: updates },
+    req.body,
     { new: true, runValidators: true }
   ).populate('book');
 
   // Update reading goals if book is completed
-  if (nextStatus === 'completed' && readingProgress.status !== 'completed') {
+  if (status === 'completed' && readingProgress.status !== 'completed') {
     await updateReadingGoals(req.user.id, updatedProgress);
   }
 
@@ -170,12 +96,7 @@ const getReadingLists = asyncHandler(async (req, res) => {
 
   let query = { user: req.user.id };
   if (status) {
-    try {
-      query.status = normalizeReadingStatus(status, { defaultStatus: null });
-    } catch (error) {
-      res.status(error.statusCode || 400);
-      throw error;
-    }
+    query.status = status;
   }
 
   const readingProgress = await ReadingProgress.find(query)
@@ -201,11 +122,6 @@ const getReadingLists = asyncHandler(async (req, res) => {
 // @route   DELETE /api/reading-progress/:id
 // @access  Private
 const removeFromList = asyncHandler(async (req, res) => {
-  if (!isValidObjectId(req.params.id)) {
-    res.status(400);
-    throw new Error('Invalid reading progress ID');
-  }
-
   const readingProgress = await ReadingProgress.findById(req.params.id);
 
   if (!readingProgress) {
@@ -229,7 +145,7 @@ const removeFromList = asyncHandler(async (req, res) => {
 // @access  Private
 const getReadingStats = asyncHandler(async (req, res) => {
   const { year } = req.query;
-  const currentYear = year ? parseYear(year) : new Date().getFullYear();
+  const currentYear = year || new Date().getFullYear();
 
   // Get completed books for the year
   const completedBooks = await ReadingProgress.find({
@@ -256,7 +172,7 @@ const getReadingStats = asyncHandler(async (req, res) => {
     book: progress.book,
     currentPage: progress.currentPage,
     totalPages: progress.totalPages,
-    progressPercentage: calculateProgressPercentage(progress.currentPage, progress.totalPages)
+    progressPercentage: Math.round((progress.currentPage / progress.totalPages) * 100)
   }));
 
   const stats = {
@@ -292,12 +208,6 @@ const updateReadingGoals = async (userId, readingProgress) => {
         completedMinutes: readingProgress.readingTime || 0
       }
     });
-
-    readingGoal.updateMonthlyProgress(currentMonth, {
-      completedBooks: 1,
-      completedPages: readingProgress.totalPages,
-      completedMinutes: readingProgress.readingTime || 0
-    });
   } else {
     // Update yearly goals
     readingGoal.yearlyGoals.completedBooks += 1;
@@ -329,9 +239,6 @@ const calculateReadingStreak = async (userId) => {
   const oneDay = 24 * 60 * 60 * 1000;
 
   for (let i = 0; i < completedBooks.length; i++) {
-    if (!completedBooks[i].finishDate) {
-      continue;
-    }
     const bookDate = new Date(completedBooks[i].finishDate);
     const daysDiff = Math.round(Math.abs((today - bookDate) / oneDay));
 
@@ -350,8 +257,5 @@ module.exports = {
   updateProgress,
   getReadingLists,
   removeFromList,
-  getReadingStats,
-  _private: {
-    calculateProgressPercentage
-  }
+  getReadingStats
 };

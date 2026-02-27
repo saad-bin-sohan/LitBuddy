@@ -1,123 +1,127 @@
-const asyncHandler = require('express-async-handler');
 const Review = require('../models/reviewModel');
-const Book = require('../models/bookModel');
-const { isValidObjectId } = require('../utils/objectIdValidator');
+const { getLogger } = require('../utils/logger');
 
-const isAdminUser = (user) => Boolean(user && (user.isAdmin || user.role === 'admin'));
+// Add a new review
+exports.addReview = async (req, res) => {
+  const requestLogger = getLogger(req);
+  try {
+    const { bookId, rating, reviewText, spoiler } = req.body;
+    const userId = req.user.id; // Assuming user is authenticated
 
-const assertValidObjectId = (value, label, res) => {
-  if (!isValidObjectId(value)) {
-    res.status(400);
-    throw new Error(`Invalid ${label} ID`);
-  }
-};
+    const review = new Review({ userId, bookId, rating, reviewText, spoiler });
+    await review.save();
 
-const assertReviewOwnerOrAdmin = (review, req, res) => {
-  const isOwner = review.userId.toString() === req.user.id;
-  if (!isOwner && !isAdminUser(req.user)) {
-    res.status(403);
-    throw new Error('Not authorized to modify this review');
-  }
-};
-
-// Add or update a review (single review per user/book)
-exports.addReview = asyncHandler(async (req, res) => {
-  const { bookId, rating, reviewText, spoiler } = req.body;
-  const userId = req.user.id;
-
-  assertValidObjectId(bookId, 'book', res);
-
-  const book = await Book.findOne({ _id: bookId, createdBy: userId });
-  if (!book) {
-    res.status(404);
-    throw new Error('Book not found');
-  }
-
-  const review = await Review.findOneAndUpdate(
-    { userId, bookId },
-    {
-      $set: {
-        rating,
-        reviewText,
-        spoiler: Boolean(spoiler),
+    res.status(201).json({ message: 'Review added successfully', review });
+  } catch (error) {
+    requestLogger.error(
+      {
+        err: error,
+        userId: req.user && (req.user.id || req.user._id),
       },
-    },
-    {
-      new: true,
-      upsert: true,
-      runValidators: true,
-      setDefaultsOnInsert: true,
-    }
-  );
-
-  res.status(201).json({ message: 'Review saved successfully', review });
-});
+      'review.add_failed'
+    );
+    res.status(500).json({ message: 'Failed to add review', error: error.message });
+  }
+};
 
 // Get reviews for a book
-exports.getReviewsByBook = asyncHandler(async (req, res) => {
-  const { bookId } = req.params;
-  assertValidObjectId(bookId, 'book', res);
+const { isValidObjectId } = require('../utils/objectIdValidator');
 
-  const reviews = await Review.find({ bookId }).populate('userId', 'name').sort({ updatedAt: -1 });
-  res.status(200).json(reviews);
-});
+exports.getReviewsByBook = async (req, res) => {
+  const requestLogger = getLogger(req);
+  try {
+    const { bookId } = req.params;
+
+    if (!isValidObjectId(bookId)) {
+      return res.status(400).json({ message: 'Invalid book ID' });
+    }
+
+    const reviews = await Review.find({ bookId }).populate('userId', 'name');
+
+    res.status(200).json(reviews);
+  } catch (error) {
+    requestLogger.error(
+      {
+        err: error,
+        bookId: req.params.bookId,
+      },
+      'review.get_by_book_failed'
+    );
+    res.status(500).json({ message: 'Failed to fetch reviews', error: error.message });
+  }
+};
 
 // Get reviews by a user
-exports.getReviewsByUser = asyncHandler(async (req, res) => {
-  const { userId } = req.params;
-  assertValidObjectId(userId, 'user', res);
+exports.getReviewsByUser = async (req, res) => {
+  const requestLogger = getLogger(req);
+  try {
+    const { userId } = req.params;
+    const reviews = await Review.find({ userId }).populate('bookId', 'title');
 
-  const reviews = await Review.find({ userId }).populate('bookId', 'title').sort({ updatedAt: -1 });
-  res.status(200).json(reviews);
-});
+    res.status(200).json(reviews);
+  } catch (error) {
+    requestLogger.error(
+      {
+        err: error,
+        userId: req.params.userId,
+      },
+      'review.get_by_user_failed'
+    );
+    res.status(500).json({ message: 'Failed to fetch reviews', error: error.message });
+  }
+};
 
 // Edit a review
-exports.editReview = asyncHandler(async (req, res) => {
-  const { reviewId } = req.params;
-  const { rating, reviewText, spoiler } = req.body;
+exports.editReview = async (req, res) => {
+  const requestLogger = getLogger(req);
+  try {
+    const { reviewId } = req.params;
+    const { rating, reviewText, spoiler } = req.body;
 
-  assertValidObjectId(reviewId, 'review', res);
+    const review = await Review.findByIdAndUpdate(
+      reviewId,
+      { rating, reviewText, spoiler, updatedAt: Date.now() },
+      { new: true }
+    );
 
-  const review = await Review.findById(reviewId);
-  if (!review) {
-    res.status(404);
-    throw new Error('Review not found');
+    if (!review) {
+      return res.status(404).json({ message: 'Review not found' });
+    }
+
+    res.status(200).json({ message: 'Review updated successfully', review });
+  } catch (error) {
+    requestLogger.error(
+      {
+        err: error,
+        reviewId: req.params.reviewId,
+      },
+      'review.edit_failed'
+    );
+    res.status(500).json({ message: 'Failed to update review', error: error.message });
   }
-
-  assertReviewOwnerOrAdmin(review, req, res);
-
-  if (Object.prototype.hasOwnProperty.call(req.body, 'rating')) {
-    review.rating = rating;
-  }
-  if (Object.prototype.hasOwnProperty.call(req.body, 'reviewText')) {
-    review.reviewText = reviewText;
-  }
-  if (Object.prototype.hasOwnProperty.call(req.body, 'spoiler')) {
-    review.spoiler = Boolean(spoiler);
-  }
-
-  await review.save();
-
-  res.status(200).json({ message: 'Review updated successfully', review });
-});
+};
 
 // Delete a review
-exports.deleteReview = asyncHandler(async (req, res) => {
-  const { reviewId } = req.params;
-  assertValidObjectId(reviewId, 'review', res);
+exports.deleteReview = async (req, res) => {
+  const requestLogger = getLogger(req);
+  try {
+    const { reviewId } = req.params;
 
-  const review = await Review.findById(reviewId);
-  if (!review) {
-    res.status(404);
-    throw new Error('Review not found');
+    const review = await Review.findByIdAndDelete(reviewId);
+
+    if (!review) {
+      return res.status(404).json({ message: 'Review not found' });
+    }
+
+    res.status(200).json({ message: 'Review deleted successfully' });
+  } catch (error) {
+    requestLogger.error(
+      {
+        err: error,
+        reviewId: req.params.reviewId,
+      },
+      'review.delete_failed'
+    );
+    res.status(500).json({ message: 'Failed to delete review', error: error.message });
   }
-
-  assertReviewOwnerOrAdmin(review, req, res);
-
-  await review.deleteOne();
-  res.status(200).json({ message: 'Review deleted successfully' });
-});
-
-exports._private = {
-  isAdminUser,
 };

@@ -1,15 +1,5 @@
 const googleBooksService = require('../services/googleBooksService');
 const asyncHandler = require('express-async-handler');
-const Book = require('../models/bookModel');
-const ReadingProgress = require('../models/readingProgressModel');
-const { normalizeReadingStatus } = require('../utils/readingStatus');
-const { normalizeIsbn } = require('../utils/isbn');
-
-const toNonNegativePageCount = (value) => {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed < 0) return 0;
-  return Math.floor(parsed);
-};
 
 // @desc    Search books on Google Books
 // @route   GET /api/googlebooks/search
@@ -26,9 +16,7 @@ const searchGoogleBooks = asyncHandler(async (req, res) => {
     const results = await googleBooksService.searchBooks(query.trim(), parseInt(page));
     res.json(results);
   } catch (error) {
-    if (res.statusCode === 200) {
-      res.status(500);
-    }
+    res.status(500);
     throw new Error(`Google Books search failed: ${error.message}`);
   }
 });
@@ -47,9 +35,7 @@ const getGoogleBookById = asyncHandler(async (req, res) => {
       res.status(404);
       throw new Error('Book not found on Google Books');
     }
-    if (res.statusCode === 200) {
-      res.status(500);
-    }
+    res.status(500);
     throw new Error(`Failed to fetch book: ${error.message}`);
   }
 });
@@ -82,9 +68,7 @@ const getGoogleBookByIsbn = asyncHandler(async (req, res) => {
       res.status(404);
       throw new Error('Book not found on Google Books');
     }
-    if (res.statusCode === 200) {
-      res.status(500);
-    }
+    res.status(500);
     throw new Error(`Failed to fetch book: ${error.message}`);
   }
 });
@@ -100,19 +84,12 @@ const importBookFromGoogleBooks = asyncHandler(async (req, res) => {
     throw new Error('Google Books volume ID is required');
   }
 
-  let normalizedStatus;
-  try {
-    normalizedStatus = normalizeReadingStatus(status, { defaultStatus: 'want-to-read' });
-  } catch (error) {
-    res.status(error.statusCode || 400);
-    throw error;
-  }
-
   try {
     // Get book details from Google Books
     const googleBook = await googleBooksService.getBookById(googleBooksId);
 
     // Check if book already exists in user's library
+    const Book = require('../models/bookModel');
     const existingBook = await Book.findOne({
       googleBooksId: googleBook.googleBooksId,
       createdBy: req.user.id
@@ -127,12 +104,12 @@ const importBookFromGoogleBooks = asyncHandler(async (req, res) => {
     const book = await Book.create({
       title: googleBook.title,
       author: googleBook.author,
-      isbn: normalizeIsbn(googleBook.isbn),
+      isbn: googleBook.isbn,
       coverImage: googleBook.imageUrl,
       description: googleBook.description,
       genre: googleBook.categories || [],
       publishedYear: googleBook.publicationYear,
-      pageCount: toNonNegativePageCount(googleBook.pages || totalPages),
+      pageCount: googleBook.pages || totalPages,
       language: googleBook.language || 'English',
       googleBooksId: googleBook.googleBooksId,
       googleBooksRating: googleBook.averageRating,
@@ -142,13 +119,16 @@ const importBookFromGoogleBooks = asyncHandler(async (req, res) => {
     });
 
     // Add to reading list if status is provided
-    await ReadingProgress.create({
-      user: req.user.id,
-      book: book._id,
-      status: normalizedStatus,
-      totalPages: toNonNegativePageCount(book.pageCount ?? totalPages ?? 0),
-      startDate: new Date()
-    });
+    if (status) {
+      const ReadingProgress = require('../models/readingProgressModel');
+      await ReadingProgress.create({
+        user: req.user.id,
+        book: book._id,
+        status,
+        totalPages: book.pageCount || totalPages,
+        startDate: new Date()
+      });
+    }
 
     res.status(201).json({
       message: 'Book imported successfully',
@@ -156,25 +136,7 @@ const importBookFromGoogleBooks = asyncHandler(async (req, res) => {
       importedFrom: 'Google Books'
     });
   } catch (error) {
-    if (error.statusCode) {
-      res.status(error.statusCode);
-      throw error;
-    }
-
-    if (res.statusCode >= 400 && res.statusCode < 500) {
-      throw error;
-    }
-
-    if (error.name === 'ValidationError' || error.code === 11000) {
-      if (res.statusCode === 200) {
-        res.status(400);
-      }
-      throw error;
-    }
-
-    if (res.statusCode === 200) {
-      res.status(500);
-    }
+    res.status(500);
     throw new Error(`Failed to import book: ${error.message}`);
   }
 });
