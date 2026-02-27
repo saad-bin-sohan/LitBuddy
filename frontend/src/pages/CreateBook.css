@@ -4,7 +4,7 @@
   padding: 20px;
 }
 
-.page-header {
+.create-book-header {
   text-align: center;
   margin-bottom: 30px;
   position: relative;
@@ -33,7 +33,7 @@
   color: var(--color-text);
 }
 
-.page-header h1 {
+.create-book-header h1 {
   font-size: 2.5rem;
   font-weight: 700;
   color: var(--color-text);
@@ -44,7 +44,7 @@
   background-clip: text;
 }
 
-.page-header p {
+.create-book-header p {
   color: var(--color-text-secondary);
   font-size: 1.1rem;
   margin: 0;
@@ -62,13 +62,13 @@
 
 .alert-error {
   background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
+  color: var(--color-error);
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .alert-success {
   background: rgba(34, 197, 94, 0.1);
-  color: #16a34a;
+  color: var(--color-success);
   border: 1px solid rgba(34, 197, 94, 0.2);
 }
 
@@ -225,7 +225,7 @@
   border-top: 1px solid var(--color-border);
 }
 
-.btn {
+.create-book-btn {
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 500;
@@ -241,29 +241,29 @@
   min-width: 120px;
 }
 
-.btn:disabled {
+.create-book-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.btn-primary {
+.create-book-btn-primary {
   background: var(--color-primary);
   color: white;
 }
 
-.btn-primary:hover:not(:disabled) {
+.create-book-btn-primary:hover:not(:disabled) {
   background: var(--color-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-.btn-outline {
+.create-book-btn-outline {
   background: transparent;
   color: var(--color-text);
   border: 2px solid var(--color-border);
 }
 
-.btn-outline:hover:not(:disabled) {
+.create-book-btn-outline:hover:not(:disabled) {
   background: var(--color-bg-1);
   border-color: var(--color-text-secondary);
 }
@@ -306,7 +306,7 @@
     flex-direction: column;
   }
   
-  .btn {
+  .create-book-btn {
     width: 100%;
   }
   
@@ -317,13 +317,13 @@
     justify-content: center;
   }
   
-  .page-header {
+  .create-book-header {
     text-align: center;
   }
 }
 
 @media (max-width: 480px) {
-  .page-header h1 {
+  .create-book-header h1 {
     font-size: 2rem;
   }
   

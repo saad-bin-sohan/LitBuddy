@@ -15,52 +15,19 @@ import React, { useContext, useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FiLogOut, FiMessageSquare, FiMenu, FiSun, FiMoon, FiX, FiUser, FiSettings, FiBookOpen, FiUsers, FiSearch, FiAward, FiTrendingUp } from 'react-icons/fi';
 import { AuthContext } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import NotificationCenter from './NotificationCenter';
 import Avatar from './Avatar';
 
-const safeReadTheme = () => {
-  try {
-    return localStorage.getItem('theme') || 'light';
-  } catch {
-    return 'light';
-  }
-};
-
-const safeWriteTheme = (value) => {
-  try {
-    localStorage.setItem('theme', value);
-  } catch {
-    // Ignore storage failures (private mode / disabled storage).
-  }
-};
-
 const Navbar = () => {
   const { user, setUser, logout, isAdmin } = useContext(AuthContext);
-  const [theme, setTheme] = useState(safeReadTheme);
+  const { theme, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const profileDropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
-
-  useEffect(() => {
-    // Ensure we set the attribute that your CSS file reads:
-    const attrValue = theme === 'dark' ? 'dark' : 'light';
-
-    try {
-      // Primary attribute used in styles.css
-      document.documentElement.setAttribute('data-color-scheme', attrValue);
-      // Keep existing attribute (backwards compatibility)
-      document.documentElement.setAttribute('data-theme', attrValue);
-      // Helps native form controls & some UA styling match the chosen theme
-      document.documentElement.style.colorScheme = attrValue;
-    } catch (err) {
-      // noop in environments where document isn't available
-    }
-
-    safeWriteTheme(theme);
-  }, [theme]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -158,7 +125,7 @@ const Navbar = () => {
           <button
             className="theme-toggle"
             title="Toggle theme"
-            onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
+            onClick={toggleTheme}
             aria-label="Toggle theme"
           >
             <div className="theme-icon">

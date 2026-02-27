@@ -4,7 +4,7 @@
   padding: 20px;
 }
 
-.page-header {
+.search-books-header {
   text-align: center;
   margin-bottom: 30px;
   position: relative;
@@ -33,7 +33,7 @@
   color: var(--color-text);
 }
 
-.page-header h1 {
+.search-books-header h1 {
   font-size: 2.5rem;
   font-weight: 700;
   color: var(--color-text);
@@ -44,7 +44,7 @@
   background-clip: text;
 }
 
-.page-header p {
+.search-books-header p {
   color: var(--color-text-secondary);
   font-size: 1.1rem;
   margin: 0;
@@ -62,7 +62,7 @@
 
 .alert-error {
   background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
+  color: var(--color-error);
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
@@ -81,13 +81,13 @@
   gap: 20px;
 }
 
-.search-input-group {
+.search-books-search-input-group {
   display: flex;
   gap: 12px;
   align-items: center;
 }
 
-.search-input-wrapper {
+.search-books-search-input-wrapper {
   position: relative;
   flex: 1;
 }
@@ -102,7 +102,7 @@
   height: 20px;
 }
 
-.search-input {
+.search-books-search-input {
   width: 100%;
   padding: 12px 16px 12px 48px;
   border: 2px solid var(--color-border);
@@ -113,7 +113,7 @@
   transition: all 0.2s ease;
 }
 
-.search-input:focus {
+.search-books-search-input:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
@@ -272,7 +272,7 @@
   font-size: 0.9rem;
 }
 
-.btn {
+.search-books-btn {
   padding: 8px 16px;
   border-radius: 6px;
   font-weight: 500;
@@ -286,23 +286,23 @@
   justify-content: center;
 }
 
-.btn-primary {
+.search-books-btn-primary {
   background: var(--color-primary);
   color: white;
 }
 
-.btn-primary:hover {
+.search-books-btn-primary:hover {
   background: var(--color-primary-hover);
   transform: translateY(-1px);
 }
 
-.btn-outline {
+.search-books-btn-outline {
   background: transparent;
   color: var(--color-text);
   border: 2px solid var(--color-border);
 }
 
-.btn-outline:hover {
+.search-books-btn-outline:hover {
   background: var(--color-bg-1);
   border-color: var(--color-text-secondary);
 }
@@ -414,14 +414,14 @@
   border: 1px solid var(--color-border);
 }
 
-.modal-header {
+.search-books-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
 }
 
-.modal-header h3 {
+.search-books-modal-header h3 {
   margin: 0;
   color: var(--color-text);
   font-size: 1.25rem;
@@ -468,12 +468,12 @@
     padding: 20px;
   }
   
-  .search-input-group {
+  .search-books-search-input-group {
     flex-direction: column;
     gap: 16px;
   }
   
-  .search-input-wrapper {
+  .search-books-search-input-wrapper {
     order: 1;
   }
   
@@ -513,13 +513,13 @@
     justify-content: center;
   }
   
-  .page-header {
+  .search-books-header {
     text-align: center;
   }
 }
 
 @media (max-width: 480px) {
-  .page-header h1 {
+  .search-books-header h1 {
     font-size: 2rem;
   }
   

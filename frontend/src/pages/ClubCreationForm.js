@@ -252,7 +252,7 @@ const ClubCreationForm = () => {
               <button
                 type="button"
                 onClick={addGenre}
-                className="btn btn-secondary"
+                className="club-creation-btn club-creation-btn-secondary"
                 disabled={!genreInput}
               >
                 Add Genre
@@ -287,7 +287,7 @@ const ClubCreationForm = () => {
               <button
                 type="button"
                 onClick={addTag}
-                className="btn btn-secondary"
+                className="club-creation-btn club-creation-btn-secondary"
                 disabled={!tagInput.trim()}
               >
                 Add Tag
@@ -440,13 +440,13 @@ const ClubCreationForm = () => {
           <button
             type="button"
             onClick={() => navigate('/clubs')}
-            className="btn btn-outline"
+            className="club-creation-btn club-creation-btn-outline"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="btn btn-primary"
+            className="club-creation-btn club-creation-btn-primary"
             disabled={loading}
           >
             {loading ? 'Creating Club...' : 'Create Club'}

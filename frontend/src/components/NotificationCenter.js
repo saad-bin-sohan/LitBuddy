@@ -15,12 +15,12 @@ const NotificationCenter = () => {
     width: 40,
     height: 40,
     borderRadius: 12,
-    background: hovered ? 'rgba(120,120,120,0.14)' : 'rgba(120,120,120,0.08)',
-    border: '1px solid rgba(120,120,120,0.18)',
+    background: hovered ? 'rgba(var(--color-border-rgb), 0.22)' : 'rgba(var(--color-border-rgb), 0.12)',
+    border: '1px solid rgba(var(--color-border-rgb), 0.3)',
     color: 'inherit',
     cursor: 'pointer',
     transition: 'transform 140ms ease, background 200ms ease, box-shadow 200ms ease',
-    boxShadow: hovered ? '0 6px 18px rgba(0,0,0,0.12)' : '0 3px 10px rgba(0,0,0,0.06)',
+    boxShadow: hovered ? '0 6px 18px rgba(0,0,0,0.12)' : '0 3px 10px rgba(0,0,0,0.12)',
     transform: hovered ? 'translateY(-1px)' : 'translateY(0)'
   };
 
@@ -37,11 +37,11 @@ const NotificationCenter = () => {
     fontSize: 11,
     fontWeight: 700,
     lineHeight: 1,
-    color: '#fff',
-    background: 'linear-gradient(135deg, #ff4d4d 0%, #ff7a7a 100%)',
+    color: 'var(--color-surface)',
+    background: 'linear-gradient(135deg, var(--color-error) 0%, rgba(var(--color-error-rgb), 0.75) 100%)',
     borderRadius: 999,
-    boxShadow: '0 4px 10px rgba(255,77,77,0.35)',
-    border: '1px solid rgba(255,255,255,0.5)'
+    boxShadow: '0 4px 10px rgba(var(--color-error-rgb), 0.35)',
+    border: '1px solid rgba(var(--color-text-rgb), 0.4)'
   };
 
   const panelStyle = {
@@ -52,18 +52,18 @@ const NotificationCenter = () => {
     maxWidth: 'min(320px, calc(100vw - 24px))',
     maxHeight: 'min(420px, calc(100dvh - 120px))',
     overflowY: 'auto',
-    background: 'white',
+    background: 'var(--color-surface-elevated, var(--color-surface))',
     boxShadow: '0 12px 28px rgba(0,0,0,0.15)',
     borderRadius: 14,
     padding: 12,
     zIndex: 1000,
-    border: '1px solid rgba(0,0,0,0.06)',
+    border: '1px solid var(--color-border)',
     boxSizing: 'border-box'
   };
 
   const itemStyle = {
     padding: 10,
-    borderBottom: '1px solid #f0f0f0',
+    borderBottom: '1px solid var(--color-border)',
     display: 'flex',
     justifyContent: 'space-between'
   };
@@ -111,14 +111,14 @@ const NotificationCenter = () => {
         <div style={panelStyle}>
           <h4 style={{ margin: '4px 6px 10px', fontSize: 16 }}>Notifications</h4>
           {notifications.length === 0 ? (
-            <p style={{ color: '#666' }}>No notifications</p>
+            <p style={{ color: 'var(--color-text-secondary)' }}>No notifications</p>
           ) : (
             notifications.map((n) => (
               <div key={n._id} style={itemStyle}>
                 <div style={{ maxWidth: 220 }}>
                   <div style={{ fontWeight: n.read ? 400 : 700 }}>{n.title || n.type}</div>
-                  <div style={{ fontSize: 13, color: '#444' }}>{n.body}</div>
-                  <div style={{ fontSize: 11, color: '#999' }}>{new Date(n.createdAt).toLocaleString()}</div>
+                  <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{n.body}</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{new Date(n.createdAt).toLocaleString()}</div>
                 </div>
                 {!n.read && (
                   <div style={{ marginLeft: 8 }}>

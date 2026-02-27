@@ -55,7 +55,7 @@ const AddReview = () => {
     return (
       <div className="add-review-page">
         <div className="error">Error: {error}</div>
-        <button className="btn btn-outline" onClick={handleBack}>
+        <button className="add-review-btn add-review-btn-outline" onClick={handleBack}>
           Back to Reading Progress
         </button>
       </div>
@@ -64,7 +64,7 @@ const AddReview = () => {
 
   return (
     <div className="add-review-page">
-      <div className="page-header">
+      <div className="add-review-header">
         <button className="back-btn" onClick={handleBack}>
           <FiArrowLeft />
           <span>Back to Reading Progress</span>
@@ -81,7 +81,7 @@ const AddReview = () => {
               <FiBookOpen className="empty-icon" />
               <h3>No books available</h3>
               <p>You need to add some books to your reading lists first.</p>
-              <button className="btn btn-primary" onClick={() => navigate('/search-books')}>
+              <button className="add-review-btn add-review-btn-primary" onClick={() => navigate('/search-books')}>
                 Search Books
               </button>
             </div>

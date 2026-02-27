@@ -6733,3 +6733,157 @@ a:hover { color: var(--color-primary-hover); }
   transform: translateY(-20px);
   transition: opacity 0.3s ease-in, transform 0.3s ease-in;
 }
+
+/* =======================================
+   Dark Theme V2 - Canonical Theme Tokens
+   ======================================= */
+:root {
+  --color-surface-elevated: var(--color-surface);
+  --color-accent: #673AB7;
+  --color-accent-readable: #673AB7;
+  --color-accent-rgb: 103, 58, 183;
+  --color-accent-readable-rgb: 103, 58, 183;
+  --color-hover-fill: #FFEB3B;
+  --color-hover-fill-text: #181818;
+  --color-hover-fill-rgb: 255, 235, 59;
+}
+
+[data-theme="dark"],
+[data-color-scheme="dark"] {
+  --color-background: #181818;
+  --color-surface: #202020;
+  --color-surface-elevated: #242424;
+  --color-text: #F7F7F7;
+  --color-text-secondary: rgba(247, 247, 247, 0.72);
+  --color-text-secondary-rgb: 247, 247, 247;
+  --color-primary: #FF5722;
+  --color-primary-hover: #FFEB3B;
+  --color-primary-active: #E64A19;
+  --color-btn-primary-text: #181818;
+  --color-accent: #673AB7;
+  --color-accent-readable: #9575CD;
+  --color-hover-fill: #FFEB3B;
+  --color-hover-fill-text: #181818;
+  --color-secondary: rgba(103, 58, 183, 0.22);
+  --color-secondary-hover: rgba(255, 235, 59, 0.22);
+  --color-secondary-active: rgba(255, 235, 59, 0.3);
+  --color-border: rgba(247, 247, 247, 0.16);
+  --color-border-secondary: rgba(247, 247, 247, 0.22);
+  --color-card-border: rgba(247, 247, 247, 0.16);
+  --color-card-border-inner: rgba(247, 247, 247, 0.12);
+  --color-focus-ring: rgba(255, 235, 59, 0.55);
+  --color-select-caret: rgba(247, 247, 247, 0.8);
+
+  /* Keep semantic status colors distinct */
+  --color-error: #FF6B6B;
+  --color-success: #4CAF50;
+  --color-warning: #F59E0B;
+  --color-info: #9575CD;
+
+  --color-primary-rgb: 255, 87, 34;
+  --color-hover-fill-rgb: 255, 235, 59;
+  --color-accent-rgb: 103, 58, 183;
+  --color-accent-readable-rgb: 149, 117, 205;
+  --color-surface-rgb: 32, 32, 32;
+  --color-background-rgb: 24, 24, 24;
+  --color-border-rgb: 247, 247, 247;
+  --color-text-rgb: 247, 247, 247;
+  --color-success-rgb: 76, 175, 80;
+  --color-error-rgb: 255, 107, 107;
+  --color-warning-rgb: 245, 158, 11;
+  --color-info-rgb: 149, 117, 205;
+
+  --focus-ring: 0 0 0 3px var(--color-focus-ring);
+  --focus-outline: 2px solid var(--color-hover-fill);
+
+  --color-bg-1: rgba(255, 87, 34, 0.14);
+  --color-bg-2: rgba(103, 58, 183, 0.14);
+  --color-bg-3: rgba(255, 235, 59, 0.12);
+  --color-bg-4: rgba(255, 107, 107, 0.12);
+  --color-bg-5: rgba(149, 117, 205, 0.12);
+  --color-bg-6: rgba(255, 87, 34, 0.14);
+  --color-bg-7: rgba(255, 235, 59, 0.12);
+  --color-bg-8: rgba(103, 58, 183, 0.1);
+
+  --surface-raised: var(--color-surface);
+  --surface-recessed: var(--color-background);
+  --shadow-neu: 10px 10px 24px rgba(0, 0, 0, 0.35), -10px -10px 24px rgba(255, 255, 255, 0.03);
+  --shadow-neu-strong: 18px 18px 40px rgba(0, 0, 0, 0.45), -18px -18px 40px rgba(255, 255, 255, 0.04);
+  --shadow-neu-inset: inset 8px 8px 16px rgba(0, 0, 0, 0.4), inset -8px -8px 16px rgba(255, 255, 255, 0.02);
+  --shadow-glow-primary: 0 18px 48px rgba(var(--color-primary-rgb), 0.35);
+}
+
+[data-theme="light"],
+[data-color-scheme="light"] {
+  --color-surface-elevated: var(--color-surface);
+}
+
+/* ========================================
+   Dark Theme V2 - Interaction Rules
+   ======================================== */
+[data-theme="dark"] a:hover,
+[data-color-scheme="dark"] a:hover {
+  color: var(--color-hover-fill);
+}
+
+[data-theme="dark"] .btn-primary:hover,
+[data-theme="dark"] .home-btn-primary:hover,
+[data-theme="dark"] .public-btn-primary:hover,
+[data-theme="dark"] .signup-btn:hover,
+[data-theme="dark"] .auth-submit-btn:hover,
+[data-color-scheme="dark"] .btn-primary:hover,
+[data-color-scheme="dark"] .home-btn-primary:hover,
+[data-color-scheme="dark"] .public-btn-primary:hover,
+[data-color-scheme="dark"] .signup-btn:hover,
+[data-color-scheme="dark"] .auth-submit-btn:hover {
+  background: var(--color-hover-fill);
+  border-color: var(--color-hover-fill);
+  color: var(--color-hover-fill-text);
+}
+
+[data-theme="dark"] .btn-primary:active,
+[data-theme="dark"] .home-btn-primary:active,
+[data-theme="dark"] .public-btn-primary:active,
+[data-theme="dark"] .signup-btn:active,
+[data-theme="dark"] .auth-submit-btn:active,
+[data-color-scheme="dark"] .btn-primary:active,
+[data-color-scheme="dark"] .home-btn-primary:active,
+[data-color-scheme="dark"] .public-btn-primary:active,
+[data-color-scheme="dark"] .signup-btn:active,
+[data-color-scheme="dark"] .auth-submit-btn:active {
+  background: var(--color-primary-active);
+  border-color: var(--color-primary-active);
+  color: var(--color-btn-primary-text);
+}
+
+[data-theme="dark"] .btn-outline:hover,
+[data-theme="dark"] .btn-secondary:hover,
+[data-theme="dark"] .btn-ghost:hover,
+[data-theme="dark"] .nav-link:hover,
+[data-theme="dark"] .nav-action-btn:hover,
+[data-theme="dark"] .theme-toggle:hover,
+[data-theme="dark"] .mobile-menu-toggle:hover,
+[data-theme="dark"] .dropdown-item:hover,
+[data-theme="dark"] .mobile-action-btn:hover,
+[data-theme="dark"] .mobile-auth-btn.login:hover,
+[data-color-scheme="dark"] .btn-outline:hover,
+[data-color-scheme="dark"] .btn-secondary:hover,
+[data-color-scheme="dark"] .btn-ghost:hover,
+[data-color-scheme="dark"] .nav-link:hover,
+[data-color-scheme="dark"] .nav-action-btn:hover,
+[data-color-scheme="dark"] .theme-toggle:hover,
+[data-color-scheme="dark"] .mobile-menu-toggle:hover,
+[data-color-scheme="dark"] .dropdown-item:hover,
+[data-color-scheme="dark"] .mobile-action-btn:hover,
+[data-color-scheme="dark"] .mobile-auth-btn.login:hover {
+  background: var(--color-hover-fill);
+  border-color: var(--color-hover-fill);
+  color: var(--color-hover-fill-text);
+}
+
+[data-theme="dark"] .profile-dropdown-menu,
+[data-theme="dark"] .mobile-menu,
+[data-color-scheme="dark"] .profile-dropdown-menu,
+[data-color-scheme="dark"] .mobile-menu {
+  background: var(--color-surface-elevated);
+}

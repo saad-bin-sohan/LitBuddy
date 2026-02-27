@@ -6,12 +6,15 @@ import './styles.css';
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext'; // NEW
+import { ThemeProvider } from './contexts/ThemeContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <AuthProvider>
-    <NotificationProvider>
-      <App />
-    </NotificationProvider>
-  </AuthProvider>
+  <ThemeProvider>
+    <AuthProvider>
+      <NotificationProvider>
+        <App />
+      </NotificationProvider>
+    </AuthProvider>
+  </ThemeProvider>
 );

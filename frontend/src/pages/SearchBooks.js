@@ -136,7 +136,7 @@ const SearchBooks = () => {
 
   return (
     <div className="search-books-page">
-      <div className="page-header">
+      <div className="search-books-header">
         <button className="back-btn" onClick={handleBack}>
           <FiArrowLeft />
           <span>Back to Reading Progress</span>
@@ -153,15 +153,15 @@ const SearchBooks = () => {
 
       <div className="search-container">
         <form onSubmit={handleSearch} className="search-form">
-          <div className="search-input-group">
-            <div className="search-input-wrapper">
+          <div className="search-books-search-input-group">
+            <div className="search-books-search-input-wrapper">
               <FiSearch className="search-icon" />
               <input
                 type="text"
                 placeholder="Search by title or author..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
+                className="search-books-search-input"
               />
               {searchQuery && (
                 <button
@@ -249,7 +249,7 @@ const SearchBooks = () => {
             </select>
             <button
               onClick={() => setShowAddToList(true)}
-              className="btn btn-primary"
+              className="search-books-btn search-books-btn-primary"
             >
               Add to List
             </button>
@@ -289,7 +289,7 @@ const SearchBooks = () => {
             <FiBookOpen className="empty-icon" />
             <h3>No books found</h3>
             <p>Try adjusting your search criteria or filters</p>
-            <button onClick={clearFilters} className="btn btn-outline">
+            <button onClick={clearFilters} className="search-books-btn search-books-btn-outline">
               Clear Filters
             </button>
           </div>
@@ -306,7 +306,7 @@ const SearchBooks = () => {
       {showAddToList && (
         <div className="modal-overlay">
           <div className="modal">
-            <div className="modal-header">
+            <div className="search-books-modal-header">
               <h3>Add to Reading List</h3>
               <button
                 onClick={() => setShowAddToList(false)}
@@ -323,13 +323,13 @@ const SearchBooks = () => {
             <div className="modal-actions">
               <button
                 onClick={() => setShowAddToList(false)}
-                className="btn btn-outline"
+                className="search-books-btn search-books-btn-outline"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddToList}
-                className="btn btn-primary"
+                className="search-books-btn search-books-btn-primary"
                 disabled={loading}
               >
                 {loading ? 'Adding...' : 'Add to List'}

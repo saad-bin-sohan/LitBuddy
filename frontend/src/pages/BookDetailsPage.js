@@ -56,7 +56,7 @@ const BookDetailsPage = () => {
         <div className="error-state">
           <h2>Error</h2>
           <p>{error}</p>
-          <button onClick={handleBack} className="btn btn-primary">
+          <button onClick={handleBack} className="book-details-btn book-details-btn-primary">
             Go Back
           </button>
         </div>
@@ -70,7 +70,7 @@ const BookDetailsPage = () => {
         <div className="error-state">
           <h2>Book Not Found</h2>
           <p>The book you're looking for doesn't exist.</p>
-          <button onClick={handleBack} className="btn btn-primary">
+          <button onClick={handleBack} className="book-details-btn book-details-btn-primary">
             Go Back
           </button>
         </div>
@@ -80,7 +80,7 @@ const BookDetailsPage = () => {
 
   return (
     <div className="book-details-page">
-      <div className="page-header">
+      <div className="book-details-header">
         <button className="back-btn" onClick={handleBack}>
           <FiArrowLeft />
           <span>Back</span>

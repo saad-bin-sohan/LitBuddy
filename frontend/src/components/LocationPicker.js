@@ -201,8 +201,8 @@ const LocationPicker = ({ value = {}, onChange = () => {}, onPersist }) => {
         </button>
       </div>
 
-      {status && <p style={{ marginTop: 8, color: '#444' }}>{status}</p>}
-      {lastSavedAt && <p style={{ fontSize: 12, color: '#666' }}>Last saved: {new Date(lastSavedAt).toLocaleString()}</p>}
+      {status && <p style={{ marginTop: 8, color: 'var(--color-text-secondary)' }}>{status}</p>}
+      {lastSavedAt && <p style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Last saved: {new Date(lastSavedAt).toLocaleString()}</p>}
     </div>
   );
 };

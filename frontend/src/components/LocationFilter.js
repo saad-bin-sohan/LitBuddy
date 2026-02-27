@@ -54,7 +54,7 @@ const LocationFilter = ({ onApply, initialDistance = 50 }) => {
   return (
     <div className="card" style={{ marginBottom: 12 }}>
       <h4>Location Filter</h4>
-      <p style={{ marginBottom: 8, color: '#555' }}>
+      <p style={{ marginBottom: 8, color: 'var(--color-text-secondary)' }}>
         Set a distance (km). If you leave coordinates empty, we’ll use your saved location.
       </p>
 
@@ -102,7 +102,7 @@ const LocationFilter = ({ onApply, initialDistance = 50 }) => {
         <button className="btn" onClick={handleClear}>Reset</button>
       </div>
 
-      {status && <p style={{ marginTop: 8, color: '#666' }}>{status}</p>}
+      {status && <p style={{ marginTop: 8, color: 'var(--color-text-secondary)' }}>{status}</p>}
     </div>
   );
 };

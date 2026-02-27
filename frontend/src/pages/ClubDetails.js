@@ -182,19 +182,19 @@ const ClubDetails = () => {
 
       <div className="club-details-tabs">
         <button
-          className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
+          className={`club-details-tab ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => setActiveTab('overview')}
         >
           Overview
         </button>
         <button
-          className={`tab ${activeTab === 'members' ? 'active' : ''}`}
+          className={`club-details-tab ${activeTab === 'members' ? 'active' : ''}`}
           onClick={() => setActiveTab('members')}
         >
           Members ({club.members?.length || 0})
         </button>
         <button
-          className={`tab ${activeTab === 'chats' ? 'active' : ''}`}
+          className={`club-details-tab ${activeTab === 'chats' ? 'active' : ''}`}
           onClick={() => setActiveTab('chats')}
         >
           Group Chats ({groupChats.length})

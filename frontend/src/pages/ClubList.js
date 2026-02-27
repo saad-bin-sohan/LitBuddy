@@ -103,7 +103,7 @@ const ClubList = () => {
             placeholder="Search clubs..."
             value={filters.search}
             onChange={(e) => setFilters({...filters, search: e.target.value})}
-            className="search-input"
+            className="club-list-search-input"
           />
           <select
             value={filters.theme}

@@ -119,13 +119,13 @@ const Achievements = () => {
 
       <div className="achievements-tabs">
         <button 
-          className={`tab ${activeTab === 'achievements' ? 'active' : ''}`}
+          className={`achievements-tab ${activeTab === 'achievements' ? 'active' : ''}`}
           onClick={() => setActiveTab('achievements')}
         >
           My Achievements
         </button>
         <button 
-          className={`tab ${activeTab === 'leaderboard' ? 'active' : ''}`}
+          className={`achievements-tab ${activeTab === 'leaderboard' ? 'active' : ''}`}
           onClick={() => setActiveTab('leaderboard')}
         >
           Global Leaderboard

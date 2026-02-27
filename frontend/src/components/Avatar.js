@@ -8,7 +8,7 @@ const Avatar = ({ src, name, size = 40, animated = true }) => {
     height: size,
     borderRadius: size < 48 ? 10 : 12,
     display: 'inline-grid', placeItems: 'center',
-    background: 'linear-gradient(135deg,#6C63FF,#2EC4B6)', color: 'white', fontWeight: 700,
+    background: 'linear-gradient(135deg, var(--color-accent), var(--color-primary))', color: 'var(--color-btn-primary-text)', fontWeight: 700,
     flexShrink: 0,
   };
   

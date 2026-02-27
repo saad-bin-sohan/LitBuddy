@@ -21,6 +21,8 @@
   "scripts": {
     "dev": "vite",
     "start": "vite",
+    "theme:audit": "node ./scripts/theme-audit.mjs",
+    "prebuild": "npm run theme:audit",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run"

@@ -153,75 +153,75 @@ const HeroIllustration = () => (
 
     <g className="illus-root">
       {/* Background blobs */}
-      <rect x="40" y="60" width="180" height="160" rx="80" fill="rgba(50,184,198,0.08)" />
-      <rect x="200" y="140" width="160" height="140" rx="70" fill="rgba(245,158,11,0.06)" />
-      <rect x="100" y="200" width="140" height="120" rx="60" fill="rgba(147,51,234,0.05)" />
+      <rect x="40" y="60" width="180" height="160" rx="80" fill="rgba(var(--color-accent-readable-rgb), 0.08)" />
+      <rect x="200" y="140" width="160" height="140" rx="70" fill="rgba(var(--color-warning-rgb), 0.06)" />
+      <rect x="100" y="200" width="140" height="120" rx="60" fill="rgba(var(--color-accent-rgb), 0.05)" />
 
       {/* Main open book */}
       <g className="illus-book" style={{ transformOrigin: '185px 190px' }}>
         {/* Left page */}
-        <path d="M185 150 C185 150, 185 240, 185 240 C185 240, 130 240, 120 238 C110 236, 105 232, 105 228 L105 162 C105 156, 110 152, 120 150 Z" fill="#FCFCF9" stroke="#32B8C6" strokeWidth="1.8" />
+        <path d="M185 150 C185 150, 185 240, 185 240 C185 240, 130 240, 120 238 C110 236, 105 232, 105 228 L105 162 C105 156, 110 152, 120 150 Z" fill="var(--color-surface)" stroke="var(--color-accent-readable)" strokeWidth="1.8" />
         {/* Right page */}
-        <path d="M185 150 C185 150, 185 240, 185 240 C185 240, 240 240, 250 238 C260 236, 265 232, 265 228 L265 162 C265 156, 260 152, 250 150 Z" fill="#FCFCF9" stroke="#32B8C6" strokeWidth="1.8" />
+        <path d="M185 150 C185 150, 185 240, 185 240 C185 240, 240 240, 250 238 C260 236, 265 232, 265 228 L265 162 C265 156, 260 152, 250 150 Z" fill="var(--color-surface)" stroke="var(--color-accent-readable)" strokeWidth="1.8" />
         {/* Spine */}
-        <path d="M185 148 L185 242" stroke="#32B8C6" strokeWidth="2" />
+        <path d="M185 148 L185 242" stroke="var(--color-accent-readable)" strokeWidth="2" />
         {/* Text lines — left page */}
-        <line x1="118" y1="170" x2="170" y2="170" stroke="#32B8C6" strokeWidth="0.8" opacity="0.25" />
-        <line x1="118" y1="180" x2="165" y2="180" stroke="#32B8C6" strokeWidth="0.8" opacity="0.2" />
-        <line x1="118" y1="190" x2="172" y2="190" stroke="#32B8C6" strokeWidth="0.8" opacity="0.25" />
-        <line x1="118" y1="200" x2="160" y2="200" stroke="#32B8C6" strokeWidth="0.8" opacity="0.2" />
-        <line x1="118" y1="210" x2="168" y2="210" stroke="#32B8C6" strokeWidth="0.8" opacity="0.25" />
+        <line x1="118" y1="170" x2="170" y2="170" stroke="var(--color-accent-readable)" strokeWidth="0.8" opacity="0.25" />
+        <line x1="118" y1="180" x2="165" y2="180" stroke="var(--color-accent-readable)" strokeWidth="0.8" opacity="0.2" />
+        <line x1="118" y1="190" x2="172" y2="190" stroke="var(--color-accent-readable)" strokeWidth="0.8" opacity="0.25" />
+        <line x1="118" y1="200" x2="160" y2="200" stroke="var(--color-accent-readable)" strokeWidth="0.8" opacity="0.2" />
+        <line x1="118" y1="210" x2="168" y2="210" stroke="var(--color-accent-readable)" strokeWidth="0.8" opacity="0.25" />
         {/* Text lines — right page */}
-        <line x1="200" y1="170" x2="252" y2="170" stroke="#32B8C6" strokeWidth="0.8" opacity="0.25" />
-        <line x1="200" y1="180" x2="248" y2="180" stroke="#32B8C6" strokeWidth="0.8" opacity="0.2" />
-        <line x1="200" y1="190" x2="254" y2="190" stroke="#32B8C6" strokeWidth="0.8" opacity="0.25" />
-        <line x1="200" y1="200" x2="242" y2="200" stroke="#32B8C6" strokeWidth="0.8" opacity="0.2" />
-        <line x1="200" y1="210" x2="250" y2="210" stroke="#32B8C6" strokeWidth="0.8" opacity="0.25" />
+        <line x1="200" y1="170" x2="252" y2="170" stroke="var(--color-accent-readable)" strokeWidth="0.8" opacity="0.25" />
+        <line x1="200" y1="180" x2="248" y2="180" stroke="var(--color-accent-readable)" strokeWidth="0.8" opacity="0.2" />
+        <line x1="200" y1="190" x2="254" y2="190" stroke="var(--color-accent-readable)" strokeWidth="0.8" opacity="0.25" />
+        <line x1="200" y1="200" x2="242" y2="200" stroke="var(--color-accent-readable)" strokeWidth="0.8" opacity="0.2" />
+        <line x1="200" y1="210" x2="250" y2="210" stroke="var(--color-accent-readable)" strokeWidth="0.8" opacity="0.25" />
       </g>
 
       {/* Connection lines to reader nodes */}
-      <path className="illus-dash" d="M265 175 C290 165, 310 135, 330 120" stroke="#32B8C6" strokeWidth="1.2" strokeDasharray="4 4" fill="none" opacity="0.5" />
-      <path className="illus-dash" d="M265 200 C295 205, 315 235, 340 255" stroke="#32B8C6" strokeWidth="1.2" strokeDasharray="4 4" fill="none" opacity="0.5" />
-      <path className="illus-dash" d="M105 180 C80 165, 60 130, 55 105" stroke="#32B8C6" strokeWidth="1.2" strokeDasharray="4 4" fill="none" opacity="0.5" />
+      <path className="illus-dash" d="M265 175 C290 165, 310 135, 330 120" stroke="var(--color-accent-readable)" strokeWidth="1.2" strokeDasharray="4 4" fill="none" opacity="0.5" />
+      <path className="illus-dash" d="M265 200 C295 205, 315 235, 340 255" stroke="var(--color-accent-readable)" strokeWidth="1.2" strokeDasharray="4 4" fill="none" opacity="0.5" />
+      <path className="illus-dash" d="M105 180 C80 165, 60 130, 55 105" stroke="var(--color-accent-readable)" strokeWidth="1.2" strokeDasharray="4 4" fill="none" opacity="0.5" />
 
       {/* Reader node 1 — top right */}
-      <circle cx="335" cy="115" r="12" fill="#32B8C6" opacity="0.15" />
-      <circle cx="335" cy="115" r="7" fill="#32B8C6" opacity="0.4" />
-      <circle cx="335" cy="115" r="12" stroke="#32B8C6" strokeWidth="1" fill="none" opacity="0.3" />
+      <circle cx="335" cy="115" r="12" fill="var(--color-accent-readable)" opacity="0.15" />
+      <circle cx="335" cy="115" r="7" fill="var(--color-accent-readable)" opacity="0.4" />
+      <circle cx="335" cy="115" r="12" stroke="var(--color-accent-readable)" strokeWidth="1" fill="none" opacity="0.3" />
 
       {/* Reader node 2 — bottom right */}
-      <circle cx="345" cy="260" r="12" fill="#32B8C6" opacity="0.15" />
-      <circle cx="345" cy="260" r="7" fill="#32B8C6" opacity="0.4" />
-      <circle cx="345" cy="260" r="12" stroke="#32B8C6" strokeWidth="1" fill="none" opacity="0.3" />
+      <circle cx="345" cy="260" r="12" fill="var(--color-accent-readable)" opacity="0.15" />
+      <circle cx="345" cy="260" r="7" fill="var(--color-accent-readable)" opacity="0.4" />
+      <circle cx="345" cy="260" r="12" stroke="var(--color-accent-readable)" strokeWidth="1" fill="none" opacity="0.3" />
 
       {/* Reader node 3 — top left */}
-      <circle cx="50" cy="100" r="12" fill="#32B8C6" opacity="0.15" />
-      <circle cx="50" cy="100" r="7" fill="#32B8C6" opacity="0.4" />
-      <circle cx="50" cy="100" r="12" stroke="#32B8C6" strokeWidth="1" fill="none" opacity="0.3" />
+      <circle cx="50" cy="100" r="12" fill="var(--color-accent-readable)" opacity="0.15" />
+      <circle cx="50" cy="100" r="7" fill="var(--color-accent-readable)" opacity="0.4" />
+      <circle cx="50" cy="100" r="12" stroke="var(--color-accent-readable)" strokeWidth="1" fill="none" opacity="0.3" />
 
       {/* Floating book chips */}
       <g transform="translate(80, 280) rotate(-8)">
-        <rect width="28" height="48" rx="4" fill="rgba(59,130,246,0.12)" stroke="rgba(59,130,246,0.2)" strokeWidth="1" />
-        <line x1="8" y1="14" x2="20" y2="14" stroke="rgba(59,130,246,0.3)" strokeWidth="1" />
-        <line x1="8" y1="20" x2="18" y2="20" stroke="rgba(59,130,246,0.2)" strokeWidth="1" />
+        <rect width="28" height="48" rx="4" fill="rgba(var(--color-primary-rgb), 0.12)" stroke="rgba(var(--color-primary-rgb), 0.2)" strokeWidth="1" />
+        <line x1="8" y1="14" x2="20" y2="14" stroke="rgba(var(--color-primary-rgb), 0.3)" strokeWidth="1" />
+        <line x1="8" y1="20" x2="18" y2="20" stroke="rgba(var(--color-primary-rgb), 0.2)" strokeWidth="1" />
       </g>
       <g transform="translate(290, 60) rotate(12)">
-        <rect width="24" height="42" rx="4" fill="rgba(147,51,234,0.12)" stroke="rgba(147,51,234,0.2)" strokeWidth="1" />
-        <line x1="7" y1="12" x2="17" y2="12" stroke="rgba(147,51,234,0.3)" strokeWidth="1" />
-        <line x1="7" y1="18" x2="15" y2="18" stroke="rgba(147,51,234,0.2)" strokeWidth="1" />
+        <rect width="24" height="42" rx="4" fill="rgba(var(--color-accent-rgb), 0.12)" stroke="rgba(var(--color-accent-rgb), 0.2)" strokeWidth="1" />
+        <line x1="7" y1="12" x2="17" y2="12" stroke="rgba(var(--color-accent-rgb), 0.3)" strokeWidth="1" />
+        <line x1="7" y1="18" x2="15" y2="18" stroke="rgba(var(--color-accent-rgb), 0.2)" strokeWidth="1" />
       </g>
       <g transform="translate(310, 310) rotate(-4)">
-        <rect width="22" height="38" rx="4" fill="rgba(236,72,153,0.12)" stroke="rgba(236,72,153,0.2)" strokeWidth="1" />
-        <line x1="6" y1="11" x2="16" y2="11" stroke="rgba(236,72,153,0.3)" strokeWidth="1" />
-        <line x1="6" y1="16" x2="14" y2="16" stroke="rgba(236,72,153,0.2)" strokeWidth="1" />
+        <rect width="22" height="38" rx="4" fill="rgba(var(--color-primary-rgb), 0.12)" stroke="rgba(var(--color-primary-rgb), 0.2)" strokeWidth="1" />
+        <line x1="6" y1="11" x2="16" y2="11" stroke="rgba(var(--color-primary-rgb), 0.3)" strokeWidth="1" />
+        <line x1="6" y1="16" x2="14" y2="16" stroke="rgba(var(--color-primary-rgb), 0.2)" strokeWidth="1" />
       </g>
 
       {/* Sparkle accents — 4-pointed stars */}
-      <path d="M320 170 L322 175 L327 177 L322 179 L320 184 L318 179 L313 177 L318 175 Z" fill="#32B8C6" opacity="0.3" />
-      <path d="M70 150 L71.5 154 L75.5 155.5 L71.5 157 L70 161 L68.5 157 L64.5 155.5 L68.5 154 Z" fill="#32B8C6" opacity="0.25" />
-      <path d="M240 290 L241 293 L244 294 L241 295 L240 298 L239 295 L236 294 L239 293 Z" fill="#32B8C6" opacity="0.2" />
-      <path d="M160 80 L161.5 84 L165.5 85.5 L161.5 87 L160 91 L158.5 87 L154.5 85.5 L158.5 84 Z" fill="#32B8C6" opacity="0.3" />
-      <path d="M360 190 L361 193 L364 194 L361 195 L360 198 L359 195 L356 194 L359 193 Z" fill="#32B8C6" opacity="0.2" />
+      <path d="M320 170 L322 175 L327 177 L322 179 L320 184 L318 179 L313 177 L318 175 Z" fill="var(--color-accent-readable)" opacity="0.3" />
+      <path d="M70 150 L71.5 154 L75.5 155.5 L71.5 157 L70 161 L68.5 157 L64.5 155.5 L68.5 154 Z" fill="var(--color-accent-readable)" opacity="0.25" />
+      <path d="M240 290 L241 293 L244 294 L241 295 L240 298 L239 295 L236 294 L239 293 Z" fill="var(--color-accent-readable)" opacity="0.2" />
+      <path d="M160 80 L161.5 84 L165.5 85.5 L161.5 87 L160 91 L158.5 87 L154.5 85.5 L158.5 84 Z" fill="var(--color-accent-readable)" opacity="0.3" />
+      <path d="M360 190 L361 193 L364 194 L361 195 L360 198 L359 195 L356 194 L359 193 Z" fill="var(--color-accent-readable)" opacity="0.2" />
     </g>
   </svg>
 );

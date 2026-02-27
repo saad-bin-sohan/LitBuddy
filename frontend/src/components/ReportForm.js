@@ -317,7 +317,7 @@ export default function ReportForm({
           />
           <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
             {previews.map((p, idx) => (
-              <div key={idx} style={{ width: 140, border: '1px solid #eee', padding: 8, borderRadius: 6 }}>
+              <div key={idx} style={{ width: 140, border: '1px solid var(--color-border)', padding: 8, borderRadius: 6 }}>
                 {p.isImage ? (
                   <img src={p.url} alt={p.name} style={{ width: '100%', height: 88, objectFit: 'cover', borderRadius: 4 }} />
                 ) : (
@@ -342,7 +342,7 @@ export default function ReportForm({
 
         {uploadPercent > 0 && (
           <div>
-            <div style={{ height: 8, background: '#eee', borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{ height: 8, background: 'var(--color-border)', borderRadius: 4, overflow: 'hidden' }}>
               <div style={{ width: `${uploadPercent}%`, height: 8, background: 'var(--accent)' }} />
             </div>
             <small>{uploadPercent}%</small>

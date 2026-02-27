@@ -28,12 +28,12 @@ const StepIndicator = ({ step, total }) => (
 
 const Step1 = ({ form, handleBasicChange }) => (
   <div style={{
-    border: '1px solid #ddd',
+    border: '1px solid var(--color-border)',
     borderRadius: '8px',
     padding: '20px',
     marginBottom: '20px',
-    backgroundColor: '#fff',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    backgroundColor: 'var(--color-surface)',
+    boxShadow: 'var(--shadow-sm)'
   }}>
     <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Basic Info</h3>
     <div style={{ marginBottom: '15px' }}>
@@ -45,7 +45,7 @@ const Step1 = ({ form, handleBasicChange }) => (
         style={{
           width: '100%',
           padding: '10px',
-          border: '1px solid #ccc',
+          border: '1px solid var(--color-border)',
           borderRadius: '4px',
           fontSize: '16px'
         }}
@@ -60,7 +60,7 @@ const Step1 = ({ form, handleBasicChange }) => (
         style={{
           width: '100%',
           padding: '10px',
-          border: '1px solid #ccc',
+          border: '1px solid var(--color-border)',
           borderRadius: '4px',
           fontSize: '16px',
           minHeight: '100px',
@@ -77,7 +77,7 @@ const Step1 = ({ form, handleBasicChange }) => (
         style={{
           width: '100%',
           padding: '10px',
-          border: '1px solid #ccc',
+          border: '1px solid var(--color-border)',
           borderRadius: '4px',
           fontSize: '16px'
         }}
@@ -88,12 +88,12 @@ const Step1 = ({ form, handleBasicChange }) => (
 
 const Step2 = ({ form, handleLocationChange, persistLocationNow }) => (
   <div style={{
-    border: '1px solid #ddd',
+    border: '1px solid var(--color-border)',
     borderRadius: '8px',
     padding: '20px',
     marginBottom: '20px',
-    backgroundColor: '#fff',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    backgroundColor: 'var(--color-surface)',
+    boxShadow: 'var(--shadow-sm)'
   }}>
     <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Location</h3>
     <LocationPicker
@@ -101,7 +101,7 @@ const Step2 = ({ form, handleLocationChange, persistLocationNow }) => (
       onChange={handleLocationChange}
       onPersist={persistLocationNow}
     />
-    <p style={{ fontSize: 12, color: '#666', marginTop: 8 }}>
+    <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 8 }}>
       Tip: Click "Save location to profile" to persist immediately. Otherwise it will be saved when you finish the wizard.
     </p>
   </div>
@@ -109,12 +109,12 @@ const Step2 = ({ form, handleLocationChange, persistLocationNow }) => (
 
 const Step3 = ({ form, handlePhotoSelected, removePhoto }) => (
   <div style={{
-    border: '1px solid #ddd',
+    border: '1px solid var(--color-border)',
     borderRadius: '8px',
     padding: '20px',
     marginBottom: '20px',
-    backgroundColor: '#fff',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    backgroundColor: 'var(--color-surface)',
+    boxShadow: 'var(--shadow-sm)'
   }}>
     <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Upload Photos (up to 6)</h3>
     <input 
@@ -125,7 +125,7 @@ const Step3 = ({ form, handlePhotoSelected, removePhoto }) => (
       style={{
         width: '100%',
         padding: '10px',
-        border: '1px solid #ccc',
+        border: '1px solid var(--color-border)',
         borderRadius: '4px',
         fontSize: '16px'
       }}
@@ -160,12 +160,12 @@ const Step3 = ({ form, handlePhotoSelected, removePhoto }) => (
 
 const Step4 = ({ form, handleFavoritesChange }) => (
   <div style={{
-    border: '1px solid #ddd',
+    border: '1px solid var(--color-border)',
     borderRadius: '8px',
     padding: '20px',
     marginBottom: '20px',
-    backgroundColor: '#fff',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    backgroundColor: 'var(--color-surface)',
+    boxShadow: 'var(--shadow-sm)'
   }}>
     <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Favorites</h3>
     <div style={{ marginBottom: '15px' }}>
@@ -177,7 +177,7 @@ const Step4 = ({ form, handleFavoritesChange }) => (
         style={{
           width: '100%',
           padding: '10px',
-          border: '1px solid #ccc',
+          border: '1px solid var(--color-border)',
           borderRadius: '4px',
           fontSize: '16px'
         }}
@@ -192,7 +192,7 @@ const Step4 = ({ form, handleFavoritesChange }) => (
         style={{
           width: '100%',
           padding: '10px',
-          border: '1px solid #ccc',
+          border: '1px solid var(--color-border)',
           borderRadius: '4px',
           fontSize: '16px'
         }}
@@ -203,12 +203,12 @@ const Step4 = ({ form, handleFavoritesChange }) => (
 
 const Step5 = ({ form, togglePreference, handleAnswerChange }) => (
   <div style={{
-    border: '1px solid #ddd',
+    border: '1px solid var(--color-border)',
     borderRadius: '8px',
     padding: '20px',
     marginBottom: '20px',
-    backgroundColor: '#fff',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    backgroundColor: 'var(--color-surface)',
+    boxShadow: 'var(--shadow-sm)'
   }}>
     <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Preferences & Questions</h3>
     <div style={{ marginBottom: '12px' }}>
@@ -248,7 +248,7 @@ const Step5 = ({ form, togglePreference, handleAnswerChange }) => (
             style={{
               width: '100%',
               padding: '10px',
-              border: '1px solid #ccc',
+              border: '1px solid var(--color-border)',
               borderRadius: '4px',
               fontSize: '16px'
             }}
@@ -261,23 +261,23 @@ const Step5 = ({ form, togglePreference, handleAnswerChange }) => (
 
 const Step6 = ({ form }) => (
   <div style={{
-    border: '1px solid #ddd',
+    border: '1px solid var(--color-border)',
     borderRadius: '8px',
     padding: '20px',
     marginBottom: '20px',
-    backgroundColor: '#fff',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    backgroundColor: 'var(--color-surface)',
+    boxShadow: 'var(--shadow-sm)'
   }}>
     <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Review & Submit</h3>
     <p><strong>Display Name:</strong> {form.displayName}</p>
     <p><strong>Bio:</strong> {form.bio}</p>
     <p><strong>Quote:</strong> {form.quote}</p>
     <div style={{
-      border: '1px solid #eee',
+      border: '1px solid var(--color-border)',
       borderRadius: '6px',
       padding: '15px',
       marginTop: 8,
-      backgroundColor: '#f9f9f9'
+      backgroundColor: 'var(--color-secondary)'
     }}>
       <h4 style={{ marginTop: 0 }}>Location</h4>
       <p><strong>City:</strong> {form.location.cityName || '-'}</p>
@@ -509,9 +509,9 @@ const ProfileWizard = () => {
             style={{ 
               marginRight: 8,
               padding: '10px 20px',
-              border: '1px solid #ccc',
+              border: '1px solid var(--color-border)',
               borderRadius: '4px',
-              backgroundColor: '#f8f9fa',
+              backgroundColor: 'var(--color-secondary)',
               cursor: 'pointer'
             }}
           >
@@ -523,9 +523,9 @@ const ProfileWizard = () => {
             onClick={() => canNext() ? setStep(step + 1) : setError('Please fill required fields')}
             style={{
               padding: '10px 20px',
-              border: '1px solid #007bff',
+              border: '1px solid var(--color-primary)',
               borderRadius: '4px',
-              backgroundColor: '#007bff',
+              backgroundColor: 'var(--color-primary)',
               color: 'white',
               cursor: 'pointer'
             }}
@@ -539,9 +539,9 @@ const ProfileWizard = () => {
             disabled={saving}
             style={{
               padding: '12px 24px',
-              border: '1px solid #28a745',
+              border: '1px solid var(--color-success)',
               borderRadius: '4px',
-              backgroundColor: '#28a745',
+              backgroundColor: 'var(--color-success)',
               color: 'white',
               cursor: 'pointer',
               fontSize: '16px',

@@ -147,7 +147,7 @@ const AdminReports = () => {
     const reportedUserId = reported._id || report.reportedUser;
 
     return (
-      <div key={report._id} style={{ border: '1px solid #ccc', margin: '10px', padding: '12px', borderRadius: 8 }}>
+      <div key={report._id} style={{ border: '1px solid var(--color-border)', margin: '10px', padding: '12px', borderRadius: 8 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -165,7 +165,7 @@ const AdminReports = () => {
 
             {report.image && (
               <div style={{ marginTop: 10 }}>
-                <img src={normalizeImageUrl(report.image)} alt="evidence" style={{ maxWidth: 300, borderRadius: 8, border: '1px solid #eee' }} />
+                <img src={normalizeImageUrl(report.image)} alt="evidence" style={{ maxWidth: 300, borderRadius: 8, border: '1px solid var(--color-border)' }} />
               </div>
             )}
           </div>

@@ -104,23 +104,23 @@ const GoogleAuthButton = ({ onSuccess, onError, buttonText = 'Sign up with Googl
         gap: '10px',
         width: '100%',
         padding: '12px 16px',
-        border: '1px solid #ddd',
+        border: '1px solid var(--color-border)',
         borderRadius: '8px',
-        backgroundColor: '#fff',
-        color: '#333',
+        backgroundColor: 'var(--color-surface)',
+        color: 'var(--color-text)',
         fontSize: '16px',
         fontWeight: '500',
         cursor: 'pointer',
         transition: 'all 0.2s ease',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        boxShadow: 'var(--shadow-sm)',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = '#f8f9fa';
-        e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+        e.currentTarget.style.backgroundColor = 'var(--color-secondary)';
+        e.currentTarget.style.boxShadow = 'var(--shadow-md)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = '#fff';
-        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+        e.currentTarget.style.backgroundColor = 'var(--color-surface)';
+        e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
       }}
     >
       <svg width="20" height="20" viewBox="0 0 24 24">

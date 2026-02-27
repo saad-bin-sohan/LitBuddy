@@ -28,12 +28,21 @@ export const ThemeProvider = ({ children }) => {
   // Apply theme to document and save to localStorage
   useEffect(() => {
     const applyTheme = (newTheme) => {
-      // Apply to document element
-      document.documentElement.setAttribute('data-color-scheme', newTheme);
-      document.documentElement.setAttribute('data-theme', newTheme);
-      
-      // Also set class for additional compatibility
-      document.documentElement.className = newTheme;
+      const root = document.documentElement;
+      // Canonical theme attribute
+      root.setAttribute('data-theme', newTheme);
+      // Backward-compatible alias (temporary)
+      root.setAttribute('data-color-scheme', newTheme);
+      // Let user agent controls follow app theme
+      root.style.colorScheme = newTheme;
+      // Transitional compatibility class hooks
+      root.classList.remove('theme-light', 'theme-dark');
+      root.classList.add(newTheme === 'dark' ? 'theme-dark' : 'theme-light');
+
+      const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute('content', newTheme === 'dark' ? '#181818' : '#21808D');
+      }
       
       // Save to localStorage
       try {
@@ -52,7 +61,12 @@ export const ThemeProvider = ({ children }) => {
     
     const handleChange = (e) => {
       // Only update if user hasn't manually set a preference
-      const savedTheme = localStorage.getItem('theme');
+      let savedTheme = null;
+      try {
+        savedTheme = localStorage.getItem('theme');
+      } catch {
+        savedTheme = null;
+      }
       if (!savedTheme) {
         setTheme(e.matches ? 'dark' : 'light');
       }
@@ -71,6 +85,7 @@ export const ThemeProvider = ({ children }) => {
 
   const value = {
     theme,
+    setTheme,
     toggleTheme,
     setLightTheme,
     setDarkTheme,

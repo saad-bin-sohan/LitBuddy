@@ -276,7 +276,7 @@ const GroupChat = () => {
                                     e.target.nextSibling.style.display = 'block';
                                   }}
                                 />
-                                <div className="image-error" style={{ display: 'none', color: '#666', fontSize: '12px' }}>
+                                <div className="image-error" style={{ display: 'none', color: 'var(--color-text-secondary)', fontSize: '12px' }}>
                                   Image failed to load
                                 </div>
                                 <div className="attachment-actions">

@@ -187,11 +187,20 @@ cd frontend
 npm test
 ```
 
+Frontend theme audit (fails on non-token hardcoded hex colors):
+```bash
+cd frontend
+npm run theme:audit
+```
+
 Frontend production build:
 ```bash
 cd frontend
 npm run build
 ```
+
+Theme audit allowlist and policy:
+- `frontend/docs/theme-audit-allowlist.md`
 
 ---
 

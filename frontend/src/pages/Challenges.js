@@ -264,14 +264,14 @@ const Challenges = () => {
         {isAdminUser && (
           <div style={{ marginTop: 15 }}>
             <button 
-              className="btn btn-primary" 
+              className="challenges-btn challenges-btn-primary" 
               onClick={() => setShowCreateModal(true)}
               style={{ 
-                backgroundColor: '#28a745', 
-                borderColor: '#28a745',
+                backgroundColor: 'var(--color-success)', 
+                borderColor: 'var(--color-success)',
                 color: 'white',
                 fontWeight: 'bold',
-                boxShadow: '0 2px 4px rgba(40, 167, 69, 0.3)'
+                boxShadow: '0 2px 4px rgba(var(--color-success-rgb), 0.3)'
               }}
             >
               + Create Challenge
@@ -282,13 +282,13 @@ const Challenges = () => {
 
       <div className="challenges-tabs">
         <button 
-          className={`tab ${activeTab === 'all' ? 'active' : ''}`}
+          className={`challenges-tab ${activeTab === 'all' ? 'active' : ''}`}
           onClick={() => setActiveTab('all')}
         >
           All Challenges
         </button>
         <button 
-          className={`tab ${activeTab === 'my' ? 'active' : ''}`}
+          className={`challenges-tab ${activeTab === 'my' ? 'active' : ''}`}
           onClick={() => setActiveTab('my')}
         >
           My Challenges
@@ -424,12 +424,12 @@ const Challenges = () => {
                   <div className="action-buttons">
                     <Link 
                       to={`/challenges/${challenge._id}`} 
-                      className="btn btn-primary"
+                      className="challenges-btn challenges-btn-primary"
                     >
                       View Details
                     </Link>
                     <button 
-                      className="btn btn-secondary"
+                      className="challenges-btn challenges-btn-secondary"
                       onClick={() => handleLeaveChallenge(challenge._id)}
                     >
                       Leave Challenge
@@ -439,12 +439,12 @@ const Challenges = () => {
                   <div className="action-buttons">
                     <Link 
                       to={`/challenges/${challenge._id}`} 
-                      className="btn btn-secondary"
+                      className="challenges-btn challenges-btn-secondary"
                     >
                       View Details
                     </Link>
                     <button 
-                      className="btn btn-primary"
+                      className="challenges-btn challenges-btn-primary"
                       onClick={() => handleJoinChallenge(challenge._id)}
                       disabled={!isChallengeActive(challenge)}
                     >
@@ -569,8 +569,8 @@ const Challenges = () => {
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn btn-secondary" onClick={() => !creating && setShowCreateModal(false)} disabled={creating}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={creating}>{creating ? 'Creating...' : 'Create Challenge'}</button>
+                <button type="button" className="challenges-btn challenges-btn-secondary" onClick={() => !creating && setShowCreateModal(false)} disabled={creating}>Cancel</button>
+                <button type="submit" className="challenges-btn challenges-btn-primary" disabled={creating}>{creating ? 'Creating...' : 'Create Challenge'}</button>
               </div>
             </form>
           </div>

@@ -99,7 +99,7 @@ const CreateBook = () => {
 
   return (
     <div className="create-book-page">
-      <div className="page-header">
+      <div className="create-book-header">
         <button className="back-btn" onClick={handleBack}>
           <FiArrowLeft />
           <span>Back to Reading Progress</span>
@@ -316,14 +316,14 @@ const CreateBook = () => {
             <button 
               type="button" 
               onClick={handleBack}
-              className="btn btn-outline"
+              className="create-book-btn create-book-btn-outline"
               disabled={loading}
             >
               Cancel
             </button>
             <button 
               type="submit" 
-              className="btn btn-primary"
+              className="create-book-btn create-book-btn-primary"
               disabled={loading || !formData.title || !formData.author}
             >
               {loading ? (

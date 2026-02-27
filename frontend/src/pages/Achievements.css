@@ -3,13 +3,13 @@
   margin: 0 auto;
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
 }
 
 .achievements-header {
   text-align: center;
   margin-bottom: 40px;
-  color: white;
+  color: var(--color-btn-primary-text);
 }
 
 .achievements-header h1 {
@@ -33,10 +33,10 @@
   backdrop-filter: blur(10px);
 }
 
-.tab {
+.achievements-tab {
   background: none;
   border: none;
-  color: white;
+  color: var(--color-btn-primary-text);
   padding: 12px 30px;
   border-radius: 25px;
   cursor: pointer;
@@ -45,12 +45,12 @@
   transition: all 0.3s ease;
 }
 
-.tab.active {
+.achievements-tab.active {
   background: rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-.tab:hover:not(.active) {
+.achievements-tab:hover:not(.active) {
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -70,8 +70,8 @@
 }
 
 .summary-card {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  color: var(--color-btn-primary-text);
   padding: 20px;
   border-radius: 15px;
   text-align: center;
@@ -103,7 +103,7 @@
 }
 
 .achievement-card {
-  background: white;
+  background: var(--color-surface);
   border-radius: 15px;
   padding: 20px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
@@ -118,8 +118,8 @@
 }
 
 .achievement-card.unread {
-  border-color: #ffd700;
-  background: linear-gradient(135deg, #fff9c4, #fff59d);
+  border-color: var(--color-warning);
+  background: linear-gradient(135deg, rgba(var(--color-warning-rgb), 0.2), rgba(var(--color-warning-rgb), 0.14));
   position: relative;
 }
 
@@ -128,8 +128,8 @@
   position: absolute;
   top: -10px;
   right: 20px;
-  background: #ff6b6b;
-  color: white;
+  background: var(--color-error);
+  color: var(--color-btn-primary-text);
   padding: 5px 10px;
   border-radius: 15px;
   font-size: 0.8rem;
@@ -144,12 +144,12 @@
 
 .achievement-content h3 {
   margin: 0 0 10px 0;
-  color: #333;
+  color: var(--color-text);
   font-size: 1.2rem;
 }
 
 .achievement-content p {
-  color: #666;
+  color: var(--color-text-secondary);
   line-height: 1.5;
   margin-bottom: 15px;
 }
@@ -162,29 +162,29 @@
 }
 
 .points {
-  background: #4CAF50;
-  color: white;
+  background: var(--color-success);
+  color: var(--color-btn-primary-text);
   padding: 4px 8px;
   border-radius: 10px;
   font-weight: 500;
 }
 
 .date {
-  color: #999;
+  color: var(--color-text-secondary);
 }
 
 .unread-indicator {
   text-align: center;
   margin-top: 10px;
   font-size: 0.8rem;
-  color: #666;
+  color: var(--color-text-secondary);
   font-style: italic;
 }
 
 .no-achievements {
   text-align: center;
   padding: 60px 20px;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .no-achievements p {
@@ -210,8 +210,8 @@
   padding: 10px 20px;
   border: none;
   border-radius: 25px;
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
+  background: rgba(var(--color-accent-rgb), 0.1);
+  color: var(--color-primary);
   font-size: 1rem;
   cursor: pointer;
   min-width: 150px;
@@ -219,11 +219,11 @@
 
 .period-select:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 0 0 2px rgba(var(--color-accent-rgb), 0.3);
 }
 
 .leaderboard-table {
-  background: white;
+  background: var(--color-surface);
   border-radius: 15px;
   overflow: hidden;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
@@ -234,8 +234,8 @@
   grid-template-columns: 80px 1fr 100px 120px;
   gap: 20px;
   padding: 20px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  color: var(--color-btn-primary-text);
   font-weight: bold;
 }
 
@@ -244,17 +244,17 @@
   grid-template-columns: 80px 1fr 100px 120px;
   gap: 20px;
   padding: 15px 20px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-border);
   transition: all 0.3s ease;
 }
 
 .leaderboard-row:hover {
-  background: rgba(102, 126, 234, 0.05);
+  background: rgba(var(--color-accent-rgb), 0.05);
 }
 
 .leaderboard-row.current-user {
-  background: rgba(102, 126, 234, 0.1);
-  border-left: 4px solid #667eea;
+  background: rgba(var(--color-accent-rgb), 0.1);
+  border-left: 4px solid var(--color-primary);
 }
 
 .rank-col {
@@ -292,12 +292,12 @@
 
 .user-name {
   font-weight: 500;
-  color: #333;
+  color: var(--color-text);
 }
 
 .you-badge {
-  background: #4CAF50;
-  color: white;
+  background: var(--color-success);
+  color: var(--color-btn-primary-text);
   padding: 2px 8px;
   border-radius: 10px;
   font-size: 0.8rem;
@@ -314,13 +314,13 @@
 }
 
 .points-value {
-  color: #4CAF50;
+  color: var(--color-success);
   font-size: 1.1rem;
   font-weight: bold;
 }
 
 .achievements-count {
-  color: #667eea;
+  color: var(--color-primary);
   font-weight: bold;
 }
 
@@ -336,8 +336,8 @@
   padding: 10px 20px;
   border: none;
   border-radius: 25px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  color: var(--color-btn-primary-text);
   cursor: pointer;
   font-weight: 500;
   transition: all 0.3s ease;
@@ -345,7 +345,7 @@
 
 .pagination-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 5px 15px rgba(var(--color-accent-rgb), 0.4);
 }
 
 .pagination-btn:disabled {
@@ -354,14 +354,14 @@
 }
 
 .pagination-info {
-  color: #666;
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 
 .no-leaderboard {
   text-align: center;
   padding: 60px 20px;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 /* Responsive Design */

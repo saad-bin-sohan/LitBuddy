@@ -85,39 +85,39 @@ const ReadingProgress = () => {
 
   return (
     <div className="reading-progress-page">
-      <div className="page-header">
+      <div className="reading-progress-header">
         <h1>Reading Progress</h1>
       <div className="header-actions">
-          <button className="btn btn-primary" onClick={handleCreateBook}>
+          <button className="reading-progress-btn reading-progress-btn-primary" onClick={handleCreateBook}>
             Add New Book
           </button>
-          <button className="btn btn-outline" onClick={handleSearchBooks}>
+          <button className="reading-progress-btn reading-progress-btn-outline" onClick={handleSearchBooks}>
             Search Books
           </button>
-          <button className="btn btn-success" onClick={() => setShowGoogleBooksSearch(true)}>
+          <button className="reading-progress-btn reading-progress-btn-success" onClick={() => setShowGoogleBooksSearch(true)}>
             Search Google Books
           </button>
-          <button className="btn btn-info" onClick={() => navigate('/add-review')}>
+          <button className="reading-progress-btn reading-progress-btn-info" onClick={() => navigate('/add-review')}>
             Add Review / Rating
           </button>
         </div>
       </div>
 
-      <div className="tabs">
+      <div className="reading-progress-tabs">
         <button
-          className={`tab ${activeTab === 'lists' ? 'active' : ''}`}
+          className={`reading-progress-tab ${activeTab === 'lists' ? 'active' : ''}`}
           onClick={() => setActiveTab('lists')}
         >
           Reading Lists
         </button>
         <button
-          className={`tab ${activeTab === 'stats' ? 'active' : ''}`}
+          className={`reading-progress-tab ${activeTab === 'stats' ? 'active' : ''}`}
           onClick={() => setActiveTab('stats')}
         >
           Statistics
         </button>
         <button
-          className={`tab ${activeTab === 'goals' ? 'active' : ''}`}
+          className={`reading-progress-tab ${activeTab === 'goals' ? 'active' : ''}`}
           onClick={() => setActiveTab('goals')}
         >
           Goals & Achievements

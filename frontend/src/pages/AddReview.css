@@ -4,18 +4,18 @@
   padding: 20px;
 }
 
-.page-header {
+.add-review-header {
   margin-bottom: 30px;
   text-align: center;
 }
 
-.page-header h1 {
-  color: #333;
+.add-review-header h1 {
+  color: var(--color-text);
   margin-bottom: 10px;
 }
 
-.page-header p {
-  color: #666;
+.add-review-header p {
+  color: var(--color-text-secondary);
   font-size: 16px;
 }
 
@@ -25,7 +25,7 @@
   gap: 8px;
   background: none;
   border: none;
-  color: #007bff;
+  color: var(--color-primary);
   cursor: pointer;
   font-size: 16px;
   margin-bottom: 20px;
@@ -35,11 +35,11 @@
 }
 
 .back-btn:hover {
-  background-color: #f8f9fa;
+  background-color: var(--color-secondary);
 }
 
 .book-selection h2 {
-  color: #333;
+  color: var(--color-text);
   margin-bottom: 20px;
   text-align: center;
 }
@@ -51,8 +51,8 @@
   margin-top: 20px;
 }
 
-.book-card {
-  background: white;
+.add-review-page .book-card {
+  background: var(--color-surface);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -60,25 +60,25 @@
   cursor: pointer;
 }
 
-.book-card:hover {
+.add-review-page .book-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
-.book-card.selectable:hover {
-  border: 2px solid #007bff;
+.add-review-page .book-card.selectable:hover {
+  border: 2px solid var(--color-primary);
 }
 
-.book-cover {
+.add-review-page .book-cover {
   height: 200px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f8f9fa;
+  background-color: var(--color-secondary);
 }
 
-.book-cover img {
+.add-review-page .book-cover img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -86,32 +86,32 @@
 
 .no-cover {
   font-size: 48px;
-  color: #ccc;
+  color: var(--color-border);
 }
 
-.book-info {
+.add-review-page .book-info {
   padding: 15px;
 }
 
-.book-info h3 {
+.add-review-page .book-info h3 {
   margin: 0 0 8px 0;
   font-size: 16px;
-  color: #333;
+  color: var(--color-text);
   line-height: 1.3;
 }
 
-.author {
-  color: #666;
+.add-review-page .author {
+  color: var(--color-text-secondary);
   margin: 0 0 10px 0;
   font-size: 14px;
 }
 
-.book-status {
+.add-review-page .book-status {
   display: flex;
   justify-content: flex-end;
 }
 
-.status-badge {
+.add-review-page .status-badge {
   padding: 4px 8px;
   border-radius: 12px;
   font-size: 12px;
@@ -119,25 +119,25 @@
   text-transform: capitalize;
 }
 
-.status-badge.want-to-read {
-  background-color: #e3f2fd;
-  color: #1976d2;
+.add-review-page .status-badge.want-to-read {
+  background-color: rgba(var(--color-primary-rgb), 0.12);
+  color: var(--color-primary);
 }
 
-.status-badge.currently-reading {
-  background-color: #f3e5f5;
-  color: #7b1fa2;
+.add-review-page .status-badge.currently-reading {
+  background-color: rgba(var(--color-accent-rgb), 0.12);
+  color: var(--color-accent-readable);
 }
 
-.status-badge.completed {
-  background-color: #e8f5e8;
-  color: #388e3c;
+.add-review-page .status-badge.completed {
+  background-color: rgba(var(--color-success-rgb), 0.12);
+  color: var(--color-success);
 }
 
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .empty-state .empty-icon {
@@ -148,7 +148,7 @@
 
 .empty-state h3 {
   margin: 0 0 10px 0;
-  color: #333;
+  color: var(--color-text);
 }
 
 .empty-state p {
@@ -166,15 +166,15 @@
   gap: 20px;
   margin-bottom: 30px;
   padding: 20px;
-  background: white;
+  background: var(--color-surface);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .change-book-btn {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  color: #495057;
+  background: var(--color-secondary);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
@@ -183,18 +183,18 @@
 }
 
 .change-book-btn:hover {
-  background: #e9ecef;
+  background: var(--color-secondary);
 }
 
 .selected-book-info h2 {
   margin: 0;
-  color: #333;
+  color: var(--color-text);
   font-size: 20px;
 }
 
 .selected-book-info p {
   margin: 5px 0 0 0;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .loading, .error {
@@ -204,10 +204,10 @@
 }
 
 .error {
-  color: #dc3545;
+  color: var(--color-error);
 }
 
-.btn {
+.add-review-btn {
   display: inline-block;
   padding: 10px 20px;
   border: none;
@@ -218,24 +218,24 @@
   transition: background-color 0.2s;
 }
 
-.btn-primary {
-  background-color: #007bff;
-  color: white;
+.add-review-btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-btn-primary-text);
 }
 
-.btn-primary:hover {
-  background-color: #0056b3;
+.add-review-btn-primary:hover {
+  background-color: var(--color-primary-active);
 }
 
-.btn-outline {
+.add-review-btn-outline {
   background-color: transparent;
-  color: #007bff;
-  border: 1px solid #007bff;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
 }
 
-.btn-outline:hover {
-  background-color: #007bff;
-  color: white;
+.add-review-btn-outline:hover {
+  background-color: var(--color-primary);
+  color: var(--color-btn-primary-text);
 }
 
 @media (max-width: 768px) {
