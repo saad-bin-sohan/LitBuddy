@@ -4,6 +4,7 @@ import { readingProgressApi } from '../api/readingProgressApi';
 import { readingGoalApi } from '../api/readingGoalApi';
 import ReadingProgressCard from '../components/ReadingProgressCard';
 import GoogleBooksSearch from '../components/GoogleBooksSearch';
+import GoodReadsSearch from '../components/GoodReadsSearch';
 import './ReadingProgress.css';
 
 const ReadingProgress = () => {
@@ -21,6 +22,7 @@ const ReadingProgress = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showGoogleBooksSearch, setShowGoogleBooksSearch] = useState(false);
+  const [showGoodreadsSearch, setShowGoodreadsSearch] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -96,6 +98,9 @@ const ReadingProgress = () => {
           </button>
           <button className="reading-progress-btn reading-progress-btn-success" onClick={() => setShowGoogleBooksSearch(true)}>
             Search Google Books
+          </button>
+          <button className="reading-progress-btn reading-progress-btn-info" onClick={() => setShowGoodreadsSearch(true)}>
+            Search GoodReads
           </button>
           <button className="reading-progress-btn reading-progress-btn-info" onClick={() => navigate('/add-review')}>
             Add Review / Rating
@@ -323,6 +328,15 @@ const ReadingProgress = () => {
             loadData();
           }}
           onClose={() => setShowGoogleBooksSearch(false)}
+        />
+      )}
+
+      {showGoodreadsSearch && (
+        <GoodReadsSearch
+          onImportBook={() => {
+            loadData();
+          }}
+          onClose={() => setShowGoodreadsSearch(false)}
         />
       )}
     </div>

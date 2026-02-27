@@ -3,6 +3,8 @@ const Book = require('../models/bookModel');
 const ReadingGoal = require('../models/readingGoalModel');
 const asyncHandler = require('express-async-handler');
 
+const VALID_STATUSES = new Set(['want-to-read', 'currently-reading', 'completed', 'dnf']);
+
 // @desc    Add book to reading list
 // @route   POST /api/reading-progress
 // @access  Private
@@ -11,9 +13,14 @@ const addBookToList = asyncHandler(async (req, res) => {
 
   // Check if book exists
   const book = await Book.findById(bookId);
-  if (!book) {
+  if (!book || book.isArchived) {
     res.status(404);
     throw new Error('Book not found');
+  }
+
+  if (!VALID_STATUSES.has(status)) {
+    res.status(400);
+    throw new Error('Invalid reading status');
   }
 
   // Set totalPages from book if not provided
@@ -42,7 +49,7 @@ const addBookToList = asyncHandler(async (req, res) => {
   });
 
   // Populate book details
-  await readingProgress.populate('book');
+  await readingProgress.populate({ path: 'book', select: '-createdBy' });
 
   res.status(201).json(readingProgress);
 });
@@ -51,7 +58,7 @@ const addBookToList = asyncHandler(async (req, res) => {
 // @route   PUT /api/reading-progress/:id
 // @access  Private
 const updateProgress = asyncHandler(async (req, res) => {
-  const { currentPage, status, rating, review, notes, readingTime } = req.body;
+  const { status } = req.body;
 
   const readingProgress = await ReadingProgress.findById(req.params.id);
 
@@ -66,6 +73,11 @@ const updateProgress = asyncHandler(async (req, res) => {
     throw new Error('Not authorized to update this progress');
   }
 
+  if (status && !VALID_STATUSES.has(status)) {
+    res.status(400);
+    throw new Error('Invalid reading status');
+  }
+
   // Update finish date if completing book
   if (status === 'completed' && readingProgress.status !== 'completed') {
     req.body.finishDate = new Date();
@@ -78,7 +90,7 @@ const updateProgress = asyncHandler(async (req, res) => {
     req.params.id,
     req.body,
     { new: true, runValidators: true }
-  ).populate('book');
+  ).populate({ path: 'book', select: '-createdBy' });
 
   // Update reading goals if book is completed
   if (status === 'completed' && readingProgress.status !== 'completed') {
@@ -100,7 +112,7 @@ const getReadingLists = asyncHandler(async (req, res) => {
   }
 
   const readingProgress = await ReadingProgress.find(query)
-    .populate('book')
+    .populate({ path: 'book', select: '-createdBy' })
     .sort({ updatedAt: -1 });
 
   // Group by status
@@ -144,8 +156,8 @@ const removeFromList = asyncHandler(async (req, res) => {
 // @route   GET /api/reading-progress/stats
 // @access  Private
 const getReadingStats = asyncHandler(async (req, res) => {
-  const { year } = req.query;
-  const currentYear = year || new Date().getFullYear();
+  const yearInput = Number.parseInt(req.query.year, 10);
+  const currentYear = Number.isFinite(yearInput) ? yearInput : new Date().getFullYear();
 
   // Get completed books for the year
   const completedBooks = await ReadingProgress.find({
@@ -172,7 +184,9 @@ const getReadingStats = asyncHandler(async (req, res) => {
     book: progress.book,
     currentPage: progress.currentPage,
     totalPages: progress.totalPages,
-    progressPercentage: Math.round((progress.currentPage / progress.totalPages) * 100)
+    progressPercentage: progress.totalPages > 0
+      ? Math.round((progress.currentPage / progress.totalPages) * 100)
+      : 0
   }));
 
   const stats = {

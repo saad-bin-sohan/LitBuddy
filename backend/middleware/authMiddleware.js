@@ -146,6 +146,41 @@ const protect = async (req, res, next) => {
   }
 };
 
+const optionalProtect = async (req, _res, next) => {
+  try {
+    let token = normalizeToken(readCookieToken(req));
+    if (!token) {
+      token = extractBearerToken(req);
+    }
+
+    if (!token || !looksLikeJwt(token)) {
+      return next();
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || decoded.scope === 'ws') {
+      return next();
+    }
+
+    const user = await User.findById(decoded.id).select('-password');
+    if (!user) {
+      return next();
+    }
+
+    const now = new Date();
+    const isSuspended = user.suspendedUntil && user.suspendedUntil > now;
+    const isAdmin = !!(user.isAdmin || user.role === 'admin');
+    if (isSuspended && !isAdmin) {
+      return next();
+    }
+
+    req.user = user;
+    return next();
+  } catch (_err) {
+    return next();
+  }
+};
+
 const verifyTokenForSocket = async (rawToken) => {
   try {
     if (!rawToken) return null;
@@ -175,4 +210,4 @@ const verifyTokenForSocket = async (rawToken) => {
   }
 };
 
-module.exports = { protect, verifyTokenForSocket };
+module.exports = { protect, optionalProtect, verifyTokenForSocket };

@@ -1,24 +1,28 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiBookOpen, FiUser, FiCalendar, FiFileText, FiStar } from 'react-icons/fi';
+import { FiArrowLeft, FiBookOpen, FiUser, FiCalendar, FiFileText } from 'react-icons/fi';
 import { bookApi } from '../api/bookApi';
 import BookReviews from '../components/BookReviews';
 import ReviewForm from '../components/ReviewForm';
+import { AuthContext } from '../contexts/AuthContext';
 import './BookDetailsPage.css';
 
 const BookDetailsPage = () => {
   const { bookId } = useParams();
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [reviewsKey, setReviewsKey] = useState(0); // Key to force re-render of BookReviews
+  const [reviewsKey, setReviewsKey] = useState(0);
+  const [visibilityUpdating, setVisibilityUpdating] = useState(false);
 
   const fetchBookDetails = useCallback(async () => {
     try {
       setLoading(true);
       const bookData = await bookApi.getBookById(bookId);
       setBook(bookData);
+      setError('');
     } catch (err) {
       setError(err.message || 'Failed to load book details');
     } finally {
@@ -35,8 +39,27 @@ const BookDetailsPage = () => {
   };
 
   const handleReviewAdded = () => {
-    // Force re-render of BookReviews component to refresh the list
-    setReviewsKey(prev => prev + 1);
+    setReviewsKey((prev) => prev + 1);
+  };
+
+  const ownerId = book && book.createdBy
+    ? String(book.createdBy._id || book.createdBy)
+    : null;
+  const canManageVisibility = !!(user && ownerId && String(user._id) === ownerId);
+
+  const handleToggleVisibility = async () => {
+    if (!book || !canManageVisibility) return;
+
+    const nextVisibility = book.visibility === 'public' ? 'private' : 'public';
+    try {
+      setVisibilityUpdating(true);
+      const updatedBook = await bookApi.updateBookVisibility(book._id, nextVisibility);
+      setBook(updatedBook);
+    } catch (err) {
+      setError(err.message || 'Failed to update visibility');
+    } finally {
+      setVisibilityUpdating(false);
+    }
   };
 
   if (loading) {
@@ -108,19 +131,29 @@ const BookDetailsPage = () => {
             {book.genre && (
               <p className="genre">
                 <FiFileText />
-                {book.genre}
+                {Array.isArray(book.genre) ? book.genre.join(', ') : book.genre}
               </p>
             )}
-            {book.publishedDate && (
+            {book.publishedYear && (
               <p className="published-date">
                 <FiCalendar />
-                Published: {new Date(book.publishedDate).getFullYear()}
+                Published: {book.publishedYear}
               </p>
             )}
-            {book.rating && (
-              <div className="rating">
-                <FiStar />
-                <span>{book.rating}/5</span>
+
+            {canManageVisibility && (
+              <div className="book-visibility-controls">
+                <p><strong>Visibility:</strong> {book.visibility}</p>
+                <button
+                  type="button"
+                  className="book-details-btn book-details-btn-primary"
+                  disabled={visibilityUpdating}
+                  onClick={handleToggleVisibility}
+                >
+                  {visibilityUpdating
+                    ? 'Updating...'
+                    : `Make ${book.visibility === 'public' ? 'Private' : 'Public'}`}
+                </button>
               </div>
             )}
           </div>
@@ -142,7 +175,6 @@ const BookDetailsPage = () => {
           </div>
         )}
 
-        {/* Reviews Section */}
         <div className="book-reviews">
           <BookReviews key={reviewsKey} bookId={bookId} />
           <ReviewForm bookId={bookId} onReviewAdded={handleReviewAdded} />

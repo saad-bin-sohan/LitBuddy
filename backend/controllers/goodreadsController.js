@@ -1,23 +1,55 @@
-const goodreadsService = require('../services/goodreadsService');
 const asyncHandler = require('express-async-handler');
+const goodreadsService = require('../services/goodreadsService');
+const ReadingProgress = require('../models/readingProgressModel');
+const { upsertCanonicalBookFromExternal } = require('../services/bookCatalogService');
+const { sanitizeBookForUser } = require('../utils/bookAccess');
+
+const VALID_PROGRESS_STATUSES = new Set(['want-to-read', 'currently-reading', 'completed', 'dnf']);
+
+function normalizeImportStatus(value) {
+  if (value === undefined || value === null || value === '') return null;
+  const status = String(value).trim();
+  if (!VALID_PROGRESS_STATUSES.has(status)) {
+    const err = new Error('Invalid reading status');
+    err.status = 400;
+    throw err;
+  }
+  return status;
+}
+
+async function ensureReadingProgress({ userId, book, status, totalPages }) {
+  if (!status) return null;
+
+  const existing = await ReadingProgress.findOne({ user: userId, book: book._id });
+  if (existing) return existing;
+
+  return ReadingProgress.create({
+    user: userId,
+    book: book._id,
+    status,
+    totalPages: book.pageCount || totalPages || 1,
+    startDate: new Date(),
+    currentPage: status === 'currently-reading' ? 1 : 0,
+    finishDate: status === 'completed' ? new Date() : undefined,
+  });
+}
 
 // @desc    Search books on GoodReads
 // @route   GET /api/goodreads/search
 // @access  Private
 const searchGoodreadsBooks = asyncHandler(async (req, res) => {
   const { query, page = 1 } = req.query;
-
   if (!query || query.trim().length < 2) {
     res.status(400);
     throw new Error('Search query must be at least 2 characters long');
   }
 
   try {
-    const results = await goodreadsService.searchBooks(query.trim(), parseInt(page));
+    const results = await goodreadsService.searchBooks(query.trim(), Number.parseInt(page, 10) || 1);
     res.json(results);
   } catch (error) {
-    res.status(500);
-    throw new Error(`GoodReads search failed: ${error.message}`);
+    res.status(502);
+    throw new Error(error.message || 'GoodReads search failed');
   }
 });
 
@@ -26,17 +58,12 @@ const searchGoodreadsBooks = asyncHandler(async (req, res) => {
 // @access  Private
 const getGoodreadsBookById = asyncHandler(async (req, res) => {
   const { id } = req.params;
-
   try {
     const book = await goodreadsService.getBookById(id);
     res.json(book);
   } catch (error) {
-    if (error.message === 'Book not found') {
-      res.status(404);
-      throw new Error('Book not found on GoodReads');
-    }
-    res.status(500);
-    throw new Error(`Failed to fetch book: ${error.message}`);
+    res.status(502);
+    throw new Error(error.message || 'Failed to fetch book');
   }
 });
 
@@ -45,8 +72,6 @@ const getGoodreadsBookById = asyncHandler(async (req, res) => {
 // @access  Private
 const getGoodreadsBookByIsbn = asyncHandler(async (req, res) => {
   const { isbn } = req.params;
-
-  // Validate ISBN format
   const isbnRegex = /^(?:\d{10}|\d{13})$/;
   if (!isbnRegex.test(isbn)) {
     res.status(400);
@@ -57,12 +82,8 @@ const getGoodreadsBookByIsbn = asyncHandler(async (req, res) => {
     const book = await goodreadsService.getBookByIsbn(isbn);
     res.json(book);
   } catch (error) {
-    if (error.message === 'Book not found') {
-      res.status(404);
-      throw new Error('Book not found on GoodReads');
-    }
-    res.status(500);
-    throw new Error(`Failed to fetch book: ${error.message}`);
+    res.status(502);
+    throw new Error(error.message || 'Failed to fetch book by ISBN');
   }
 });
 
@@ -71,17 +92,12 @@ const getGoodreadsBookByIsbn = asyncHandler(async (req, res) => {
 // @access  Private
 const getGoodreadsAuthor = asyncHandler(async (req, res) => {
   const { id } = req.params;
-
   try {
     const author = await goodreadsService.getAuthorInfo(id);
     res.json(author);
   } catch (error) {
-    if (error.message === 'Author not found') {
-      res.status(404);
-      throw new Error('Author not found on GoodReads');
-    }
-    res.status(500);
-    throw new Error(`Failed to fetch author: ${error.message}`);
+    res.status(502);
+    throw new Error(error.message || 'Failed to fetch author');
   }
 });
 
@@ -97,59 +113,32 @@ const importBookFromGoodreads = asyncHandler(async (req, res) => {
   }
 
   try {
-    // Get book details from GoodReads
+    const normalizedStatus = normalizeImportStatus(status);
     const goodreadsBook = await goodreadsService.getBookById(goodreadsId);
-    
-    // Check if book already exists in user's library
-    const Book = require('../models/bookModel');
-    const existingBook = await Book.findOne({
-      goodreadsId: goodreadsBook.goodreadsId,
-      createdBy: req.user.id
+
+    const { book, created, reused } = await upsertCanonicalBookFromExternal({
+      source: 'goodreads',
+      externalBook: goodreadsBook,
+      userId: req.user.id,
     });
 
-    if (existingBook) {
-      res.status(400);
-      throw new Error('Book already exists in your library');
-    }
-
-    // Create book in user's library
-    const book = await Book.create({
-      title: goodreadsBook.title,
-      author: goodreadsBook.author,
-      isbn: goodreadsBook.isbn,
-      coverImage: goodreadsBook.imageUrl,
-      description: goodreadsBook.description,
-      genre: goodreadsBook.genres || [],
-      publishedYear: goodreadsBook.publicationYear,
-      pageCount: goodreadsBook.pages || totalPages,
-      language: goodreadsBook.language || 'English',
-      goodreadsId: goodreadsBook.goodreadsId,
-      goodreadsRating: goodreadsBook.averageRating,
-      goodreadsRatingsCount: goodreadsBook.ratingsCount,
-      isCustom: false,
-      createdBy: req.user.id
-    });
-
-    // Add to reading list if status is provided
-    if (status) {
-      const ReadingProgress = require('../models/readingProgressModel');
-      await ReadingProgress.create({
-        user: req.user.id,
-        book: book._id,
-        status,
-        totalPages: book.pageCount || totalPages,
-        startDate: new Date()
-      });
-    }
-
-    res.status(201).json({
-      message: 'Book imported successfully',
+    const progress = await ensureReadingProgress({
+      userId: req.user.id,
       book,
-      importedFrom: 'GoodReads'
+      status: normalizedStatus,
+      totalPages,
+    });
+
+    res.status(created ? 201 : 200).json({
+      message: created ? 'Book imported successfully' : 'Book linked from canonical catalog',
+      importedFrom: 'GoodReads',
+      reused,
+      book: sanitizeBookForUser(book, req.user),
+      readingProgressId: progress ? progress._id : null,
     });
   } catch (error) {
-    res.status(500);
-    throw new Error(`Failed to import book: ${error.message}`);
+    res.status(error.status || 502);
+    throw new Error(error.message || 'Failed to import book');
   }
 });
 
@@ -158,5 +147,5 @@ module.exports = {
   getGoodreadsBookById,
   getGoodreadsBookByIsbn,
   getGoodreadsAuthor,
-  importBookFromGoodreads
+  importBookFromGoodreads,
 };

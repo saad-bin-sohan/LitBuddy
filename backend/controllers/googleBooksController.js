@@ -1,23 +1,55 @@
-const googleBooksService = require('../services/googleBooksService');
 const asyncHandler = require('express-async-handler');
+const googleBooksService = require('../services/googleBooksService');
+const ReadingProgress = require('../models/readingProgressModel');
+const { upsertCanonicalBookFromExternal } = require('../services/bookCatalogService');
+const { sanitizeBookForUser } = require('../utils/bookAccess');
+
+const VALID_PROGRESS_STATUSES = new Set(['want-to-read', 'currently-reading', 'completed', 'dnf']);
+
+function normalizeImportStatus(value) {
+  if (value === undefined || value === null || value === '') return null;
+  const status = String(value).trim();
+  if (!VALID_PROGRESS_STATUSES.has(status)) {
+    const err = new Error('Invalid reading status');
+    err.status = 400;
+    throw err;
+  }
+  return status;
+}
+
+async function ensureReadingProgress({ userId, book, status, totalPages }) {
+  if (!status) return null;
+
+  const existing = await ReadingProgress.findOne({ user: userId, book: book._id });
+  if (existing) return existing;
+
+  return ReadingProgress.create({
+    user: userId,
+    book: book._id,
+    status,
+    totalPages: book.pageCount || totalPages || 1,
+    startDate: new Date(),
+    currentPage: status === 'currently-reading' ? 1 : 0,
+    finishDate: status === 'completed' ? new Date() : undefined,
+  });
+}
 
 // @desc    Search books on Google Books
 // @route   GET /api/googlebooks/search
 // @access  Private
 const searchGoogleBooks = asyncHandler(async (req, res) => {
   const { query, page = 1 } = req.query;
-
   if (!query || query.trim().length < 2) {
     res.status(400);
     throw new Error('Search query must be at least 2 characters long');
   }
 
   try {
-    const results = await googleBooksService.searchBooks(query.trim(), parseInt(page));
+    const results = await googleBooksService.searchBooks(query.trim(), Number.parseInt(page, 10) || 1);
     res.json(results);
   } catch (error) {
-    res.status(500);
-    throw new Error(`Google Books search failed: ${error.message}`);
+    res.status(502);
+    throw new Error(error.message || 'Google Books search failed');
   }
 });
 
@@ -26,17 +58,12 @@ const searchGoogleBooks = asyncHandler(async (req, res) => {
 // @access  Private
 const getGoogleBookById = asyncHandler(async (req, res) => {
   const { id } = req.params;
-
   try {
     const book = await googleBooksService.getBookById(id);
     res.json(book);
   } catch (error) {
-    if (error.message === 'Book not found') {
-      res.status(404);
-      throw new Error('Book not found on Google Books');
-    }
-    res.status(500);
-    throw new Error(`Failed to fetch book: ${error.message}`);
+    res.status(502);
+    throw new Error(error.message || 'Failed to fetch book');
   }
 });
 
@@ -45,8 +72,6 @@ const getGoogleBookById = asyncHandler(async (req, res) => {
 // @access  Private
 const getGoogleBookByIsbn = asyncHandler(async (req, res) => {
   const { isbn } = req.params;
-
-  // Validate ISBN format
   const isbnRegex = /^(?:\d{10}|\d{13})$/;
   if (!isbnRegex.test(isbn)) {
     res.status(400);
@@ -54,22 +79,17 @@ const getGoogleBookByIsbn = asyncHandler(async (req, res) => {
   }
 
   try {
-    // Search by ISBN using Google Books
     const results = await googleBooksService.searchBooks(`isbn:${isbn}`, 1);
-    if (results.results && results.results.length > 0) {
-      const book = await googleBooksService.getBookById(results.results[0].googleBooksId);
-      res.json(book);
-    } else {
+    if (!results.results || results.results.length === 0) {
       res.status(404);
       throw new Error('Book not found on Google Books');
     }
+    const book = await googleBooksService.getBookById(results.results[0].googleBooksId);
+    res.json(book);
   } catch (error) {
-    if (error.message === 'Book not found') {
-      res.status(404);
-      throw new Error('Book not found on Google Books');
-    }
-    res.status(500);
-    throw new Error(`Failed to fetch book: ${error.message}`);
+    if (res.statusCode === 404) throw error;
+    res.status(502);
+    throw new Error(error.message || 'Failed to fetch book by ISBN');
   }
 });
 
@@ -85,59 +105,32 @@ const importBookFromGoogleBooks = asyncHandler(async (req, res) => {
   }
 
   try {
-    // Get book details from Google Books
+    const normalizedStatus = normalizeImportStatus(status);
     const googleBook = await googleBooksService.getBookById(googleBooksId);
 
-    // Check if book already exists in user's library
-    const Book = require('../models/bookModel');
-    const existingBook = await Book.findOne({
-      googleBooksId: googleBook.googleBooksId,
-      createdBy: req.user.id
+    const { book, created, reused } = await upsertCanonicalBookFromExternal({
+      source: 'googlebooks',
+      externalBook: googleBook,
+      userId: req.user.id,
     });
 
-    if (existingBook) {
-      res.status(400);
-      throw new Error('Book already exists in your library');
-    }
-
-    // Create book in user's library
-    const book = await Book.create({
-      title: googleBook.title,
-      author: googleBook.author,
-      isbn: googleBook.isbn,
-      coverImage: googleBook.imageUrl,
-      description: googleBook.description,
-      genre: googleBook.categories || [],
-      publishedYear: googleBook.publicationYear,
-      pageCount: googleBook.pages || totalPages,
-      language: googleBook.language || 'English',
-      googleBooksId: googleBook.googleBooksId,
-      googleBooksRating: googleBook.averageRating,
-      googleBooksRatingsCount: googleBook.ratingsCount,
-      isCustom: false,
-      createdBy: req.user.id
-    });
-
-    // Add to reading list if status is provided
-    if (status) {
-      const ReadingProgress = require('../models/readingProgressModel');
-      await ReadingProgress.create({
-        user: req.user.id,
-        book: book._id,
-        status,
-        totalPages: book.pageCount || totalPages,
-        startDate: new Date()
-      });
-    }
-
-    res.status(201).json({
-      message: 'Book imported successfully',
+    const progress = await ensureReadingProgress({
+      userId: req.user.id,
       book,
-      importedFrom: 'Google Books'
+      status: normalizedStatus,
+      totalPages,
+    });
+
+    res.status(created ? 201 : 200).json({
+      message: created ? 'Book imported successfully' : 'Book linked from canonical catalog',
+      importedFrom: 'Google Books',
+      reused,
+      book: sanitizeBookForUser(book, req.user),
+      readingProgressId: progress ? progress._id : null,
     });
   } catch (error) {
-    res.status(500);
-    throw new Error(`Failed to import book: ${error.message}`);
+    res.status(error.status || 502);
+    throw new Error(error.message || 'Failed to import book');
   }
 });
 
@@ -145,5 +138,5 @@ module.exports = {
   searchGoogleBooks,
   getGoogleBookById,
   getGoogleBookByIsbn,
-  importBookFromGoogleBooks
+  importBookFromGoogleBooks,
 };

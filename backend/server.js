@@ -204,6 +204,7 @@ app.use('/api/group-chats', require('./routes/groupChatRoutes'));
 
 // Google Books integration routes
 app.use('/api/googlebooks', require('./routes/googleBooksRoutes'));
+app.use('/api/goodreads', require('./routes/goodreadsRoutes'));
 
 // Import the review routes
 const reviewRoutes = require('./routes/reviewRoutes');

@@ -106,8 +106,8 @@ const AddReview = () => {
                     <h3>{progress.book.title}</h3>
                     <p className="author">by {progress.book.author}</p>
                     <div className="book-status">
-                      <span className={`status-badge ${progress.listType}`}>
-                        {progress.listType.replace('-', ' ')}
+                      <span className={`status-badge ${progress.status}`}>
+                        {String(progress.status || '').replace('-', ' ')}
                       </span>
                     </div>
                   </div>

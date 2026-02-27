@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { normalizeIsbn } = require('../utils/isbn');
 
 const bookSchema = new mongoose.Schema(
   {
@@ -14,8 +15,12 @@ const bookSchema = new mongoose.Schema(
     },
     isbn: { 
       type: String, 
-      trim: true,
-      sparse: true // Allow multiple books without ISBN
+      trim: true
+    },
+    isbnNormalized: {
+      type: String,
+      default: '',
+      trim: true
     },
     coverImage: { 
       type: String, 
@@ -59,6 +64,34 @@ const bookSchema = new mongoose.Schema(
       type: Number, 
       min: 0 
     },
+    // Google Books integration fields
+    googleBooksId: {
+      type: String,
+      sparse: true
+    },
+    googleBooksRating: {
+      type: Number,
+      min: 0,
+      max: 5
+    },
+    googleBooksRatingsCount: {
+      type: Number,
+      min: 0
+    },
+    visibility: {
+      type: String,
+      enum: ['private', 'public'],
+      default: 'private'
+    },
+    isArchived: {
+      type: Boolean,
+      default: false
+    },
+    mergedInto: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Book',
+      default: null
+    },
     
     createdBy: { 
       type: mongoose.Schema.Types.ObjectId, 
@@ -69,9 +102,15 @@ const bookSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+bookSchema.pre('validate', function(next) {
+  this.isbnNormalized = normalizeIsbn(this.isbn);
+  next();
+});
+
 // Indexes for efficient queries
 bookSchema.index({ title: 'text', author: 'text' });
 bookSchema.index({ createdBy: 1 });
-bookSchema.index({ isbn: 1 });
+bookSchema.index({ isbnNormalized: 1 });
+bookSchema.index({ visibility: 1, createdBy: 1, isArchived: 1 });
 
 module.exports = mongoose.model('Book', bookSchema);

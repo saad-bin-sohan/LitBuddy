@@ -5,25 +5,26 @@ const {
   searchBooks,
   getBookById,
   updateBook,
+  updateBookVisibility,
   deleteBook,
   getMyBooks
 } = require('../controllers/bookController');
-const { protect } = require('../middleware/authMiddleware');
-
-// All routes are protected
-router.use(protect);
+const { protect, optionalProtect } = require('../middleware/authMiddleware');
 
 // Book management routes
 router.route('/')
-  .post(createBook)
-  .get(getMyBooks);
+  .post(protect, createBook)
+  .get(protect, getMyBooks);
 
 router.route('/search')
-  .get(searchBooks);
+  .get(protect, searchBooks);
+
+router.route('/:id/visibility')
+  .patch(protect, updateBookVisibility);
 
 router.route('/:id')
-  .get(getBookById)
-  .put(updateBook)
-  .delete(deleteBook);
+  .get(optionalProtect, getBookById)
+  .put(protect, updateBook)
+  .delete(protect, deleteBook);
 
 module.exports = router;

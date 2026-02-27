@@ -25,7 +25,15 @@ messageSchema.pre('validate', function(next) {
 const chatSchema = new mongoose.Schema(
   {
     // For now we expect exactly two participants per chat.
-    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }],
+    participants: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }],
+      validate: {
+        validator(value) {
+          return Array.isArray(value) && value.length === 2;
+        },
+        message: 'One-to-one chats must contain exactly two participants',
+      },
+    },
 
     messages: [messageSchema],
 

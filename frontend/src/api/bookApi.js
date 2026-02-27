@@ -11,7 +11,7 @@ export const bookApi = {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to create book');
-    return data;
+    return data.book || data;
   },
 
   // Search books
@@ -45,6 +45,19 @@ export const bookApi = {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to update book');
+    return data;
+  },
+
+  // Update book visibility
+  updateBookVisibility: async (bookId, visibility) => {
+    const res = await fetch(`${API_URL}/books/${bookId}/visibility`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ visibility }),
+      credentials: 'include',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to update book visibility');
     return data;
   },
 

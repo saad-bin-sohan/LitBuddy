@@ -1,16 +1,26 @@
 const Review = require('../models/reviewModel');
 const { getLogger } = require('../utils/logger');
+const { isValidObjectId } = require('../utils/objectIdValidator');
 
-// Add a new review
+function canManageReview(review, user) {
+  if (!review || !user) return false;
+  const isOwner = String(review.userId) === String(user._id || user.id);
+  const isAdmin = !!(user.isAdmin || user.role === 'admin');
+  return isOwner || isAdmin;
+}
+
+// Add a new review revision
 exports.addReview = async (req, res) => {
   const requestLogger = getLogger(req);
   try {
     const { bookId, rating, reviewText, spoiler } = req.body;
-    const userId = req.user.id; // Assuming user is authenticated
+    const userId = req.user.id;
 
-    const review = new Review({ userId, bookId, rating, reviewText, spoiler });
-    await review.save();
+    if (!isValidObjectId(bookId)) {
+      return res.status(400).json({ message: 'Invalid book ID' });
+    }
 
+    const review = await Review.create({ userId, bookId, rating, reviewText, spoiler });
     res.status(201).json({ message: 'Review added successfully', review });
   } catch (error) {
     requestLogger.error(
@@ -25,18 +35,17 @@ exports.addReview = async (req, res) => {
 };
 
 // Get reviews for a book
-const { isValidObjectId } = require('../utils/objectIdValidator');
-
 exports.getReviewsByBook = async (req, res) => {
   const requestLogger = getLogger(req);
   try {
     const { bookId } = req.params;
-
     if (!isValidObjectId(bookId)) {
       return res.status(400).json({ message: 'Invalid book ID' });
     }
 
-    const reviews = await Review.find({ bookId }).populate('userId', 'name');
+    const reviews = await Review.find({ bookId })
+      .populate('userId', 'name displayName')
+      .sort({ createdAt: -1 });
 
     res.status(200).json(reviews);
   } catch (error) {
@@ -56,7 +65,13 @@ exports.getReviewsByUser = async (req, res) => {
   const requestLogger = getLogger(req);
   try {
     const { userId } = req.params;
-    const reviews = await Review.find({ userId }).populate('bookId', 'title');
+    if (!isValidObjectId(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+
+    const reviews = await Review.find({ userId })
+      .populate('bookId', 'title')
+      .sort({ createdAt: -1 });
 
     res.status(200).json(reviews);
   } catch (error) {
@@ -78,16 +93,23 @@ exports.editReview = async (req, res) => {
     const { reviewId } = req.params;
     const { rating, reviewText, spoiler } = req.body;
 
-    const review = await Review.findByIdAndUpdate(
-      reviewId,
-      { rating, reviewText, spoiler, updatedAt: Date.now() },
-      { new: true }
-    );
+    if (!isValidObjectId(reviewId)) {
+      return res.status(400).json({ message: 'Invalid review ID' });
+    }
 
+    const review = await Review.findById(reviewId);
     if (!review) {
       return res.status(404).json({ message: 'Review not found' });
     }
+    if (!canManageReview(review, req.user)) {
+      return res.status(403).json({ message: 'Not authorized to edit this review' });
+    }
 
+    if (rating !== undefined) review.rating = rating;
+    if (reviewText !== undefined) review.reviewText = reviewText;
+    if (spoiler !== undefined) review.spoiler = spoiler;
+
+    await review.save();
     res.status(200).json({ message: 'Review updated successfully', review });
   } catch (error) {
     requestLogger.error(
@@ -106,13 +128,19 @@ exports.deleteReview = async (req, res) => {
   const requestLogger = getLogger(req);
   try {
     const { reviewId } = req.params;
+    if (!isValidObjectId(reviewId)) {
+      return res.status(400).json({ message: 'Invalid review ID' });
+    }
 
-    const review = await Review.findByIdAndDelete(reviewId);
-
+    const review = await Review.findById(reviewId);
     if (!review) {
       return res.status(404).json({ message: 'Review not found' });
     }
+    if (!canManageReview(review, req.user)) {
+      return res.status(403).json({ message: 'Not authorized to delete this review' });
+    }
 
+    await review.deleteOne();
     res.status(200).json({ message: 'Review deleted successfully' });
   } catch (error) {
     requestLogger.error(

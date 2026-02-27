@@ -1,5 +1,3 @@
-// backend/services/chatService.js
-
 const mongoose = require('mongoose');
 const Chat = require('../models/chatModel');
 const User = require('../models/userModel');
@@ -7,87 +5,169 @@ const stompBroker = require('../utils/stompBroker');
 const notificationService = require('./notificationService');
 const { logger } = require('../utils/logger');
 
-/**
- * Convert input to ObjectId (safe)
- */
 function toObjectId(id) {
   if (!id) return null;
   if (id instanceof mongoose.Types.ObjectId) return id;
-  const s = String(id);
-  if (mongoose.Types.ObjectId.isValid(s)) return new mongoose.Types.ObjectId(s);
-  return null;
+  const text = String(id);
+  if (!mongoose.Types.ObjectId.isValid(text)) return null;
+  return new mongoose.Types.ObjectId(text);
 }
 
-/**
- * Helper: publish conversation status updates via STOMP
- */
+function toUserIdText(user) {
+  if (!user) return '';
+  return String(user._id || user.id || user);
+}
+
+function buildLimitError({ blockedFor, currentCount, maxAllowed }) {
+  const err = new Error('Active conversations limit reached');
+  err.status = 403;
+  err.blockedFor = String(blockedFor);
+  err.currentCount = currentCount;
+  err.maxAllowed = maxAllowed;
+  return err;
+}
+
+function buildForbidden(message) {
+  const err = new Error(message);
+  err.status = 403;
+  return err;
+}
+
+async function getActiveConversationCount(userId) {
+  return Chat.countDocuments({
+    participants: toObjectId(userId),
+    status: 'active',
+  });
+}
+
+async function syncUsersActiveConversationCounts(userIds) {
+  const uniqueIds = [...new Set(userIds.map((id) => String(id)).filter(Boolean))];
+  await Promise.all(
+    uniqueIds.map(async (id) => {
+      const count = await getActiveConversationCount(id);
+      await User.findByIdAndUpdate(id, { activeConversations: count });
+    })
+  );
+}
+
+async function assertActiveConversationCapacity(userIds) {
+  const uniqueIds = [...new Set(userIds.map((id) => String(id)).filter(Boolean))];
+
+  for (const id of uniqueIds) {
+    const user = await User.findById(id).select('_id maxActiveConversations');
+    if (!user) {
+      const err = new Error('User not found');
+      err.status = 404;
+      throw err;
+    }
+
+    const currentCount = await getActiveConversationCount(user._id);
+    const maxAllowed = Number.isFinite(Number(user.maxActiveConversations))
+      ? Number(user.maxActiveConversations)
+      : 3;
+    if (currentCount >= maxAllowed) {
+      throw buildLimitError({
+        blockedFor: user._id,
+        currentCount,
+        maxAllowed,
+      });
+    }
+  }
+}
+
 function publishConversationStatus(chat) {
   const payload = {
     chatId: String(chat._id),
     status: chat.status,
     pausedBy: chat.pausedBy ? String(chat.pausedBy) : null,
-    pausedAt: chat.pausedAt ? chat.pausedAt.toISOString() : null,
-    lastActive: chat.lastActive ? chat.lastActive.toISOString() : null,
+    pausedAt: chat.pausedAt ? new Date(chat.pausedAt).toISOString() : null,
+    lastActive: chat.lastActive ? new Date(chat.lastActive).toISOString() : null,
   };
-  
+
   try {
-    // Publish to chat status topic
     stompBroker.publish(`/topic/chat/${chat._id}/status`, payload);
-    
-    // Publish to personal queues for each participant
-    for (const p of chat.participants) {
-      stompBroker.publish(`/user/${p}/queue/conversation-status`, payload);
+    for (const participant of chat.participants) {
+      stompBroker.publish(`/user/${participant}/queue/conversation-status`, payload);
     }
-    
-    logger.debug(
-      {
-        chatId: String(chat._id),
-        participantCount: chat.participants.length,
-      },
-      'chat.status_published'
-    );
   } catch (err) {
     logger.error({ err, chatId: String(chat._id) }, 'chat.publish_status_failed');
   }
 }
 
-/**
- * Create a new chat between two matched users
- */
-async function createChatBetween(requesterId, otherUserId) {
-  // Validate inputs
-  const userA = await User.findById(requesterId);
-  const userB = await User.findById(otherUserId);
-  
+async function notifyParticipants(chat, actorId, { title, bodyPrefix }) {
+  try {
+    for (const participant of chat.participants) {
+      if (String(participant) === String(actorId)) continue;
+      await notificationService.createAndSend({
+        userId: participant,
+        type: 'system',
+        title,
+        body: `${bodyPrefix} by ${String(actorId)}`,
+        data: { chatId: chat._id },
+      });
+    }
+  } catch (err) {
+    logger.error({ err, chatId: String(chat._id) }, 'chat.notify_participants_failed');
+  }
+}
+
+function hasMutualMatch(userA, userB) {
+  const aId = String(userA._id);
+  const bId = String(userB._id);
+  const aMatches = Array.isArray(userA.matches) ? userA.matches.map(String) : [];
+  const bMatches = Array.isArray(userB.matches) ? userB.matches.map(String) : [];
+  return aMatches.includes(bId) && bMatches.includes(aId);
+}
+
+async function createChatBetween(requesterIdRaw, otherUserIdRaw) {
+  const requesterId = toObjectId(requesterIdRaw);
+  const otherUserId = toObjectId(otherUserIdRaw);
+  if (!requesterId || !otherUserId) {
+    const err = new Error('Invalid user ID');
+    err.status = 400;
+    throw err;
+  }
+  if (String(requesterId) === String(otherUserId)) {
+    const err = new Error('Cannot start a conversation with yourself');
+    err.status = 400;
+    throw err;
+  }
+
+  const existingChat = await Chat.findOne({
+    participants: { $all: [requesterId, otherUserId] },
+    $expr: { $eq: [{ $size: '$participants' }, 2] },
+  }).sort({ createdAt: -1 });
+  if (existingChat) return existingChat.toObject();
+
+  const [userA, userB] = await Promise.all([
+    User.findById(requesterId).select('_id name displayName matches suspendedUntil maxActiveConversations'),
+    User.findById(otherUserId).select('_id name displayName matches suspendedUntil maxActiveConversations'),
+  ]);
   if (!userA || !userB) {
     const err = new Error('User not found');
     err.status = 404;
     throw err;
   }
-
-  // Check if chat already exists
-  const existingChat = await Chat.findOne({
-    participants: { $all: [requesterId, otherUserId] }
-  });
-
-  if (existingChat) {
-    return existingChat.toObject();
+  if (userB.suspendedUntil && userB.suspendedUntil > new Date()) {
+    throw buildForbidden('Cannot start chat with suspended user');
+  }
+  if (!hasMutualMatch(userA, userB)) {
+    throw buildForbidden('You can only start chats with matched users');
   }
 
-  // Create new chat
-  const chatDoc = new Chat({
-    participants: [requesterId, otherUserId],
+  await assertActiveConversationCapacity([userA._id, userB._id]);
+
+  const chatDoc = await Chat.create({
+    participants: [userA._id, userB._id],
     status: 'active',
     lastActive: new Date(),
-    messages: []
+    messages: [],
   });
 
-  await chatDoc.save();
+  await syncUsersActiveConversationCounts([userA._id, userB._id]);
 
-  // Emit STOMP events
   publishConversationStatus(chatDoc);
 
-  // Persist notification
   try {
     await notificationService.createAndSend({
       userId: userB._id,
@@ -96,16 +176,13 @@ async function createChatBetween(requesterId, otherUserId) {
       body: `You have a new conversation with ${userA.displayName || userA.name || 'Someone'}`,
       data: { chatId: chatDoc._id },
     });
-  } catch (e) {
-    // ignore
+  } catch (err) {
+    logger.error({ err, chatId: String(chatDoc._id) }, 'chat.create_notify_failed');
   }
 
   return chatDoc.toObject();
 }
 
-/**
- * List chats for a user
- */
 async function listChatsForUser(userIdRaw) {
   const userId = toObjectId(userIdRaw);
   if (!userId) {
@@ -113,177 +190,155 @@ async function listChatsForUser(userIdRaw) {
     err.status = 400;
     throw err;
   }
-
-  // Validate that the user exists
-  try {
-    const userExists = await require('../models/userModel').findById(userId).select('_id');
-    if (!userExists) {
-      const err = new Error('User not found');
-      err.status = 404;
-      throw err;
-    }
-  } catch (userError) {
-    logger.error({ err: userError, userId: String(userIdRaw) }, 'chat.user_validation_failed');
-    const err = new Error('Failed to validate user');
-    err.status = 500;
+  const userExists = await User.findById(userId).select('_id');
+  if (!userExists) {
+    const err = new Error('User not found');
+    err.status = 404;
     throw err;
   }
 
-  try {
-    logger.debug({ userId: String(userId) }, 'chat.list_fetch_started');
-    
-    // Check database connection
-    if (mongoose.connection.readyState !== 1) {
-      const err = new Error('Database connection not ready');
-      err.status = 503;
-      throw err;
-    }
-    
-    // Find all chats where the user is a participant
-    const chats = await Chat.find({
-      participants: userId
-    })
-    .populate('participants', 'name displayName profilePhoto location')
+  if (mongoose.connection.readyState !== 1) {
+    const err = new Error('Database connection not ready');
+    err.status = 503;
+    throw err;
+  }
+
+  const chats = await Chat.find({ participants: userId })
+    .populate('participants', 'name displayName profilePhotos location')
     .populate('messages.sender', 'name displayName')
     .sort({ lastActive: -1, updatedAt: -1 })
     .lean();
 
-    logger.debug({ userId: String(userId), chatCount: chats.length }, 'chat.list_fetch_completed');
+  return chats.map((chat) => {
+    const otherParticipant = Array.isArray(chat.participants)
+      ? chat.participants.find((p) => String(p._id) !== String(userId))
+      : null;
+    const lastMessage = Array.isArray(chat.messages) && chat.messages.length > 0
+      ? chat.messages[chat.messages.length - 1]
+      : null;
+    const unreadCount = Array.isArray(chat.messages)
+      ? chat.messages.filter(
+        (msg) => msg.sender && msg.sender._id && String(msg.sender._id) !== String(userId)
+      ).length
+      : 0;
 
-    // Process each chat to add computed fields
-    const processedChats = chats.map(chat => {
-      try {
-        const otherParticipant = chat.participants.find(p => String(p._id) !== String(userId));
-        const lastMessage = chat.messages && chat.messages.length > 0 
-          ? chat.messages[chat.messages.length - 1] 
-          : null;
-        
-        // Calculate unread count (messages not from current user)
-        const unreadCount = chat.messages ? chat.messages.filter(msg => 
-          msg.sender && msg.sender._id && String(msg.sender._id) !== String(userId)
-        ).length : 0;
+    return {
+      ...chat,
+      otherParticipant,
+      lastMessage: lastMessage
+        ? {
+          text: lastMessage.text,
+          timestamp: lastMessage.timestamp,
+          sender: lastMessage.sender,
+        }
+        : null,
+      unreadCount,
+      lastActivity: lastMessage ? lastMessage.timestamp : chat.lastActive || chat.updatedAt,
+    };
+  });
+}
 
-        return {
-          ...chat,
-          otherParticipant,
-          lastMessage: lastMessage ? {
-            text: lastMessage.text,
-            timestamp: lastMessage.timestamp,
-            sender: lastMessage.sender
-          } : null,
-          unreadCount,
-          // Ensure we have the last activity timestamp
-          lastActivity: lastMessage ? lastMessage.timestamp : chat.lastActive || chat.updatedAt
-        };
-      } catch (chatError) {
-        logger.error(
-          {
-            err: chatError,
-            chatId: String(chat._id),
-            userId: String(userId),
-          },
-          'chat.list_item_processing_failed'
-        );
-        // Return a minimal chat object if processing fails
-        return {
-          ...chat,
-          otherParticipant: null,
-          lastMessage: null,
-          unreadCount: 0,
-          lastActivity: chat.updatedAt
-        };
-      }
-    });
-
-    logger.debug(
-      {
-        userId: String(userId),
-        processedCount: processedChats.length,
-      },
-      'chat.list_processing_completed'
-    );
-    return processedChats;
-  } catch (error) {
-    logger.error({ err: error, userId: String(userId) }, 'chat.list_failed');
-    const err = new Error('Failed to fetch chats');
-    err.status = 500;
+async function pauseChat(requesterIdRaw, chatIdRaw) {
+  const requesterId = toObjectId(requesterIdRaw);
+  const chatId = toObjectId(chatIdRaw);
+  if (!requesterId || !chatId) {
+    const err = new Error('Invalid chat or user ID');
+    err.status = 400;
     throw err;
   }
-}
 
-/**
- * Pause a chat
- */
-async function pauseChat(requesterId, chatId) {
-  // ... [unchanged business logic]
-
-  // publish STOMP status
-  publishConversationStatus(chat);
-
-  // notify other participant
-  try {
-    for (const p of chat.participants) {
-      if (String(p) === String(requesterId)) continue;
-      await notificationService.createAndSend({
-        userId: p,
-        type: 'system',
-        title: 'Conversation paused',
-        body: `A conversation was paused by ${String(requesterId)}`,
-        data: { chatId: chat._id },
-      });
-    }
-  } catch (e) {
-    // ignore
-  }
-
-  return chat.toObject();
-}
-
-/**
- * Resume a paused chat
- */
-async function resumeChat(requesterId, chatId) {
-  // ... [unchanged business logic]
-
-  // publish STOMP status
-  publishConversationStatus(chat);
-
-  // notify other participant
-  try {
-    for (const p of chat.participants) {
-      if (String(p) === String(requesterId)) continue;
-      await notificationService.createAndSend({
-        userId: p,
-        type: 'system',
-        title: 'Conversation resumed',
-        body: `A conversation was resumed by ${String(requesterId)}`,
-        data: { chatId: chat._id },
-      });
-    }
-  } catch (e) {
-    // ignore
-  }
-
-  return chat.toObject();
-}
-
-/**
- * Append a message to a chat
- */
-async function appendMessage(senderId, chatId, text, attachments = []) {
   const chat = await Chat.findById(chatId);
   if (!chat) {
     const err = new Error('Chat not found');
     err.status = 404;
     throw err;
   }
-
-  if (!chat.participants.map(String).includes(String(senderId))) {
-    const err = new Error('Not a participant');
-    err.status = 403;
+  if (!chat.participants.map(String).includes(String(requesterId))) {
+    throw buildForbidden('Not a participant');
+  }
+  if (chat.status !== 'active') {
+    const err = new Error(`Chat cannot be paused from status "${chat.status}"`);
+    err.status = 409;
+    err.chatStatus = chat.status;
     throw err;
   }
 
+  chat.status = 'paused';
+  chat.pausedBy = requesterId;
+  chat.pausedAt = new Date();
+  await chat.save();
+
+  await syncUsersActiveConversationCounts(chat.participants);
+  publishConversationStatus(chat);
+  await notifyParticipants(chat, requesterId, {
+    title: 'Conversation paused',
+    bodyPrefix: 'A conversation was paused',
+  });
+
+  return chat.toObject();
+}
+
+async function resumeChat(requesterIdRaw, chatIdRaw) {
+  const requesterId = toObjectId(requesterIdRaw);
+  const chatId = toObjectId(chatIdRaw);
+  if (!requesterId || !chatId) {
+    const err = new Error('Invalid chat or user ID');
+    err.status = 400;
+    throw err;
+  }
+
+  const chat = await Chat.findById(chatId);
+  if (!chat) {
+    const err = new Error('Chat not found');
+    err.status = 404;
+    throw err;
+  }
+  if (!chat.participants.map(String).includes(String(requesterId))) {
+    throw buildForbidden('Not a participant');
+  }
+  if (chat.status !== 'paused') {
+    const err = new Error(`Chat cannot be resumed from status "${chat.status}"`);
+    err.status = 409;
+    err.chatStatus = chat.status;
+    throw err;
+  }
+
+  await assertActiveConversationCapacity(chat.participants);
+
+  chat.status = 'active';
+  chat.pausedBy = null;
+  chat.pausedAt = null;
+  chat.lastActive = new Date();
+  await chat.save();
+
+  await syncUsersActiveConversationCounts(chat.participants);
+  publishConversationStatus(chat);
+  await notifyParticipants(chat, requesterId, {
+    title: 'Conversation resumed',
+    bodyPrefix: 'A conversation was resumed',
+  });
+
+  return chat.toObject();
+}
+
+async function appendMessage(senderIdRaw, chatIdRaw, text, attachments = []) {
+  const senderId = toObjectId(senderIdRaw);
+  const chatId = toObjectId(chatIdRaw);
+  if (!senderId || !chatId) {
+    const err = new Error('Invalid chat or sender ID');
+    err.status = 400;
+    throw err;
+  }
+
+  const chat = await Chat.findById(chatId);
+  if (!chat) {
+    const err = new Error('Chat not found');
+    err.status = 404;
+    throw err;
+  }
+  if (!chat.participants.map(String).includes(String(senderId))) {
+    throw buildForbidden('Not a participant');
+  }
   if (chat.status !== 'active') {
     const err = new Error('Chat is not active');
     err.status = 409;
@@ -291,87 +346,80 @@ async function appendMessage(senderId, chatId, text, attachments = []) {
     throw err;
   }
 
-  const message = { sender: toObjectId(senderId), text, attachments, timestamp: new Date() };
-  chat.messages.push(message);
+  chat.messages.push({
+    sender: senderId,
+    text,
+    attachments,
+    timestamp: new Date(),
+  });
   chat.lastActive = new Date();
   await chat.save();
 
-  // populate message sender for returned payload
   await chat.populate({ path: 'messages.sender', select: 'name displayName' });
-
-  // Publish STOMP message event
-  const msg = chat.messages[chat.messages.length - 1];
-  const payload = { chatId: String(chat._id), message: msg };
+  const message = chat.messages[chat.messages.length - 1];
+  const payload = { chatId: String(chat._id), message };
 
   try {
-    // Publish to chat messages topic
     stompBroker.publish(`/topic/chat/${chat._id}/messages`, payload);
-    
-    // Publish to personal queues for each participant
-    for (const p of chat.participants) {
-      stompBroker.publish(`/user/${p}/queue/messages`, payload);
+    for (const participant of chat.participants) {
+      stompBroker.publish(`/user/${participant}/queue/messages`, payload);
     }
-    
-    logger.debug(
-      {
-        chatId: String(chat._id),
-        participantCount: chat.participants.length,
-      },
-      'chat.message_published'
-    );
   } catch (err) {
     logger.error({ err, chatId: String(chat._id) }, 'chat.publish_message_failed');
   }
 
-  // Persist notification
   try {
-    for (const p of chat.participants) {
-      if (String(p) === String(senderId)) continue;
+    for (const participant of chat.participants) {
+      if (String(participant) === String(senderId)) continue;
       await notificationService.createAndSend({
-        userId: p,
+        userId: participant,
         type: 'message',
         title: 'New message',
         body: (text || '').slice(0, 200),
         data: { chatId: chat._id },
       });
     }
-  } catch (e) {
-    // ignore
+  } catch (err) {
+    logger.error({ err, chatId: String(chat._id) }, 'chat.message_notify_failed');
   }
 
   return chat.toObject();
 }
 
-/**
- * Get messages ensuring requester is a participant
- */
-async function getChatForUser(userId, chatId) {
-  const chat = await Chat.findById(chatId);
+async function getChatForUser(userIdRaw, chatIdRaw) {
+  const userId = toObjectId(userIdRaw);
+  const chatId = toObjectId(chatIdRaw);
+  if (!userId || !chatId) {
+    const err = new Error('Invalid chat or user ID');
+    err.status = 400;
+    throw err;
+  }
+
+  const chat = await Chat.findById(chatId)
+    .populate('participants', 'name displayName profilePhotos')
+    .populate('messages.sender', 'name displayName');
   if (!chat) {
     const err = new Error('Chat not found');
     err.status = 404;
     throw err;
   }
-
-  if (!chat.participants.map(String).includes(String(userId))) {
-    const err = new Error('Not a participant');
-    err.status = 403;
-    throw err;
+  if (!chat.participants.map((p) => toUserIdText(p)).includes(String(userId))) {
+    throw buildForbidden('Not a participant');
   }
 
-  // Populate sender information for messages
-  await chat.populate({ path: 'messages.sender', select: 'name displayName' });
+  const otherParticipant = chat.participants.find((p) => String(p._id) !== String(userId)) || null;
+  const fallbackName = otherParticipant
+    ? (otherParticipant.displayName || otherParticipant.name || 'User')
+    : 'Conversation';
 
-  // Return both messages and chat metadata
   return {
     messages: chat.messages || [],
-    chatMeta: {
-      status: chat.status,
-      pausedBy: chat.pausedBy,
-      pausedAt: chat.pausedAt,
-      participants: chat.participants,
-      name: chat.name || 'Conversation'
-    }
+    status: chat.status,
+    pausedBy: chat.pausedBy,
+    pausedAt: chat.pausedAt,
+    participants: chat.participants,
+    name: chat.name || `Chat with ${fallbackName}`,
+    otherParticipant,
   };
 }
 

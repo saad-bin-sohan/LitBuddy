@@ -107,7 +107,7 @@ const SearchBooks = () => {
         return readingProgressApi.addToList({
           bookId,
           listType: selectedList,
-          status: selectedList === 'currently-reading' ? 'reading' : 
+          status: selectedList === 'currently-reading' ? 'currently-reading' : 
                   selectedList === 'completed' ? 'completed' : 'want-to-read'
         });
       });

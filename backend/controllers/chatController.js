@@ -24,6 +24,9 @@ const startChat = asyncHandler(async (req, res) => {
         maxAllowed: err.maxAllowed,
       });
     }
+    if (err && err.status) {
+      return res.status(err.status).json({ message: err.message });
+    }
     throw err;
   }
 });
@@ -47,6 +50,9 @@ const listChats = asyncHandler(async (req, res) => {
     requestLogger.debug({ userId: String(req.user._id), chatCount: chats.length }, 'chat.list_response_ready');
     res.json(chats);
   } catch (err) {
+    if (err && err.status) {
+      return res.status(err.status).json({ message: err.message });
+    }
     requestLogger.error({ err }, 'chat.list_controller_failed');
     throw err;
   }
