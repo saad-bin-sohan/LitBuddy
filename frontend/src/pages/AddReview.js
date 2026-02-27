@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiBookOpen } from 'react-icons/fi';
 import { readingProgressApi } from '../api/readingProgressApi';
 import ReviewForm from '../components/ReviewForm';
+import { toReadableReadingStatus } from '../utils/readingStatus';
 import './AddReview.css';
 
 const AddReview = () => {
@@ -106,8 +107,8 @@ const AddReview = () => {
                     <h3>{progress.book.title}</h3>
                     <p className="author">by {progress.book.author}</p>
                     <div className="book-status">
-                      <span className={`status-badge ${progress.listType}`}>
-                        {progress.listType.replace('-', ' ')}
+                      <span className={`status-badge ${progress.status}`}>
+                        {toReadableReadingStatus(progress.status)}
                       </span>
                     </div>
                   </div>

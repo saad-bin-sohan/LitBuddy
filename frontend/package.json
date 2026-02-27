@@ -22,7 +22,8 @@
     "dev": "vite",
     "start": "vite",
     "theme:audit": "node ./scripts/theme-audit.mjs",
-    "prebuild": "npm run theme:audit",
+    "theme:guard": "node ./scripts/theme-token-guard.mjs",
+    "prebuild": "npm run theme:audit && npm run theme:guard",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run"

@@ -41,7 +41,7 @@ export const ThemeProvider = ({ children }) => {
 
       const themeColorMeta = document.querySelector('meta[name="theme-color"]');
       if (themeColorMeta) {
-        themeColorMeta.setAttribute('content', newTheme === 'dark' ? '#181818' : '#21808D');
+        themeColorMeta.setAttribute('content', newTheme === 'dark' ? '#181818' : '#39727E');
       }
       
       // Save to localStorage

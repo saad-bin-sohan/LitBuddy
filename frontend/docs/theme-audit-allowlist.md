@@ -12,7 +12,7 @@ The frontend theme audit (`npm run theme:audit`) blocks hardcoded hex colors in 
 - Reason: Google brand icon colors.
 
 3. `src/contexts/ThemeContext.js`
-- Allowed: `#181818`, `#21808D`
+- Allowed: `#181818`, `#39727E`
 - Reason: browser `theme-color` meta values for dark/light modes.
 
 ## Policy

@@ -1,5 +1,15 @@
 const goodreadsService = require('../services/goodreadsService');
 const asyncHandler = require('express-async-handler');
+const Book = require('../models/bookModel');
+const ReadingProgress = require('../models/readingProgressModel');
+const { normalizeReadingStatus } = require('../utils/readingStatus');
+const { normalizeIsbn } = require('../utils/isbn');
+
+const toNonNegativePageCount = (value) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) return 0;
+  return Math.floor(parsed);
+};
 
 // @desc    Search books on GoodReads
 // @route   GET /api/goodreads/search
@@ -16,7 +26,9 @@ const searchGoodreadsBooks = asyncHandler(async (req, res) => {
     const results = await goodreadsService.searchBooks(query.trim(), parseInt(page));
     res.json(results);
   } catch (error) {
-    res.status(500);
+    if (res.statusCode === 200) {
+      res.status(500);
+    }
     throw new Error(`GoodReads search failed: ${error.message}`);
   }
 });
@@ -35,7 +47,9 @@ const getGoodreadsBookById = asyncHandler(async (req, res) => {
       res.status(404);
       throw new Error('Book not found on GoodReads');
     }
-    res.status(500);
+    if (res.statusCode === 200) {
+      res.status(500);
+    }
     throw new Error(`Failed to fetch book: ${error.message}`);
   }
 });
@@ -61,7 +75,9 @@ const getGoodreadsBookByIsbn = asyncHandler(async (req, res) => {
       res.status(404);
       throw new Error('Book not found on GoodReads');
     }
-    res.status(500);
+    if (res.statusCode === 200) {
+      res.status(500);
+    }
     throw new Error(`Failed to fetch book: ${error.message}`);
   }
 });
@@ -80,7 +96,9 @@ const getGoodreadsAuthor = asyncHandler(async (req, res) => {
       res.status(404);
       throw new Error('Author not found on GoodReads');
     }
-    res.status(500);
+    if (res.statusCode === 200) {
+      res.status(500);
+    }
     throw new Error(`Failed to fetch author: ${error.message}`);
   }
 });
@@ -96,12 +114,19 @@ const importBookFromGoodreads = asyncHandler(async (req, res) => {
     throw new Error('GoodReads book ID is required');
   }
 
+  let normalizedStatus;
+  try {
+    normalizedStatus = normalizeReadingStatus(status, { defaultStatus: 'want-to-read' });
+  } catch (error) {
+    res.status(error.statusCode || 400);
+    throw error;
+  }
+
   try {
     // Get book details from GoodReads
     const goodreadsBook = await goodreadsService.getBookById(goodreadsId);
     
     // Check if book already exists in user's library
-    const Book = require('../models/bookModel');
     const existingBook = await Book.findOne({
       goodreadsId: goodreadsBook.goodreadsId,
       createdBy: req.user.id
@@ -116,12 +141,12 @@ const importBookFromGoodreads = asyncHandler(async (req, res) => {
     const book = await Book.create({
       title: goodreadsBook.title,
       author: goodreadsBook.author,
-      isbn: goodreadsBook.isbn,
+      isbn: normalizeIsbn(goodreadsBook.isbn),
       coverImage: goodreadsBook.imageUrl,
       description: goodreadsBook.description,
       genre: goodreadsBook.genres || [],
       publishedYear: goodreadsBook.publicationYear,
-      pageCount: goodreadsBook.pages || totalPages,
+      pageCount: toNonNegativePageCount(goodreadsBook.pages || totalPages),
       language: goodreadsBook.language || 'English',
       goodreadsId: goodreadsBook.goodreadsId,
       goodreadsRating: goodreadsBook.averageRating,
@@ -131,16 +156,13 @@ const importBookFromGoodreads = asyncHandler(async (req, res) => {
     });
 
     // Add to reading list if status is provided
-    if (status) {
-      const ReadingProgress = require('../models/readingProgressModel');
-      await ReadingProgress.create({
-        user: req.user.id,
-        book: book._id,
-        status,
-        totalPages: book.pageCount || totalPages,
-        startDate: new Date()
-      });
-    }
+    await ReadingProgress.create({
+      user: req.user.id,
+      book: book._id,
+      status: normalizedStatus,
+      totalPages: toNonNegativePageCount(book.pageCount ?? totalPages ?? 0),
+      startDate: new Date()
+    });
 
     res.status(201).json({
       message: 'Book imported successfully',
@@ -148,7 +170,25 @@ const importBookFromGoodreads = asyncHandler(async (req, res) => {
       importedFrom: 'GoodReads'
     });
   } catch (error) {
-    res.status(500);
+    if (error.statusCode) {
+      res.status(error.statusCode);
+      throw error;
+    }
+
+    if (res.statusCode >= 400 && res.statusCode < 500) {
+      throw error;
+    }
+
+    if (error.name === 'ValidationError' || error.code === 11000) {
+      if (res.statusCode === 200) {
+        res.status(400);
+      }
+      throw error;
+    }
+
+    if (res.statusCode === 200) {
+      res.status(500);
+    }
     throw new Error(`Failed to import book: ${error.message}`);
   }
 });

@@ -16,7 +16,7 @@ const ALLOWLIST = {
   // Google brand icon colors.
   'src/components/GoogleAuth.js': new Set(['#4285F4', '#34A853', '#FBBC05', '#EA4335']),
   // Browser theme-color meta values (light/dark).
-  'src/contexts/ThemeContext.js': new Set(['#181818', '#21808D']),
+  'src/contexts/ThemeContext.js': new Set(['#181818', '#39727E']),
 };
 
 const walk = (dir, out = []) => {
