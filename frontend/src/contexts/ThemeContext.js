@@ -14,12 +14,7 @@ export const ThemeProvider = ({ children }) => {
     } catch (e) {
       console.warn('Failed to read theme from localStorage:', e);
     }
-    
-    // Fall back to system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-    
+    // Default to 'light' for first-time visitors
     return 'light';
   };
 
@@ -55,26 +50,7 @@ export const ThemeProvider = ({ children }) => {
     applyTheme(theme);
   }, [theme]);
 
-  // Listen for system theme changes
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const handleChange = (e) => {
-      // Only update if user hasn't manually set a preference
-      let savedTheme = null;
-      try {
-        savedTheme = localStorage.getItem('theme');
-      } catch {
-        savedTheme = null;
-      }
-      if (!savedTheme) {
-        setTheme(e.matches ? 'dark' : 'light');
-      }
-    };
 
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
 
   const toggleTheme = () => {
     setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
