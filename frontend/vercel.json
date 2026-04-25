@@ -16,9 +16,11 @@
       "destination": "/index.html"
     }
   ],
-  "env": {
-    "VITE_API_BASE_URL": "/api",
-    "VITE_WS_BASE_URL": "wss://litbuddy.onrender.com/ws",
-    "VITE_GOOGLE_CLIENT_ID": "751790859074-vuu7gn21egi6r723kb27vt3ppdiihfs5.apps.googleusercontent.com"
+  "build": {
+    "env": {
+      "VITE_API_BASE_URL": "/api",
+      "VITE_WS_BASE_URL": "wss://litbuddy.onrender.com/ws",
+      "VITE_GOOGLE_CLIENT_ID": "751790859074-vuu7gn21egi6r723kb27vt3ppdiihfs5.apps.googleusercontent.com"
+    }
   }
 }

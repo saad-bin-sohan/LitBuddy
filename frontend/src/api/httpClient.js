@@ -34,8 +34,10 @@ export const API_URL = normalizeApiBase(
   readEnv('VITE_API_BASE_URL', 'REACT_APP_BACKEND_URL') || '/api'
 );
 
+const isProd = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PROD;
+
 export const WS_URL = normalizeWsBase(
-  readEnv('VITE_WS_BASE_URL', 'REACT_APP_WS_BASE_URL'),
+  readEnv('VITE_WS_BASE_URL', 'REACT_APP_WS_BASE_URL') || (isProd ? 'wss://litbuddy.onrender.com/ws' : ''),
   API_URL
 );
 
