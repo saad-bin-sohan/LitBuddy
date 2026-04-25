@@ -102,9 +102,8 @@ const bookSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-bookSchema.pre('validate', function(next) {
+bookSchema.pre('validate', function() {
   this.isbnNormalized = normalizeIsbn(this.isbn);
-  next();
 });
 
 // Indexes for efficient queries

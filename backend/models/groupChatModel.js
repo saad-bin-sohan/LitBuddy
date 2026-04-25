@@ -21,12 +21,10 @@ const messageSchema = new mongoose.Schema({
   replyTo: { type: mongoose.Schema.Types.ObjectId, ref: 'Message' }
 });
 
-// Custom validation: either text or attachments must be present for non-system messages
-messageSchema.pre('validate', function(next) {
+messageSchema.pre('validate', function() {
   if (this.messageType !== 'system' && !this.text && (!this.attachments || this.attachments.length === 0)) {
     this.invalidate('text', 'Either text or attachments must be provided');
   }
-  next();
 });
 
 const groupChatSchema = new mongoose.Schema(
@@ -71,13 +69,11 @@ groupChatSchema.index({ club: 1, createdAt: -1 });
 groupChatSchema.index({ 'participants.user': 1 });
 groupChatSchema.index({ lastActivity: -1 });
 
-// Pre-save hook to update message count
-groupChatSchema.pre('save', function(next) {
+groupChatSchema.pre('save', function() {
   if (this.isModified('messages')) {
     this.messageCount = this.messages.length;
     this.lastActivity = new Date();
   }
-  next();
 });
 
 // Helper method to check if user is participant

@@ -56,8 +56,7 @@ clubMemberSchema.index({ user: 1, joinedAt: -1 });
 clubMemberSchema.index({ club: 1, role: 1 });
 clubMemberSchema.index({ club: 1, isActive: 1 });
 
-// Pre-save hook to set permissions based on role
-clubMemberSchema.pre('save', function(next) {
+clubMemberSchema.pre('save', function() {
   if (this.isModified('role')) {
     switch (this.role) {
       case 'owner':
@@ -90,7 +89,6 @@ clubMemberSchema.pre('save', function(next) {
         break;
     }
   }
-  next();
 });
 
 // Helper method to check if member has permission

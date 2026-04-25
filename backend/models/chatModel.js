@@ -14,12 +14,10 @@ const messageSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now },
 });
 
-// Custom validation: either text or attachments must be present
-messageSchema.pre('validate', function(next) {
+messageSchema.pre('validate', function() {
   if (!this.text && (!this.attachments || this.attachments.length === 0)) {
     this.invalidate('text', 'Either text or attachments must be provided');
   }
-  next();
 });
 
 const chatSchema = new mongoose.Schema(
@@ -49,8 +47,7 @@ const chatSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Pre-save hook: ensure participants are stored in deterministic sorted order (by string)
-chatSchema.pre('save', function (next) {
+chatSchema.pre('save', function () {
   if (Array.isArray(this.participants) && this.participants.length > 1) {
     try {
       // sort by string representation and ensure ObjectId instances
@@ -60,7 +57,6 @@ chatSchema.pre('save', function (next) {
       // fallback: do nothing
     }
   }
-  next();
 });
 
 // Index: prevent duplicate active/paused chats between same pair.
