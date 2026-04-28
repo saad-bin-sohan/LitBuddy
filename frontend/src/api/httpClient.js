@@ -63,9 +63,14 @@ export async function parseJsonSafe(response) {
 }
 
 export async function apiFetch(path, options = {}) {
+  const existingHeaders = options.headers || {};
   return fetch(apiUrl(path), {
     credentials: 'include',
     ...options,
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      ...existingHeaders,
+    },
   });
 }
 

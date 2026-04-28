@@ -27,6 +27,10 @@ backend/uploads/
 .tmp/
 coverage/
 
+# Local scratch/test files
+backend/scratch.js
+scratch.js
+
 # IDE/editor stuff
 .vscode/
 .idea/

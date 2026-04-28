@@ -17,7 +17,7 @@ const Register = () => {
     password: '',
     age: '',
     gender: '',
-    acceptedTerms: true
+    acceptedTerms: false
   });
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -251,7 +251,7 @@ const Register = () => {
             type="submit"
             variant="primary"
             className="auth-submit-btn"
-            disabled={isLoading}
+            disabled={isLoading || !form.acceptedTerms}
           >
             {isLoading ? (
               <>

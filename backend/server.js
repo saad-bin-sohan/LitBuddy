@@ -18,6 +18,7 @@ const socketUtil = require('./utils/socket'); // legacy socket.io helper (kept f
 const upload = require('./middleware/uploadMiddleware'); // for serving /uploads
 const requestContext = require('./middleware/requestContext');
 const httpEventLogger = require('./middleware/httpEventLogger');
+const { csrfProtect } = require('./middleware/csrfMiddleware');
 const { logger, sanitizeForLogs } = require('./utils/logger');
 
 // 2.5 Optional auth utils (we will use verify helper if present)
@@ -55,8 +56,10 @@ connectDB();
 // 5. Initialize Express app
 const app = express();
 
-// Trust proxy (useful behind nginx/railway/vercel proxies)
-app.set('trust proxy', true);
+// Trust exactly one proxy hop (Render/Railway/Vercel reverse proxy).
+// Setting this to 1 means Express only trusts the first X-Forwarded-For
+// entry added by our actual proxy, not arbitrary client-supplied values.
+app.set('trust proxy', 1);
 
 // Attach request id and request-scoped logger
 app.use(requestContext);
@@ -112,21 +115,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options(/.*/, cors(corsOptions)); // handle preflight for all routes
-
-// Extra safety: set headers explicitly and be origin-aware
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (!origin || ALLOWED.has(origin) || isLocalhostOrigin(origin)) {
-    // Echo back exact origin to satisfy credentials
-    res.header('Access-Control-Allow-Origin', origin || 'http://localhost:3000');
-    res.header('Vary', 'Origin');
-  }
-  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Requested-With');
-  if (req.method === 'OPTIONS') return res.sendStatus(204);
-  next();
-});
 
 /**
  * 7.5 Path sanity fix:
@@ -141,6 +129,9 @@ app.use((req, _res, next) => {
   }
   next();
 });
+
+// CSRF protection: require X-Requested-With on all mutating requests
+app.use(csrfProtect);
 
 // 8. Health endpoints
 app.get('/', (req, res) => {

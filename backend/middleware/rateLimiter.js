@@ -24,4 +24,26 @@ const supportSubmitLimiter = rateLimit({
   message: 'Too many support requests from this IP, please try again later.',
 });
 
-module.exports = { authLimiter, contentReadLimiter, supportSubmitLimiter };
+const otpSendLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 5,                    // max 5 OTP sends per IP per 10 min
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too many OTP requests from this IP, please try again later.',
+});
+
+const otpVerifyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,                   // max 10 verify attempts per IP per 15 min
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too many OTP verification attempts, please try again later.',
+});
+
+module.exports = {
+  authLimiter,
+  contentReadLimiter,
+  supportSubmitLimiter,
+  otpSendLimiter,
+  otpVerifyLimiter,
+};

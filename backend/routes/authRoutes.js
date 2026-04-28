@@ -11,11 +11,12 @@ const {
   logoutUser,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
+const { otpVerifyLimiter } = require('../middleware/rateLimiter');
 
 // Public
 router.post('/register', registerUser);
 router.post('/login', loginUser);
-router.post('/login-otp', loginWithOtp);
+router.post('/login-otp', otpVerifyLimiter, loginWithOtp);
 router.post('/logout', logoutUser);
 
 // Private
