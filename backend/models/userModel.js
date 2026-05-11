@@ -32,10 +32,21 @@ const userSchema = mongoose.Schema(
     email: { type: String, unique: true, sparse: true },
     phone: { type: String, unique: true, sparse: true },
 
-    password: { type: String, required: [true, 'Please add a password'] },
+    password: {
+      type: String,
+      required: [function () { return !this.isGoogleUser; }, 'Please add a password'],
+    },
 
-    age: { type: Number, required: [true, 'Please provide your age'], min: 18 },
-    gender: { type: String, enum: ['Male', 'Female', 'Other'], required: true },
+    age: {
+      type: Number,
+      min: 18,
+      required: [function () { return !this.isGoogleUser; }, 'Please provide your age'],
+    },
+    gender: {
+      type: String,
+      enum: ['Male', 'Female', 'Other'],
+      required: [function () { return !this.isGoogleUser; }, 'Please provide your gender'],
+    },
 
     // Google OAuth fields
     googleId: { type: String, unique: true, sparse: true },

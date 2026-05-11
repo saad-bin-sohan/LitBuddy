@@ -157,6 +157,14 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new Error(`Account suspended until ${user.suspendedUntil.toISOString()}`);
   }
 
+  // Block Google OAuth users from password login
+  if (user.isGoogleUser) {
+    res.status(401);
+    throw new Error(
+      'This account uses Google Sign-In. Please use the "Sign in with Google" button.'
+    );
+  }
+
   // Password check
   const isMatch = await user.matchPassword(password);
   if (!isMatch) {

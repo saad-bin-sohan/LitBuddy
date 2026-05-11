@@ -9,11 +9,6 @@ function normalizeWsUrl(rawUrl) {
   return rawUrl.replace(/\/+$/, '');
 }
 
-function withQueryToken(url, token) {
-  const separator = url.includes('?') ? '&' : '?';
-  return `${url}${separator}token=${encodeURIComponent(token)}`;
-}
-
 async function fetchWsToken() {
   const data = await apiJson('/auth/ws-token');
   if (!data || !data.token) {
@@ -30,10 +25,13 @@ export function initStomp() {
   stompClient = new Client({
     beforeConnect: async () => {
       const wsToken = await fetchWsToken();
-      const tokenizedUrl = withQueryToken(wsUrl, wsToken);
-      stompClient.webSocketFactory = () => new WebSocket(tokenizedUrl);
+      // Pass token in STOMP CONNECT frame headers, NOT in the URL.
+      // The URL-based approach logged tokens in every server access log.
+      stompClient.connectHeaders = {
+        passcode: wsToken,
+      };
+      stompClient.webSocketFactory = () => new WebSocket(wsUrl);
     },
-    connectHeaders: {},
     reconnectDelay: 5000,
     debug: (str) => console.log('[STOMP]', str),
     onConnect: () => {

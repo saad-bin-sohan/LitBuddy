@@ -2,7 +2,7 @@
 
 import React, { useState, useContext, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { login, requestOtp, loginWithOtp } from '../api/authApi';
+import { requestOtp, loginWithOtp } from '../api/authApi';
 import { AuthContext } from '../contexts/AuthContext';
 import { IS_GOOGLE_AUTH_ENABLED } from '../api/httpClient';
 import Button from '../components/Button';
@@ -30,7 +30,7 @@ const safeLocalStorageSet = (key, value) => {
 };
 
 const Login = () => {
-  const { setUser } = useContext(AuthContext);
+  const { login: contextLogin, refreshUser } = useContext(AuthContext);
 
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -65,20 +65,26 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    
+
     try {
-      const data = await login({ ...form, deviceId });
-      // success
-      setUser(data.user);
-    } catch (err) {
-      // if server asked for OTP, err.body.otpRequired will be set
-      if (err?.body?.otpRequired) {
+      // contextLogin calls loginRequest internally AND sets both user and
+      // isProfileComplete. Returns { otpRequired, methods } when OTP is
+      // needed, or { success, user } on success, or throws on error.
+      const result = await contextLogin({
+        email: form.email,
+        password: form.password,
+        deviceId,
+      });
+
+      if (result?.otpRequired) {
         setOtpRequired(true);
-        setOtpMethods(err.body.methods || []);
-        setSelectedMethod((err.body.methods || [])[0] || '');
-      } else {
-        setError(err.message || 'Login failed');
+        setOtpMethods(result.methods || []);
+        setSelectedMethod((result.methods || [])[0] || '');
       }
+      // On success, App.js routing reacts to the updated user state;
+      // no explicit navigation needed here.
+    } catch (err) {
+      setError(err.message || 'Login failed');
     } finally {
       setIsLoading(false);
     }
@@ -103,13 +109,16 @@ const Login = () => {
     setVerifyingOtp(true);
     setError('');
     try {
-      const data = await loginWithOtp({
+      // loginWithOtp sets the auth cookie on the server.
+      // refreshUser() then fetches the current profile and correctly sets
+      // both user and isProfileComplete in AuthContext.
+      await loginWithOtp({
         email: form.email,
         method: selectedMethod,
         code: otpCode,
         deviceId,
       });
-      setUser(data.user);
+      await refreshUser();
     } catch (err) {
       setError(err.message || 'OTP verification failed');
     } finally {

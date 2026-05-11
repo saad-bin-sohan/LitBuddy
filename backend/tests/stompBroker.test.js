@@ -155,7 +155,7 @@ test('stomp broker supports connect, subscribe, publish, and unsubscribe', async
   });
 
   const { port } = server.address();
-  const ws = new WebSocket(`ws://127.0.0.1:${port}/ws?token=valid-token`, {
+  const ws = new WebSocket(`ws://127.0.0.1:${port}/ws`, {
     headers: {
       Origin: 'http://localhost:3000',
     },
@@ -174,6 +174,7 @@ test('stomp broker supports connect, subscribe, publish, and unsubscribe', async
     createFrame('CONNECT', {
       'accept-version': '1.2',
       'heart-beat': '0,0',
+      passcode: 'valid-token',
     })
   );
 

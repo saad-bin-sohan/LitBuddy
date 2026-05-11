@@ -67,10 +67,7 @@ const handleGoogleCallback = asyncHandler(async (req, res) => {
       name: name || 'Google User',
       isGoogleUser: true,
       isVerified: true, // Google users are verified by default
-      // Set default values for required fields
-      age: 18, // Default age, will be updated in profile setup
-      gender: 'Other', // Default gender, will be updated in profile setup
-      password: 'google-oauth-user', // Placeholder password for Google users
+      // age and gender intentionally omitted — user completes them in ProfileSetup
       role: 'reader',
       isAdmin: false,
       hasCompletedSetup: false, // Google users need to complete profile setup

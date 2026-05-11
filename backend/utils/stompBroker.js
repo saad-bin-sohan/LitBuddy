@@ -1,7 +1,6 @@
 const WebSocket = require('ws');
 const jwt = require('jsonwebtoken');
 const { logger } = require('./logger');
-const { AUTH_COOKIE_NAME } = require('../config/authCookie');
 
 const MAX_BUFFER_SIZE = 1024 * 1024;
 
@@ -10,6 +9,9 @@ let connections = new Map();
 let subscriptions = new Map();
 let nextConnectionId = 0;
 let nextMessageId = 0;
+
+// Module-level verify function; set by initServer()
+let globalVerifyToken = defaultVerifyToken;
 
 function parseCookieHeader(rawHeader = '') {
   const cookies = {};
@@ -24,27 +26,6 @@ function parseCookieHeader(rawHeader = '') {
     cookies[key] = decodeURIComponent(value || '');
   }
   return cookies;
-}
-
-function tokenFromRequest(req) {
-  const cookies = parseCookieHeader(req.headers.cookie || '');
-  if (cookies[AUTH_COOKIE_NAME]) return cookies[AUTH_COOKIE_NAME];
-  if (AUTH_COOKIE_NAME !== 'token' && cookies.token) return cookies.token;
-
-  const authHeader = req.headers.authorization;
-  if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
-    return authHeader.slice(7).trim();
-  }
-
-  try {
-    const url = new URL(req.url, `http://${req.headers.host}`);
-    const queryToken = url.searchParams.get('token');
-    if (queryToken) return queryToken.trim();
-  } catch (err) {
-    logger.debug({ err }, 'stomp.token_query_parse_failed');
-  }
-
-  return null;
 }
 
 function isOriginAllowed(origin, allowedOrigins) {
@@ -269,19 +250,52 @@ function sendError(connection, message, details = '') {
 function handleConnect(connection, frame) {
   if (connection.connected) {
     sendError(connection, 'CONNECT ERROR', 'Connection already established');
-    return;
+    return Promise.resolve();
   }
 
-  const version = selectProtocolVersion(frame.headers['accept-version']);
-  connection.connected = true;
-  connection.version = version;
+  // Authentication: extract token from STOMP CONNECT 'passcode' header.
+  // The frontend passes a short-lived WS-scoped JWT here (not in the URL).
+  const token = (
+    (frame.headers['passcode'] || '') ||
+    (frame.headers['login'] || '')
+  ).trim();
 
-  sendFrame(connection.ws, 'CONNECTED', {
-    version,
-    server: 'LitBuddy-STOMP/1.0',
-    'heart-beat': '0,0',
-    session: String(connection.id),
-  });
+  if (!token) {
+    sendError(connection, 'AUTH ERROR',
+      'Authentication required. Provide WS token in STOMP CONNECT passcode header.');
+    connection.ws.close(1008, 'Authentication required');
+    return Promise.resolve();
+  }
+
+  return Promise.resolve(globalVerifyToken(token))
+    .then((user) => {
+      if (!user) {
+        sendError(connection, 'AUTH ERROR', 'Invalid or expired token');
+        connection.ws.close(1008, 'Authentication failed');
+        return;
+      }
+
+      // Auth success — complete the STOMP session
+      connection.userId = String(user._id || user.id);
+      connection.connected = true;
+      connection.version = selectProtocolVersion(
+        frame.headers['accept-version'] || ''
+      );
+
+      sendFrame(connection.ws, 'CONNECTED', {
+        version: connection.version,
+        server: 'LitBuddy-STOMP/1.0',
+        'heart-beat': '0,0',
+        session: String(connection.id),
+      });
+
+      logger.info({ userId: connection.userId }, 'stomp.authenticated');
+    })
+    .catch((err) => {
+      logger.error({ err }, 'stomp.connect_auth_failed');
+      sendError(connection, 'AUTH ERROR', 'Authentication error');
+      connection.ws.close(1008, 'Authentication error');
+    });
 }
 
 function handleSubscribe(connection, frame) {
@@ -342,7 +356,10 @@ function handleFrame(connection, frame) {
   switch (frame.command) {
     case 'CONNECT':
     case 'STOMP':
-      handleConnect(connection, frame);
+      // handleConnect is async (returns Promise); errors handled internally
+      handleConnect(connection, frame).catch((err) => {
+        logger.error({ err }, 'stomp.handleConnect_unhandled_error');
+      });
       break;
     case 'SUBSCRIBE':
       handleSubscribe(connection, frame);
@@ -406,12 +423,11 @@ function resetBrokerState() {
   subscriptions = new Map();
   nextConnectionId = 0;
   nextMessageId = 0;
+  globalVerifyToken = defaultVerifyToken;
 }
 
 function initServer(server, options = {}) {
   const allowedOrigins = new Set(Array.from(options.allowedOrigins || []));
-  const verifyToken =
-    typeof options.verifyToken === 'function' ? options.verifyToken : defaultVerifyToken;
 
   if (wss) {
     try {
@@ -424,43 +440,32 @@ function initServer(server, options = {}) {
 
   resetBrokerState();
 
+  // Set the module-level verify function used by handleConnect
+  globalVerifyToken =
+    typeof options.verifyToken === 'function' ? options.verifyToken : defaultVerifyToken;
+
   wss = new WebSocket.Server({
     server,
     path: '/ws',
     verifyClient: (info, done) => {
+      // Only check origin at WebSocket handshake.
+      // Token authentication is performed in the STOMP CONNECT frame handler.
       const origin = info.req.headers.origin;
       if (!isOriginAllowed(origin, allowedOrigins)) {
         logger.warn({ origin }, 'stomp.origin_rejected');
         return done(false, 403, 'Origin not allowed');
       }
-
-      const token = tokenFromRequest(info.req);
-      if (!token) {
-        logger.debug('stomp.token_missing');
-        return done(false, 401, 'Unauthorized');
-      }
-
-      Promise.resolve(verifyToken(token))
-        .then((user) => {
-          if (!user) return done(false, 401, 'Unauthorized');
-          info.req.userId = String(user._id || user.id);
-          return done(true);
-        })
-        .catch((err) => {
-          logger.debug({ err }, 'stomp.token_verification_failed');
-          return done(false, 401, 'Unauthorized');
-        });
+      return done(true);
     },
   });
 
-  wss.on('connection', (ws, req) => {
+  wss.on('connection', (ws) => {
     const connectionId = nextConnectionKey();
-    const userId = req.userId;
 
     const connection = {
       id: connectionId,
       ws,
-      userId,
+      userId: null, // Set after STOMP CONNECT authentication
       version: '1.2',
       connected: false,
       subscriptionsById: new Map(),
@@ -469,20 +474,38 @@ function initServer(server, options = {}) {
 
     connections.set(connectionId, connection);
 
-    logger.info({ userId: String(userId) }, 'stomp.websocket_connected');
+    logger.debug({ connectionId }, 'stomp.websocket_connected_pending_auth');
+
+    // Close connections that never send a STOMP CONNECT within 10 seconds.
+    // This prevents resource exhaustion from half-open connections.
+    const authTimeout = setTimeout(() => {
+      if (!connection.connected) {
+        logger.warn({ connectionId }, 'stomp.auth_timeout');
+        if (isWebSocketOpen(connection.ws)) {
+          sendError(connection, 'AUTH TIMEOUT',
+            'STOMP CONNECT frame not received within 10 seconds');
+          connection.ws.close(1008, 'Authentication timeout');
+        }
+      }
+    }, 10000);
 
     ws.on('message', (data) => {
       processIncomingData(connectionId, data);
     });
 
     ws.on('close', () => {
-      logger.info({ userId: String(userId) }, 'stomp.websocket_disconnected');
+      clearTimeout(authTimeout);
+      const uid = connection.userId;
+      if (uid) {
+        logger.info({ userId: uid }, 'stomp.websocket_disconnected');
+      }
       cleanupConnectionSubscriptions(connectionId);
       connections.delete(connectionId);
     });
 
     ws.on('error', (err) => {
-      logger.error({ err, userId: String(userId) }, 'stomp.websocket_error');
+      clearTimeout(authTimeout);
+      logger.error({ err, connectionId }, 'stomp.websocket_error');
     });
   });
 
