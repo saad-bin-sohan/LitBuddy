@@ -64,9 +64,17 @@ app.set('trust proxy', 1);
 // Attach request id and request-scoped logger
 app.use(requestContext);
 
-// 6. Middleware to parse incoming JSON (increased limit for base64 image uploads)
-app.use(express.json({ limit: '12mb' }));
-app.use(express.urlencoded({ limit: '12mb', extended: true }));
+// 6. Body parsers (profile update uses large limit for base64 photos;
+//    all other routes use 1 MB default)
+// 6a. Large body parser for base64 photo uploads -- profile update only.
+//     Must be registered BEFORE the global parser so that /api/profile
+//     requests are parsed here and the global parser below skips them.
+app.use('/api/profile', express.json({ limit: '12mb' }));
+app.use('/api/profile', express.urlencoded({ limit: '12mb', extended: true }));
+
+// 6b. Default body parser for all other routes (1 MB is generous for JSON APIs).
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ limit: '1mb', extended: true }));
 
 // Parse cookies so we can read httpOnly cookies in middleware/controllers
 app.use(cookieParser());
@@ -146,18 +154,11 @@ app.get('/api/health', (req, res) => {
 });
 
 /**
- * 8.5 Serve uploaded evidence
- * Files saved by multer go into upload.UPLOADS_DIR (middleware/uploadMiddleware.js)
- * Expose them at /uploads/...
+ * 8.5 Authenticated file serving
+ * Replaces public express.static -- files at /uploads/:filename now require
+ * a valid auth cookie. See controllers/fileController.js for details.
  */
-app.use(
-  '/uploads',
-  express.static(upload.UPLOADS_DIR, {
-    setHeaders(res) {
-      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-    },
-  })
-);
+app.use('/uploads', require('./routes/fileRoutes'));
 
 // 9. Mount routes
 app.use('/api/auth', require('./routes/authRoutes'));

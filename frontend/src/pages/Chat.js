@@ -8,6 +8,7 @@ import Avatar from '../components/Avatar';
 import Button from '../components/Button';
 import ReportButton from '../components/ReportButton';
 import ReportForm from '../components/ReportForm';
+import { fileUrl } from '../api/httpClient';
 
 const Chat = () => {
   const { chatId } = useParams();
@@ -457,10 +458,11 @@ const Chat = () => {
                               {attachment.mimetype.startsWith('image/') ? (
                                 <div className="image-attachment-container">
                                   <img
-                                    src={attachment.url}
+                                    src={fileUrl(attachment.url)}
                                     alt={attachment.originalname}
                                     className="attachment-image"
-                                    onClick={() => window.open(attachment.url, '_blank')}
+                                    crossOrigin="use-credentials"
+                                    onClick={() => window.open(fileUrl(attachment.url), '_blank')}
                                     style={{ maxWidth: '200px', maxHeight: '200px', cursor: 'pointer', borderRadius: '8px' }}
                                     onError={(e) => {
                                       e.target.style.display = 'none';
@@ -476,7 +478,7 @@ const Chat = () => {
                                       className="download-btn"
                                       onClick={async () => {
                                         try {
-                                          const response = await fetch(attachment.url);
+                                          const response = await fetch(fileUrl(attachment.url), { credentials: 'include' });
                                           const blob = await response.blob();
                                           const url = window.URL.createObjectURL(blob);
                                           const link = document.createElement('a');
@@ -499,7 +501,7 @@ const Chat = () => {
                               ) : (
                                 <div className="file-attachment-container">
                                   <a
-                                    href={attachment.url}
+                                    href={fileUrl(attachment.url)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="attachment-link"
@@ -513,7 +515,7 @@ const Chat = () => {
                                       className="download-btn"
                                       onClick={async () => {
                                         try {
-                                          const response = await fetch(attachment.url);
+                                          const response = await fetch(fileUrl(attachment.url), { credentials: 'include' });
                                           const blob = await response.blob();
                                           const url = window.URL.createObjectURL(blob);
                                           const link = document.createElement('a');

@@ -3,7 +3,11 @@ const mongoose = require('mongoose');
 
 const messageSchema = new mongoose.Schema({
   sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  text: { type: String, trim: true },
+  text: {
+    type: String,
+    trim: true,
+    maxlength: [4000, 'Message text cannot exceed 4000 characters'],
+  },
   attachments: [{
     filename: { type: String, required: true },
     originalname: { type: String, required: true },

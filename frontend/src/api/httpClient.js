@@ -45,6 +45,36 @@ export const GOOGLE_CLIENT_ID =
   readEnv('VITE_GOOGLE_CLIENT_ID', 'REACT_APP_GOOGLE_CLIENT_ID') || '';
 export const IS_GOOGLE_AUTH_ENABLED = Boolean(String(GOOGLE_CLIENT_ID || '').trim());
 
+// BACKEND_BASE: the backend origin without the /api suffix.
+// Example: if API_URL is 'https://litbuddy.onrender.com/api'
+//          then BACKEND_BASE is 'https://litbuddy.onrender.com'
+// Used to build absolute URLs for uploaded files.
+export const BACKEND_BASE = API_URL.replace(/\/api\/?$/, '');
+
+/**
+ * fileUrl(relativeOrAbsoluteUrl)
+ *
+ * Normalizes an uploaded file URL to an absolute URL pointing at the backend.
+ * Uploaded files are stored in MongoDB with URLs like '/uploads/filename'.
+ * In a split Vercel + Render deployment, relative URLs like '/uploads/...'
+ * would resolve to the Vercel frontend -- not the Render backend where the
+ * files are stored. This helper ensures they always resolve to the backend.
+ *
+ * Usage:
+ *   <img src={fileUrl(attachment.url)} crossOrigin="use-credentials" />
+ *   fetch(fileUrl(attachment.url), { credentials: 'include' })
+ */
+export function fileUrl(relativeOrAbsoluteUrl = '') {
+  const s = String(relativeOrAbsoluteUrl || '').trim();
+  if (!s) return '';
+  // Already absolute -- return unchanged
+  if (s.startsWith('http://') || s.startsWith('https://')) return s;
+  // Relative path with leading slash -- prepend backend base
+  if (s.startsWith('/')) return `${BACKEND_BASE}${s}`;
+  // Relative path without leading slash (e.g. 'uploads/file.jpg')
+  return `${BACKEND_BASE}/${s}`;
+}
+
 export function apiUrl(path = '') {
   if (!path) return API_URL;
   if (path.startsWith('http://') || path.startsWith('https://')) return path;

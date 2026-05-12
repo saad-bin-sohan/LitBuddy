@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import AdminGuard from '../components/AdminGuard';
 import { getAllReports } from '../api/reportApi';
-import { API_URL } from '../api/httpClient';
+import { API_URL, fileUrl } from '../api/httpClient';
 
 
 
@@ -16,7 +16,6 @@ import { API_URL } from '../api/httpClient';
  * - Uses direct fetch() to admin endpoints (constructed from BACKEND_API).
  */
 const BACKEND_API = API_URL;
-const BACKEND_BASE = API_URL.replace(/\/api\/?$/, '');
 
 // Backend enum-ish options (match backend model)
 const STATUS_OPTIONS = ['Pending', 'Reviewed', 'Resolved'];
@@ -133,14 +132,6 @@ const AdminReports = () => {
     }
   };
 
-  const normalizeImageUrl = (u) => {
-    if (!u) return '';
-    if (/^https?:\/\//i.test(u)) return u;
-    if (u.startsWith('/')) return `${BACKEND_BASE}${u}`;
-    if (u.startsWith('uploads/')) return `${BACKEND_BASE}/${u}`;
-    return u;
-  };
-
   const ReportCard = ({ report }) => {
     const reported = report.reportedUser || {};
     const reporter = report.reporter || {};
@@ -165,7 +156,7 @@ const AdminReports = () => {
 
             {report.image && (
               <div style={{ marginTop: 10 }}>
-                <img src={normalizeImageUrl(report.image)} alt="evidence" style={{ maxWidth: 300, borderRadius: 8, border: '1px solid var(--color-border)' }} />
+                <img src={fileUrl(report.image)} alt="evidence" crossOrigin="use-credentials" style={{ maxWidth: 300, borderRadius: 8, border: '1px solid var(--color-border)' }} />
               </div>
             )}
           </div>
