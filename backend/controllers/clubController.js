@@ -3,6 +3,7 @@ const BookClub = require('../models/bookClubModel');
 const ClubMember = require('../models/clubMemberModel');
 const GroupChat = require('../models/groupChatModel');
 const User = require('../models/userModel');
+const { escapeRegex } = require('../utils/escapeRegex');
 
 /**
  * GET /api/clubs
@@ -32,11 +33,14 @@ const getClubs = asyncHandler(async (req, res) => {
   }
 
   if (search) {
-    query.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { description: { $regex: search, $options: 'i' } },
-      { tags: { $in: [new RegExp(search, 'i')] } }
-    ];
+    const safeSearch = escapeRegex(String(search).trim());
+    if (safeSearch) {
+      query.$or = [
+        { name: { $regex: safeSearch, $options: 'i' } },
+        { description: { $regex: safeSearch, $options: 'i' } },
+        { tags: { $in: [new RegExp(safeSearch, 'i')] } },
+      ];
+    }
   }
 
   const clubs = await BookClub.find(query)

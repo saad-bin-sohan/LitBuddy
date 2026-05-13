@@ -34,10 +34,11 @@ export const API_URL = normalizeApiBase(
   readEnv('VITE_API_BASE_URL', 'REACT_APP_BACKEND_URL') || '/api'
 );
 
-const isProd = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PROD;
-
+// WS_URL: set VITE_WS_BASE_URL in your deployment environment.
+// If the env var is absent, normalizeWsBase() derives the WS URL from
+// API_URL automatically (https → wss, removes /api suffix, adds /ws).
 export const WS_URL = normalizeWsBase(
-  readEnv('VITE_WS_BASE_URL', 'REACT_APP_WS_BASE_URL') || (isProd ? 'wss://litbuddy.onrender.com/ws' : ''),
+  readEnv('VITE_WS_BASE_URL', 'REACT_APP_WS_BASE_URL') || '',
   API_URL
 );
 

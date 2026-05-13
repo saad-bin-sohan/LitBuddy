@@ -240,8 +240,23 @@ const loginWithOtp = asyncHandler(async (req, res) => {
   // mark user as verified and update devices/IPs
   user.failedLoginAttempts = 0;
   user.lastLoginAt = new Date();
-  if (deviceId && !user.devices.includes(deviceId)) user.devices.push(deviceId);
-  if (ip && !user.loginIPs.includes(ip)) user.loginIPs.push(ip);
+
+  // Add deviceId with sliding window — keep last 20 unique devices
+  if (deviceId && !user.devices.includes(deviceId)) {
+    user.devices.push(deviceId);
+    if (user.devices.length > 20) {
+      user.devices = user.devices.slice(-20);
+    }
+  }
+
+  // Add login IP with sliding window — keep last 20 unique IPs
+  if (ip && !user.loginIPs.includes(ip)) {
+    user.loginIPs.push(ip);
+    if (user.loginIPs.length > 20) {
+      user.loginIPs = user.loginIPs.slice(-20);
+    }
+  }
+
   await user.save();
 
   // generate token

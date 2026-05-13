@@ -23,6 +23,12 @@ exports.addReview = async (req, res) => {
     const review = await Review.create({ userId, bookId, rating, reviewText, spoiler });
     res.status(201).json({ message: 'Review added successfully', review });
   } catch (error) {
+    // Duplicate key: user already reviewed this book
+    if (error.code === 11000) {
+      return res.status(409).json({
+        message: 'You have already reviewed this book. Edit your existing review instead.',
+      });
+    }
     requestLogger.error(
       {
         err: error,

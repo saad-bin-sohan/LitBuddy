@@ -10,10 +10,7 @@ const {
   sanitizeBookForUser,
 } = require('../utils/bookAccess');
 const { findCanonicalByIsbnNormalized } = require('../services/bookCatalogService');
-
-function escapeRegex(value) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
+const { escapeRegex } = require('../utils/escapeRegex');
 
 function parseGenre(value) {
   if (!value) return [];
@@ -185,18 +182,23 @@ const searchBooks = asyncHandler(async (req, res) => {
   ];
 
   if (query) {
-    const value = String(query).trim();
-    andFilters.push({
-      $or: [
-        { title: { $regex: value, $options: 'i' } },
-        { author: { $regex: value, $options: 'i' } },
-        { isbn: { $regex: value, $options: 'i' } },
-      ],
-    });
+    const safeQuery = escapeRegex(String(query).trim());
+    if (safeQuery) {
+      andFilters.push({
+        $or: [
+          { title: { $regex: safeQuery, $options: 'i' } },
+          { author: { $regex: safeQuery, $options: 'i' } },
+          { isbn: { $regex: safeQuery, $options: 'i' } },
+        ],
+      });
+    }
   }
 
   if (author) {
-    andFilters.push({ author: { $regex: String(author), $options: 'i' } });
+    const safeAuthor = escapeRegex(String(author).trim());
+    if (safeAuthor) {
+      andFilters.push({ author: { $regex: safeAuthor, $options: 'i' } });
+    }
   }
 
   if (genre) {

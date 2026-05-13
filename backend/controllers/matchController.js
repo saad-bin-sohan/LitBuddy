@@ -210,6 +210,10 @@ const likeUser = asyncHandler(async (req, res) => {
   }
 
   currentUser.likes.push(likedUserId);
+  // Cap likes to 2000 entries — prevent unbounded User document growth
+  if (currentUser.likes.length > 2000) {
+    currentUser.likes = currentUser.likes.slice(-2000);
+  }
   await currentUser.save();
 
   const otherUser = await User.findById(likedUserId);
@@ -220,8 +224,20 @@ const likeUser = asyncHandler(async (req, res) => {
   if (!Array.isArray(otherUser.matches)) otherUser.matches = [];
 
   if (otherUser.likes.map(String).includes(String(req.user._id))) {
-    if (!currentUser.matches.map(String).includes(String(likedUserId))) currentUser.matches.push(likedUserId);
-    if (!otherUser.matches.map(String).includes(String(req.user._id))) otherUser.matches.push(req.user._id);
+    if (!currentUser.matches.map(String).includes(String(likedUserId))) {
+      currentUser.matches.push(likedUserId);
+      // Cap matches to 2000 entries
+      if (currentUser.matches.length > 2000) {
+        currentUser.matches = currentUser.matches.slice(-2000);
+      }
+    }
+    if (!otherUser.matches.map(String).includes(String(req.user._id))) {
+      otherUser.matches.push(req.user._id);
+      // Cap matches to 2000 entries
+      if (otherUser.matches.length > 2000) {
+        otherUser.matches = otherUser.matches.slice(-2000);
+      }
+    }
 
     await currentUser.save();
     await otherUser.save();

@@ -43,9 +43,13 @@ const listUsers = asyncHandler(async (req, res) => {
 
   const filter = {};
 
+  // Build search and suspension conditions separately, then compose.
+  let searchOr = null;
+  let suspensionOr = null;
+
   if (search) {
     const re = new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-    filter.$or = [
+    searchOr = [
       { name: re },
       { displayName: re },
       { email: re },
@@ -61,9 +65,23 @@ const listUsers = asyncHandler(async (req, res) => {
     if (String(suspended) === 'true') {
       filter.suspendedUntil = { $gt: new Date() };
     } else {
-      filter.$or = filter.$or || [];
-      filter.$or.push({ suspendedUntil: null }, { suspendedUntil: { $lte: new Date() } });
+      suspensionOr = [
+        { suspendedUntil: null },
+        { suspendedUntil: { $lte: new Date() } },
+      ];
     }
+  }
+
+  // Compose $or / $and correctly:
+  // If BOTH search and suspension filter are active, use $and to combine them
+  // so both conditions must be satisfied simultaneously.
+  // If only one is active, a top-level $or is sufficient.
+  if (searchOr && suspensionOr) {
+    filter.$and = [{ $or: searchOr }, { $or: suspensionOr }];
+  } else if (searchOr) {
+    filter.$or = searchOr;
+  } else if (suspensionOr) {
+    filter.$or = suspensionOr;
   }
 
   const total = await User.countDocuments(filter);
