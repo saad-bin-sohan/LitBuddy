@@ -1,7 +1,7 @@
 // frontend/src/pages/Chat.js
 import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { getChatMessages, sendMessage, pauseChat, resumeChat } from '../api/chatApi';
+import { getChatMessages, sendMessage, pauseChat, resumeChat, markAsRead } from '../api/chatApi';
 import { subscribe, unsubscribe } from '../stompClient';
 import { AuthContext } from '../contexts/AuthContext';
 import Avatar from '../components/Avatar';
@@ -81,6 +81,9 @@ const Chat = () => {
         if (data.messages) {
           setMessages(data.messages);
         }
+        // Mark the chat as read now that the user has loaded the messages.
+        // Fire-and-forget — don't block the UI on this.
+        markAsRead(chatId).catch(() => {});
         if (data.status || data.pausedBy || data.pausedAt) {
           setChatMeta((cm) => ({ 
             ...cm, 
@@ -103,6 +106,11 @@ const Chat = () => {
       console.log('Received STOMP message:', payload);
       if (payload.chatId === chatId && payload.message) {
         setMessages((prev) => [...prev, payload.message]);
+        // Mark as read if message is from someone else
+        const msgSenderId = payload.message?.sender?._id || payload.message?.sender;
+        if (msgSenderId && String(msgSenderId) !== String(user?._id)) {
+          markAsRead(chatId).catch(() => {});
+        }
       }
     });
 
@@ -131,6 +139,10 @@ const Chat = () => {
       console.log('Received personal message:', payload);
       if (payload.chatId === chatId && payload.message) {
         setMessages((prev) => [...prev, payload.message]);
+        const msgSenderId = payload.message?.sender?._id || payload.message?.sender;
+        if (msgSenderId && String(msgSenderId) !== String(user?._id)) {
+          markAsRead(chatId).catch(() => {});
+        }
       }
     });
 

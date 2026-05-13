@@ -4,6 +4,7 @@ const User = require('../models/userModel');
 const stompBroker = require('../utils/stompBroker');
 const notificationService = require('./notificationService');
 const { logger } = require('../utils/logger');
+const Message = require('../models/messageModel');
 
 function toObjectId(id) {
   if (!id) return null;
@@ -161,7 +162,6 @@ async function createChatBetween(requesterIdRaw, otherUserIdRaw) {
     participants: [userA._id, userB._id],
     status: 'active',
     lastActive: new Date(),
-    messages: [],
   });
 
   await syncUsersActiveConversationCounts([userA._id, userB._id]);
@@ -203,37 +203,45 @@ async function listChatsForUser(userIdRaw) {
     throw err;
   }
 
+  // Load chats WITHOUT populating messages (they live in separate collection now)
   const chats = await Chat.find({ participants: userId })
     .populate('participants', 'name displayName profilePhotos location')
-    .populate('messages.sender', 'name displayName')
     .sort({ lastActive: -1, updatedAt: -1 })
     .lean();
 
-  return chats.map((chat) => {
+  if (chats.length === 0) return [];
+
+  // Compute unread counts for all chats in parallel.
+  // Unread = messages in this chat, NOT sent by this user,
+  // timestamped AFTER this user's lastReadAt for this chat.
+  const unreadCounts = await Promise.all(
+    chats.map((chat) => {
+      // lastReadAt is a Mongoose Map serialized to a plain object in lean()
+      const lastReadRaw = chat.lastReadAt;
+      const lastRead =
+        (lastReadRaw instanceof Map
+          ? lastReadRaw.get(String(userId))
+          : lastReadRaw?.[String(userId)]) || new Date(0);
+
+      return Message.countDocuments({
+        chatId: chat._id,
+        sender: { $ne: userId },
+        timestamp: { $gt: lastRead },
+      });
+    })
+  );
+
+  return chats.map((chat, i) => {
     const otherParticipant = Array.isArray(chat.participants)
       ? chat.participants.find((p) => String(p._id) !== String(userId))
       : null;
-    const lastMessage = Array.isArray(chat.messages) && chat.messages.length > 0
-      ? chat.messages[chat.messages.length - 1]
-      : null;
-    const unreadCount = Array.isArray(chat.messages)
-      ? chat.messages.filter(
-        (msg) => msg.sender && msg.sender._id && String(msg.sender._id) !== String(userId)
-      ).length
-      : 0;
 
     return {
       ...chat,
       otherParticipant,
-      lastMessage: lastMessage
-        ? {
-          text: lastMessage.text,
-          timestamp: lastMessage.timestamp,
-          sender: lastMessage.sender,
-        }
-        : null,
-      unreadCount,
-      lastActivity: lastMessage ? lastMessage.timestamp : chat.lastActive || chat.updatedAt,
+      lastMessage: chat.lastMessage?.timestamp ? chat.lastMessage : null,
+      unreadCount: unreadCounts[i],
+      lastActivity: chat.lastMessage?.timestamp || chat.lastActive || chat.updatedAt,
     };
   });
 }
@@ -346,18 +354,28 @@ async function appendMessage(senderIdRaw, chatIdRaw, text, attachments = []) {
     throw err;
   }
 
-  chat.messages.push({
+  // Create the message in the standalone Message collection
+  const newMessage = await Message.create({
+    chatId: chat._id,
     sender: senderId,
-    text,
+    text: text || undefined,
     attachments,
     timestamp: new Date(),
   });
-  chat.lastActive = new Date();
+
+  // Populate sender for the realtime payload and response
+  await newMessage.populate('sender', 'name displayName');
+
+  // Update the denormalized lastMessage on the Chat document
+  chat.lastMessage = {
+    text: newMessage.text || '',
+    timestamp: newMessage.timestamp,
+    sender: senderId,
+  };
+  chat.lastActive = newMessage.timestamp;
   await chat.save();
 
-  await chat.populate({ path: 'messages.sender', select: 'name displayName' });
-  const message = chat.messages[chat.messages.length - 1];
-  const payload = { chatId: String(chat._id), message };
+  const payload = { chatId: String(chat._id), message: newMessage.toObject() };
 
   try {
     stompBroker.publish(`/topic/chat/${chat._id}/messages`, payload);
@@ -383,7 +401,8 @@ async function appendMessage(senderIdRaw, chatIdRaw, text, attachments = []) {
     logger.error({ err, chatId: String(chat._id) }, 'chat.message_notify_failed');
   }
 
-  return chat.toObject();
+  // Return just the new message (controller will send { message: newMessage })
+  return newMessage.toObject();
 }
 
 async function getChatForUser(userIdRaw, chatIdRaw) {
@@ -396,8 +415,7 @@ async function getChatForUser(userIdRaw, chatIdRaw) {
   }
 
   const chat = await Chat.findById(chatId)
-    .populate('participants', 'name displayName profilePhotos')
-    .populate('messages.sender', 'name displayName');
+    .populate('participants', 'name displayName profilePhotos');
   if (!chat) {
     const err = new Error('Chat not found');
     err.status = 404;
@@ -407,13 +425,22 @@ async function getChatForUser(userIdRaw, chatIdRaw) {
     throw buildForbidden('Not a participant');
   }
 
-  const otherParticipant = chat.participants.find((p) => String(p._id) !== String(userId)) || null;
+  // Fetch messages from the standalone collection, sorted oldest-first.
+  // Capped at 500 messages for now; pagination can be added later.
+  const messages = await Message.find({ chatId: chat._id })
+    .populate('sender', 'name displayName')
+    .sort({ timestamp: 1 })
+    .limit(500)
+    .lean();
+
+  const otherParticipant =
+    chat.participants.find((p) => String(p._id) !== String(userId)) || null;
   const fallbackName = otherParticipant
-    ? (otherParticipant.displayName || otherParticipant.name || 'User')
+    ? otherParticipant.displayName || otherParticipant.name || 'User'
     : 'Conversation';
 
   return {
-    messages: chat.messages || [],
+    messages,
     status: chat.status,
     pausedBy: chat.pausedBy,
     pausedAt: chat.pausedAt,
@@ -423,6 +450,30 @@ async function getChatForUser(userIdRaw, chatIdRaw) {
   };
 }
 
+async function markChatAsRead(userIdRaw, chatIdRaw) {
+  const userId = toObjectId(userIdRaw);
+  const chatId = toObjectId(chatIdRaw);
+  if (!userId || !chatId) {
+    const err = new Error('Invalid chat or user ID');
+    err.status = 400;
+    throw err;
+  }
+
+  const chat = await Chat.findById(chatId).select('participants lastReadAt');
+  if (!chat) {
+    const err = new Error('Chat not found');
+    err.status = 404;
+    throw err;
+  }
+  if (!chat.participants.map(String).includes(String(userId))) {
+    throw buildForbidden('Not a participant');
+  }
+
+  // Update the per-user lastReadAt timestamp
+  chat.lastReadAt.set(String(userId), new Date());
+  await chat.save();
+}
+
 module.exports = {
   createChatBetween,
   listChatsForUser,
@@ -430,4 +481,5 @@ module.exports = {
   resumeChat,
   appendMessage,
   getChatForUser,
+  markChatAsRead,
 };

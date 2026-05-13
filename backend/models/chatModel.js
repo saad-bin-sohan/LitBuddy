@@ -1,28 +1,7 @@
 // backend/models/chatModel.js
 const mongoose = require('mongoose');
 
-const messageSchema = new mongoose.Schema({
-  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  text: {
-    type: String,
-    trim: true,
-    maxlength: [4000, 'Message text cannot exceed 4000 characters'],
-  },
-  attachments: [{
-    filename: { type: String, required: true },
-    originalname: { type: String, required: true },
-    mimetype: { type: String, required: true },
-    size: { type: Number, required: true },
-    url: { type: String, required: true },
-  }],
-  timestamp: { type: Date, default: Date.now },
-});
 
-messageSchema.pre('validate', function() {
-  if (!this.text && (!this.attachments || this.attachments.length === 0)) {
-    this.invalidate('text', 'Either text or attachments must be provided');
-  }
-});
 
 const chatSchema = new mongoose.Schema(
   {
@@ -37,7 +16,6 @@ const chatSchema = new mongoose.Schema(
       },
     },
 
-    messages: [messageSchema],
 
     // Use a canonical status instead of a boolean "paused"
     status: { type: String, enum: ['active', 'paused', 'closed', 'auto-closed'], default: 'active' },
@@ -47,6 +25,22 @@ const chatSchema = new mongoose.Schema(
 
     lastActive: { type: Date, default: Date.now },
     closedAt: { type: Date, default: null },
+
+    // Denormalized last message — updated by chatService on every appendMessage.
+    // Used for inbox preview without loading all messages.
+    lastMessage: {
+      text: { type: String, default: null },
+      timestamp: { type: Date, default: null },
+      sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    },
+
+    // Per-user read tracking. Maps userId (string) → Date of last read.
+    // Used to compute unread counts. Updated via PATCH /api/chat/:chatId/read.
+    lastReadAt: {
+      type: Map,
+      of: Date,
+      default: {},
+    },
   },
   { timestamps: true }
 );

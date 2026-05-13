@@ -157,3 +157,29 @@ export const getChatMessages = async (chatId) => {
   }
   return data;
 };
+
+/**
+ * Mark all messages in a chat as read for the current user.
+ * PATCH /api/chat/:chatId/read
+ * Fire-and-forget is acceptable — call without await where appropriate.
+ */
+export const markAsRead = async (chatId) => {
+  try {
+    const res = await fetch(`${API_URL}/chat/${chatId}/read`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      const err = new Error(data.message || 'Failed to mark as read');
+      err.status = res.status;
+      throw err;
+    }
+    return true;
+  } catch (err) {
+    // Silently swallow errors — marking as read is non-critical
+    console.warn('[Chat] markAsRead failed:', err.message);
+    return false;
+  }
+};

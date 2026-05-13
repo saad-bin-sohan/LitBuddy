@@ -94,8 +94,15 @@ const sendMessage = asyncHandler(async (req, res) => {
   }));
 
   try {
-    const chat = await chatService.appendMessage(req.user._id, req.params.chatId, hasText ? text.trim() : '', attachments);
-    res.json(chat);
+    const message = await chatService.appendMessage(
+      req.user._id,
+      req.params.chatId,
+      hasText ? text.trim() : '',
+      attachments
+    );
+    // Return { message } so the frontend can replace the optimistic message.
+    // The frontend handles both { message } and { messages: [] } response shapes.
+    res.json({ message });
   } catch (err) {
     if (err && err.status === 409) {
       return res.status(409).json({ message: err.message, status: err.chatStatus });
@@ -169,6 +176,24 @@ const getChatMessages = asyncHandler(async (req, res) => {
   }
 });
 
+/**
+ * PATCH /api/chat/:chatId/read
+ * Mark all messages in this chat as read for the authenticated user.
+ * Updates chat.lastReadAt[userId] = now, which is used to compute
+ * unreadCount in the inbox (listChatsForUser).
+ */
+const markAsRead = asyncHandler(async (req, res) => {
+  try {
+    await chatService.markChatAsRead(req.user._id, req.params.chatId);
+    res.json({ success: true });
+  } catch (err) {
+    if (err && err.status) {
+      return res.status(err.status).json({ message: err.message });
+    }
+    throw err;
+  }
+});
+
 module.exports = {
   startChat,
   listChats,
@@ -176,4 +201,5 @@ module.exports = {
   pauseChat,
   resumeChat,
   getChatMessages,
+  markAsRead,
 };

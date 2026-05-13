@@ -33,6 +33,8 @@ export function initStomp() {
       stompClient.webSocketFactory = () => new WebSocket(wsUrl);
     },
     reconnectDelay: 5000,
+    heartbeatIncoming: 10000,   // ← ADD THIS
+    heartbeatOutgoing: 10000,   // ← ADD THIS
     debug: (str) => console.log('[STOMP]', str),
     onConnect: () => {
       console.log('[STOMP] Connected to server');
@@ -60,6 +62,18 @@ export function subscribe(destination, callback) {
   }
 
   try {
+    // If a subscription for this destination already exists, clean it up first.
+    // Without this, re-subscribing (e.g. on route change or React StrictMode
+    // double-invoke) leaks the old server-side subscription handle.
+    if (subscriptions[destination]) {
+      try {
+        subscriptions[destination].unsubscribe();
+      } catch (cleanupErr) {
+        console.error('[STOMP] Error cleaning up existing subscription:', destination, cleanupErr);
+      }
+      delete subscriptions[destination];
+    }
+
     const sub = stompClient.subscribe(destination, (message) => {
       try {
         const payload = JSON.parse(message.body);

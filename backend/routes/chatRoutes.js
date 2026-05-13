@@ -9,6 +9,7 @@ const {
   pauseChat,
   resumeChat,
   getChatMessages,
+  markAsRead,
 } = require('../controllers/chatController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -20,6 +21,9 @@ router.post('/:userId', protect, startChat);
 
 // Send a message (put this BEFORE :chatId to avoid clash)
 router.post('/message/:chatId', protect, sendMessage);
+
+// Mark all messages in a chat as read for the current user
+router.patch('/:chatId/read', protect, markAsRead);
 
 // Pause a chat
 router.patch('/:chatId/pause', protect, pauseChat);

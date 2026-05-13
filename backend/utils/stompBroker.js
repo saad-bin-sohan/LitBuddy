@@ -285,7 +285,7 @@ function handleConnect(connection, frame) {
       sendFrame(connection.ws, 'CONNECTED', {
         version: connection.version,
         server: 'LitBuddy-STOMP/1.0',
-        'heart-beat': '0,0',
+        'heart-beat': '10000,10000',
         session: String(connection.id),
       });
 
