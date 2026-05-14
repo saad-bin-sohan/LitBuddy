@@ -57,7 +57,7 @@ class ErrorBoundary extends React.Component {
           <h2 style={{ marginBottom: '0.5rem', fontSize: '1.25rem', fontWeight: '600' }}>
             Something went wrong
           </h2>
-          <p style={{ color: '#666', marginBottom: '1.5rem', maxWidth: '400px' }}>
+          <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem', maxWidth: '400px' }}>
             This page encountered an unexpected error.
             Try refreshing or going back to the home page.
           </p>
@@ -81,8 +81,8 @@ class ErrorBoundary extends React.Component {
                 padding: '0.5rem 1.25rem',
                 borderRadius: '6px',
                 border: 'none',
-                background: '#1a1a1a',
-                color: '#fff',
+                background: 'var(--color-charcoal-700)',
+                color: 'var(--color-white)',
                 cursor: 'pointer',
                 fontSize: '0.875rem',
               }}
@@ -93,10 +93,10 @@ class ErrorBoundary extends React.Component {
           {/* Show error detail in development only */}
           {process.env.NODE_ENV === 'development' && this.state.error && (
             <details style={{ marginTop: '1.5rem', textAlign: 'left', maxWidth: '600px' }}>
-              <summary style={{ cursor: 'pointer', fontSize: '0.75rem', color: '#999' }}>
+              <summary style={{ cursor: 'pointer', fontSize: '0.75rem', color: 'var(--color-gray-400)' }}>
                 Error details (dev only)
               </summary>
-              <pre style={{ fontSize: '0.7rem', color: '#c00', marginTop: '0.5rem', overflow: 'auto' }}>
+              <pre style={{ fontSize: '0.7rem', color: 'var(--color-error)', marginTop: '0.5rem', overflow: 'auto' }}>
                 {this.state.error.toString()}
               </pre>
             </details>
