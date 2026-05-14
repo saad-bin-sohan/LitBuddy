@@ -1,6 +1,11 @@
 import { Client } from '@stomp/stompjs';
 import { WS_URL, apiJson } from './api/httpClient';
 
+// Gate verbose logging to development builds only.
+// import.meta.env.DEV is set by Vite during local development;
+// it is false in production builds.
+const isDev = typeof import.meta !== 'undefined' && import.meta.env?.DEV === true;
+
 let stompClient = null;
 let subscriptions = {};
 
@@ -35,12 +40,12 @@ export function initStomp() {
     reconnectDelay: 5000,
     heartbeatIncoming: 10000,   // ← ADD THIS
     heartbeatOutgoing: 10000,   // ← ADD THIS
-    debug: (str) => console.log('[STOMP]', str),
+    debug: isDev ? (str) => console.log('[STOMP]', str) : () => {},
     onConnect: () => {
-      console.log('[STOMP] Connected to server');
+      if (isDev) console.log('[STOMP] Connected to server');
     },
     onDisconnect: () => {
-      console.log('[STOMP] Disconnected from server');
+      if (isDev) console.log('[STOMP] Disconnected from server');
     },
     onStompError: (frame) => {
       console.error('[STOMP] Error:', frame);
@@ -57,7 +62,7 @@ export function getStompClient() {
 
 export function subscribe(destination, callback) {
   if (!stompClient || !stompClient.connected) {
-    console.warn('STOMP client not connected, cannot subscribe to:', destination);
+    if (isDev) console.warn('STOMP client not connected, cannot subscribe to:', destination);
     return null;
   }
 
@@ -85,7 +90,7 @@ export function subscribe(destination, callback) {
     });
 
     subscriptions[destination] = sub;
-    console.log(`[STOMP] Subscribed to: ${destination}`);
+    if (isDev) console.log(`[STOMP] Subscribed to: ${destination}`);
     return sub;
   } catch (err) {
     console.error('Error subscribing to:', destination, err);
@@ -98,7 +103,7 @@ export function unsubscribe(destination) {
     try {
       subscriptions[destination].unsubscribe();
       delete subscriptions[destination];
-      console.log(`[STOMP] Unsubscribed from: ${destination}`);
+      if (isDev) console.log(`[STOMP] Unsubscribed from: ${destination}`);
     } catch (err) {
       console.error('Error unsubscribing from:', destination, err);
     }
@@ -107,7 +112,7 @@ export function unsubscribe(destination) {
 
 export function send(destination, body) {
   if (!stompClient || !stompClient.connected) {
-    console.warn('STOMP client not connected, cannot send to:', destination);
+    if (isDev) console.warn('STOMP client not connected, cannot send to:', destination);
     return;
   }
 
@@ -126,7 +131,7 @@ export function disconnectStomp() {
     stompClient.deactivate();
     stompClient = null;
     subscriptions = {};
-    console.log('[STOMP] Disconnected');
+    if (isDev) console.log('[STOMP] Disconnected');
   }
 }
 

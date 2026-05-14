@@ -14,7 +14,7 @@ dotenv.config();
 // 2. Import custom modules
 const connectDB = require('./config/db');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
-const socketUtil = require('./utils/socket'); // legacy socket.io helper (kept for fallback)
+
 const upload = require('./middleware/uploadMiddleware'); // for serving /uploads
 const requestContext = require('./middleware/requestContext');
 const httpEventLogger = require('./middleware/httpEventLogger');
@@ -217,83 +217,37 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5001;
 const server = http.createServer(app);
 
+// 11. Wire STOMP realtime broker
 try {
-  let realtimeInitialized = false;
-
-  // Use STOMP broker
-  try {
-    const stompBroker = require('./utils/stompBroker');
-    if (stompBroker) {
-      const verifyTokenFn = async (rawToken) => {
-        try {
-          if (!rawToken) return null;
-          let token = rawToken;
-          if (typeof token === 'string' && token.startsWith('Bearer ')) {
-            token = token.split(' ')[1];
-          }
-          if (authUtils && typeof authUtils.verifyTokenForSocket === 'function') {
-            return await authUtils.verifyTokenForSocket(token);
-          }
-          // fallback basic jwt verification
-          const decoded = jwt.verify(token, process.env.JWT_SECRET);
-          const User = require('./models/userModel');
-          const user = await User.findById(decoded.id).select('-password');
-          return user || null;
-        } catch (e) {
-          return null;
-        }
-      };
-
-      const stomp = stompBroker.initServer(server, { 
-        verifyToken: verifyTokenFn, 
-        allowedOrigins: ALLOWED 
-      });
-      app.set('stomp', stomp);
-      logger.info('realtime.stomp_initialized');
-      realtimeInitialized = true;
-    }
-  } catch (stompErr) {
-    logger.warn({ err: stompErr }, 'realtime.stomp_init_failed');
-  }
-
-  if (!realtimeInitialized) {
-    // Fallback to legacy Socket.IO helper (keeps existing behavior unchanged)
+  const stompBroker = require('./utils/stompBroker');
+  const verifyTokenFn = async (rawToken) => {
     try {
-      const io = socketUtil.initIO(server);
-
-      // Expose io on the app so controllers/services can use req.app.get('io') if needed
-      app.set('io', io);
-
-      // Socket auth using JWT (optional)
-      io.use((socket, next) => {
-        try {
-          const token = socket.handshake.auth && socket.handshake.auth.token;
-          if (!token) return next();
-          const decoded = jwt.verify(token, process.env.JWT_SECRET);
-          socket.userId = decoded.id;
-          return next();
-        } catch (err) {
-          return next();
-        }
-      });
-
-      io.on('connection', (socket) => {
-        if (socket.userId) {
-          socket.join(String(socket.userId));
-          logger.debug({ userId: String(socket.userId) }, 'realtime.socket_connected');
-        } else {
-          logger.debug('realtime.socket_connected_anonymous');
-        }
-        socket.on('disconnect', () => {});
-      });
-
-      logger.info('realtime.socket_io_initialized');
-    } catch (ioErr) {
-      logger.warn({ err: ioErr }, 'realtime.socket_io_init_failed');
+      if (!rawToken) return null;
+      let token = rawToken;
+      if (typeof token === 'string' && token.startsWith('Bearer ')) {
+        token = token.split(' ')[1];
+      }
+      if (authUtils && typeof authUtils.verifyTokenForSocket === 'function') {
+        return await authUtils.verifyTokenForSocket(token);
+      }
+      // Fallback: inline JWT verification if authUtils is unavailable
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const User = require('./models/userModel');
+      const user = await User.findById(decoded.id).select('-password');
+      return user || null;
+    } catch (e) {
+      return null;
     }
-  }
+  };
+
+  const stomp = stompBroker.initServer(server, {
+    verifyToken: verifyTokenFn,
+    allowedOrigins: ALLOWED,
+  });
+  app.set('stomp', stomp);
+  logger.info('realtime.stomp_initialized');
 } catch (err) {
-  logger.warn({ err }, 'realtime.initialization_failed');
+  logger.error({ err }, 'realtime.stomp_init_failed');
 }
 
 server.listen(PORT, () => {

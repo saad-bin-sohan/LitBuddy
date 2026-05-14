@@ -19,6 +19,8 @@ const {
   clearAuthCookies,
 } = require('../config/authCookie');
 
+const { sanitizeUserForResponse } = require('../utils/userSerializer');
+
 // Helper: get client IP (behind proxies)
 const getClientIp = (req) => {
   const xff = req.headers['x-forwarded-for'] || req.headers['x-real-ip'];
@@ -32,40 +34,7 @@ function getWsTokenTtlSeconds() {
   return parsed;
 }
 
-function sanitizeUserForResponse(user) {
-  // user is a mongoose document or plain object
-  if (!user) return null;
-  // ensure plain object
-  const u = (typeof user.toObject === 'function') ? user.toObject() : { ...user };
-  // Keep a stable set of response fields (add more as needed)
-  return {
-    _id: u._id,
-    name: u.name,
-    displayName: u.displayName,
-    email: u.email,
-    phone: u.phone,
-    age: u.age,
-    gender: u.gender,
-    bio: u.bio,
-    favoriteBooks: u.favoriteBooks,
-    favoriteSongs: u.favoriteSongs,
-    quote: u.quote,
-    preferences: u.preferences,
-    isVerified: !!u.isVerified,
-    isAdmin: !!u.isAdmin, // legacy flag
-    role: u.role || (u.isAdmin ? 'admin' : 'reader'),
-    plan: u.plan,
-    maxActiveConversations: u.maxActiveConversations,
-    activeConversations: u.activeConversations,
-    hasCompletedSetup: !!u.hasCompletedSetup,
-    suspendedUntil: u.suspendedUntil || null,
-    // Google OAuth fields
-    googleId: u.googleId,
-    googleEmail: u.googleEmail,
-    googleProfilePicture: u.googleProfilePicture,
-    isGoogleUser: !!u.isGoogleUser,
-  };
-}
+
 
 // @desc Register new user
 // @route POST /api/auth/register

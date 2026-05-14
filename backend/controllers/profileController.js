@@ -4,6 +4,7 @@ const User = require('../models/userModel');
 const CityIndex = require('../models/cityIndexModel');
 const slugify = require('../utils/slugify');
 const { getLogger, summarizeObject } = require('../utils/logger');
+const { uploadBase64ToCloudinary } = require('../utils/cloudinaryUpload');
 
 function sanitizeRadius(val, def = 25) {
   const n = Number(val);
@@ -92,6 +93,26 @@ exports.updateUserProfile = async (req, res) => {
     // ✅ Mark setup as complete if required fields are already present
     if (isProfileComplete) {
       updates.hasCompletedSetup = true;
+    }
+
+    // Upload any base64 profile photos to Cloudinary, replacing data URLs with
+    // HTTPS URLs. Existing HTTPS URLs (already-uploaded photos) pass through.
+    if (Array.isArray(updates.profilePhotos) && updates.profilePhotos.length > 0) {
+      try {
+        updates.profilePhotos = await Promise.all(
+          updates.profilePhotos.map((photo) =>
+            uploadBase64ToCloudinary(photo, 'litbuddy/profiles')
+          )
+        );
+      } catch (err) {
+        // If Cloudinary processing fails entirely, log and continue with originals
+        requestLogger.error({ err, userId }, 'profile.cloudinary_batch_upload_failed');
+      }
+    }
+
+    // Cap photos to 6 entries (matches frontend limit of 6 photos)
+    if (Array.isArray(updates.profilePhotos)) {
+      updates.profilePhotos = updates.profilePhotos.slice(0, 6);
     }
 
     const user = await User.findByIdAndUpdate(userId, updates, {

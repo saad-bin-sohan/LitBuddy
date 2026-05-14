@@ -5,36 +5,9 @@ const User = require('../models/userModel');
 const generateToken = require('../utils/generateToken');
 const { AUTH_COOKIE_NAME, getSetCookieOptions } = require('../config/authCookie');
 
-function sanitizeUserForResponse(user) {
-  if (!user) return null;
-  const u = (typeof user.toObject === 'function') ? user.toObject() : { ...user };
-  return {
-    _id: u._id,
-    name: u.name,
-    displayName: u.displayName,
-    email: u.email,
-    phone: u.phone,
-    age: u.age,
-    gender: u.gender,
-    bio: u.bio,
-    favoriteBooks: u.favoriteBooks,
-    favoriteSongs: u.favoriteSongs,
-    quote: u.quote,
-    preferences: u.preferences,
-    isVerified: !!u.isVerified,
-    isAdmin: !!u.isAdmin,
-    role: u.role || (u.isAdmin ? 'admin' : 'reader'),
-    plan: u.plan,
-    maxActiveConversations: u.maxActiveConversations,
-    activeConversations: u.activeConversations,
-    hasCompletedSetup: !!u.hasCompletedSetup,
-    suspendedUntil: u.suspendedUntil || null,
-    googleId: u.googleId,
-    googleEmail: u.googleEmail,
-    googleProfilePicture: u.googleProfilePicture,
-    isGoogleUser: !!u.isGoogleUser,
-  };
-}
+const { sanitizeUserForResponse } = require('../utils/userSerializer');
+
+
 
 // @desc Handle Google OAuth callback
 // @route GET /api/auth/google/callback

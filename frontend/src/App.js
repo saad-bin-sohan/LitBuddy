@@ -5,6 +5,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LoadingSpinner from './components/LoadingSpinner';
+import ErrorBoundary from './components/ErrorBoundary';
 import { AuthContext } from './contexts/AuthContext';
 import { GOOGLE_CLIENT_ID, IS_GOOGLE_AUTH_ENABLED } from './api/httpClient';
 
@@ -99,6 +100,7 @@ const App = () => {
       <AuthRedirectWrapper>
         <Navbar />
         <main className="main-content">
+        <ErrorBoundary>
           <Suspense fallback={
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
               <LoadingSpinner text="Loading..." />
@@ -220,6 +222,7 @@ const App = () => {
               <Route path="/guidelines" element={<CommunityGuidelinesPage />} />
             </Routes>
           </Suspense>
+        </ErrorBoundary>
         </main>
         <Footer />
       </AuthRedirectWrapper>
