@@ -11,6 +11,9 @@ const PREDEFINED_QUESTIONS = [
   { id: 'q3', text: 'One quote you live by?' },
 ];
 
+const GENDER_OPTIONS = ['Woman', 'Man', 'Non-binary', 'Self-described'];
+const INTERESTED_IN_OPTIONS = ['Woman', 'Man', 'Non-binary'];
+
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -83,6 +86,47 @@ const Step1 = ({ form, handleBasicChange }) => (
         }}
       />
     </div>
+    <div style={{ marginBottom: '15px' }}>
+      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Gender</label>
+      <select
+        name="gender"
+        value={form.gender}
+        onChange={handleBasicChange}
+        style={{
+          width: '100%',
+          padding: '10px',
+          border: '1px solid var(--color-border)',
+          borderRadius: '4px',
+          fontSize: '16px'
+        }}
+      >
+        <option value="">Select...</option>
+        {GENDER_OPTIONS.map((g) => (
+          <option key={g} value={g}>{g}</option>
+        ))}
+      </select>
+      <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+        Leave blank to keep your gender as-is.
+      </p>
+    </div>
+    {form.gender === 'Self-described' && (
+      <div style={{ marginBottom: '15px' }}>
+        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Describe your gender</label>
+        <input
+          name="genderCustom"
+          value={form.genderCustom}
+          onChange={handleBasicChange}
+          maxLength={40}
+          style={{
+            width: '100%',
+            padding: '10px',
+            border: '1px solid var(--color-border)',
+            borderRadius: '4px',
+            fontSize: '16px'
+          }}
+        />
+      </div>
+    )}
   </div>
 );
 
@@ -201,7 +245,15 @@ const Step4 = ({ form, handleFavoritesChange }) => (
   </div>
 );
 
-const Step5 = ({ form, togglePreference, handleAnswerChange }) => (
+const Step5 = ({
+  form,
+  togglePreference,
+  handleAnswerChange,
+  toggleInterestedIn,
+  handleAgeRangeChange,
+  toggleDistanceLimit,
+  handleMaxDistanceChange,
+}) => (
   <div style={{
     border: '1px solid var(--color-border)',
     borderRadius: '8px',
@@ -237,7 +289,78 @@ const Step5 = ({ form, togglePreference, handleAnswerChange }) => (
         </label>
       ))}
     </div>
-    <div>
+
+    <div style={{ borderTop: '1px solid var(--color-border)', margin: '16px 0', paddingTop: '16px' }}>
+      <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Who You Want To Meet</p>
+
+      <div style={{ marginBottom: '12px' }}>
+        <p style={{ marginBottom: '8px' }}>Interested in</p>
+        {INTERESTED_IN_OPTIONS.map((t) => (
+          <label key={t} style={{ marginRight: 8, display: 'inline-block', marginBottom: '8px' }}>
+            <input
+              type="checkbox"
+              checked={form.interestedIn?.includes(t)}
+              onChange={() => toggleInterestedIn(t)}
+              style={{ marginRight: '5px' }}
+            /> {t}
+          </label>
+        ))}
+        <p style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+          Leave all unchecked to be shown everyone.
+        </p>
+      </div>
+
+      <div style={{ marginBottom: '12px' }}>
+        <p style={{ marginBottom: '8px' }}>Age range</p>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input
+            type="number"
+            min={18}
+            max={100}
+            value={form.ageRangePreference.min}
+            onChange={(e) => handleAgeRangeChange('min', e.target.value)}
+            style={{ width: 80, padding: '10px', border: '1px solid var(--color-border)', borderRadius: '4px', fontSize: '16px' }}
+          />
+          <span>to</span>
+          <input
+            type="number"
+            min={18}
+            max={100}
+            value={form.ageRangePreference.max}
+            onChange={(e) => handleAgeRangeChange('max', e.target.value)}
+            style={{ width: 80, padding: '10px', border: '1px solid var(--color-border)', borderRadius: '4px', fontSize: '16px' }}
+          />
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '12px' }}>
+        <p style={{ marginBottom: '8px' }}>Maximum distance</p>
+        <label style={{ display: 'block', marginBottom: '8px' }}>
+          <input
+            type="checkbox"
+            checked={form.maxDistanceKm !== null}
+            onChange={toggleDistanceLimit}
+            style={{ marginRight: '5px' }}
+          />
+          Limit suggestions by distance
+        </label>
+        {form.maxDistanceKm !== null && (
+          <input
+            type="number"
+            min={1}
+            max={500}
+            value={form.maxDistanceKm}
+            onChange={handleMaxDistanceChange}
+            style={{ width: 120, padding: '10px', border: '1px solid var(--color-border)', borderRadius: '4px', fontSize: '16px' }}
+          />
+        )}
+        <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+          Off by default — you'll see readers regardless of distance until you turn this on.
+        </p>
+      </div>
+    </div>
+
+    <div style={{ borderTop: '1px solid var(--color-border)', margin: '16px 0', paddingTop: '16px' }}>
       <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Short Questions</p>
       {form.answers.map((a, i) => (
         <div key={a.questionId} style={{ marginBottom: '15px' }}>
@@ -272,6 +395,10 @@ const Step6 = ({ form }) => (
     <p><strong>Display Name:</strong> {form.displayName}</p>
     <p><strong>Bio:</strong> {form.bio}</p>
     <p><strong>Quote:</strong> {form.quote}</p>
+    <p>
+      <strong>Gender:</strong> {form.gender || '(unchanged)'}
+      {form.gender === 'Self-described' && form.genderCustom ? ` — ${form.genderCustom}` : ''}
+    </p>
     <div style={{
       border: '1px solid var(--color-border)',
       borderRadius: '6px',
@@ -295,6 +422,18 @@ const Step6 = ({ form }) => (
     <p><strong>Favorite Songs:</strong> {form.favoriteSongs}</p>
     <p><strong>Preferences - Books:</strong> {form.preferences.books.join(', ')}</p>
     <p><strong>Preferences - Music:</strong> {form.preferences.music.join(', ')}</p>
+    <div style={{
+      border: '1px solid var(--color-border)',
+      borderRadius: '6px',
+      padding: '15px',
+      marginTop: 8,
+      backgroundColor: 'var(--color-secondary)'
+    }}>
+      <h4 style={{ marginTop: 0 }}>Who You Want To Meet</h4>
+      <p><strong>Interested In:</strong> {form.interestedIn.length ? form.interestedIn.join(', ') : 'Everyone'}</p>
+      <p><strong>Age Range:</strong> {form.ageRangePreference.min} - {form.ageRangePreference.max}</p>
+      <p><strong>Max Distance:</strong> {form.maxDistanceKm !== null ? `${form.maxDistanceKm} km` : 'No limit'}</p>
+    </div>
     <div>
       <strong>Answers:</strong>
       <ul>
@@ -322,6 +461,14 @@ const ProfileWizard = () => {
     answers: user?.answers?.length
       ? user.answers
       : PREDEFINED_QUESTIONS.map((q) => ({ questionId: q.id, question: q.text, answer: '' })),
+    gender: user?.gender || '',
+    genderCustom: user?.genderCustom || '',
+    interestedIn: Array.isArray(user?.interestedIn) ? user.interestedIn : [],
+    ageRangePreference: {
+      min: user?.ageRangePreference?.min ?? 18,
+      max: user?.ageRangePreference?.max ?? 100,
+    },
+    maxDistanceKm: typeof user?.maxDistanceKm === 'number' ? user.maxDistanceKm : null,
     location: {
       lat: user?.location?.lat ?? null,
       lng: user?.location?.lng ?? null,
@@ -428,6 +575,38 @@ const ProfileWizard = () => {
     });
   }, []);
 
+  // Matching-preference handlers
+  const toggleInterestedIn = useCallback((value) => {
+    setForm(prevForm => {
+      const cur = new Set(prevForm.interestedIn || []);
+      cur.has(value) ? cur.delete(value) : cur.add(value);
+      return { ...prevForm, interestedIn: Array.from(cur) };
+    });
+  }, []);
+
+  const handleAgeRangeChange = useCallback((field, value) => {
+    const num = Number(value);
+    setForm(prevForm => ({
+      ...prevForm,
+      ageRangePreference: {
+        ...prevForm.ageRangePreference,
+        [field]: Number.isFinite(num) ? num : prevForm.ageRangePreference[field],
+      },
+    }));
+  }, []);
+
+  const toggleDistanceLimit = useCallback(() => {
+    setForm(prevForm => ({
+      ...prevForm,
+      maxDistanceKm: prevForm.maxDistanceKm === null ? 50 : null,
+    }));
+  }, []);
+
+  const handleMaxDistanceChange = useCallback((e) => {
+    const num = Number(e.target.value);
+    setForm(prevForm => ({ ...prevForm, maxDistanceKm: Number.isFinite(num) ? num : prevForm.maxDistanceKm }));
+  }, []);
+
   // Save all data
   const handleSave = async () => {
     setSaving(true);
@@ -447,6 +626,16 @@ const ProfileWizard = () => {
           : [],
         preferences: form.preferences,
         answers: form.answers,
+        interestedIn: form.interestedIn,
+        ageRangePreference: form.ageRangePreference,
+        maxDistanceKm: form.maxDistanceKm,
+        // Only send gender/genderCustom when the user actually picked
+        // something this session — an empty string would fail the schema's
+        // enum validator for anyone (e.g. Google sign-ups) who hasn't set a
+        // gender yet and didn't touch this field.
+        ...(form.gender
+          ? { gender: form.gender, genderCustom: form.gender === 'Self-described' ? form.genderCustom : '' }
+          : {}),
         location: {
           lat: typeof form.location.lat === 'number' ? form.location.lat : null,
           lng: typeof form.location.lng === 'number' ? form.location.lng : null,
@@ -499,7 +688,17 @@ const ProfileWizard = () => {
       {step === 2 && <Step2 form={form} handleLocationChange={handleLocationChange} persistLocationNow={persistLocationNow} />}
       {step === 3 && <Step3 form={form} handlePhotoSelected={handlePhotoSelected} removePhoto={removePhoto} />}
       {step === 4 && <Step4 form={form} handleFavoritesChange={handleFavoritesChange} />}
-      {step === 5 && <Step5 form={form} togglePreference={togglePreference} handleAnswerChange={handleAnswerChange} />}
+      {step === 5 && (
+        <Step5
+          form={form}
+          togglePreference={togglePreference}
+          handleAnswerChange={handleAnswerChange}
+          toggleInterestedIn={toggleInterestedIn}
+          handleAgeRangeChange={handleAgeRangeChange}
+          toggleDistanceLimit={toggleDistanceLimit}
+          handleMaxDistanceChange={handleMaxDistanceChange}
+        />
+      )}
       {step === 6 && <Step6 form={form} />}
 
       <div style={{ marginTop: 16 }}>
