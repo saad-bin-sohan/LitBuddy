@@ -4,8 +4,10 @@ const asyncHandler = require('express-async-handler');
 const mongoose = require('mongoose');
 const User = require('../models/userModel');
 const CityIndex = require('../models/cityIndexModel');
+const Suggestion = require('../models/suggestionModel');
 const notificationService = require('../services/notificationService'); // NEW
 const { getLogger } = require('../utils/logger');
+
 /**
  * Helper: safe cast to ObjectId
  */
@@ -18,163 +20,166 @@ const toObjectId = (v) => {
   }
 };
 
+const SUGGESTION_PROJECTION = {
+  _id: 1,
+  name: 1,
+  displayName: 1,
+  age: 1,
+  gender: 1,
+  bio: 1,
+  quote: 1,
+  profilePhotos: 1,
+  favoriteBooks: 1,
+  favoriteSongs: 1,
+  preferences: 1,
+  answers: 1,
+};
+
+function startOfTodayUTC() {
+  const d = new Date();
+  d.setUTCHours(0, 0, 0, 0);
+  return d;
+}
+
 /**
  * @desc    Get daily partner suggestions
  * @route   GET /api/match/suggestions
  * @access  Private
  * Query params (optional):
- *    lat, lng  -> center point (numbers)
- *    distanceKm -> radius in km (number)
- *    limit -> number of results (default 5)
+ *    limit -> number of results (default 5, max 50)
+ *
+ * Distance is an opt-in filter now (User.maxDistanceKm), not the primary sort
+ * — it only applies if the user has explicitly set a preference. Eligibility
+ * is mutual age range + mutual interestedIn/gender + (optionally) distance;
+ * within the eligible pool, results are sampled randomly for now. Real
+ * reading-compatibility ranking (books, clubs, challenges, taste) is the next
+ * phase of this work, not this one. This pass fixes eligibility plus two
+ * standing bugs: one-sided likes reappearing in suggestions, and suggestions
+ * never rotating within a day.
  */
 const getDailySuggestions = asyncHandler(async (req, res) => {
   const rawLimit = parseInt(req.query.limit, 10);
   const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 50) : 5;
   const now = new Date();
+  const today = startOfTodayUTC();
 
-  // Build exclusion list: self + matches
-  const me = await User.findById(req.user._id).select('matches suspendedUntil').lean();
+  const me = await User.findById(req.user._id)
+    .select('gender interestedIn ageRangePreference maxDistanceKm age matches likes suspendedUntil')
+    .lean();
+
+  if (!me) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  // Anyone already matched, already liked (one-sided or not), or already
+  // shown today should never reappear in suggestions.
+  const shownToday = await Suggestion.find({ user: req.user._id, date: today })
+    .select('shownUser')
+    .lean();
+
   const excludeSet = new Set([String(req.user._id)]);
-  if (Array.isArray(me?.matches)) {
-    for (const m of me.matches) {
-      if (!m) continue;
-      excludeSet.add(String(m._id ?? m));
-    }
+  for (const m of me.matches || []) excludeSet.add(String(m));
+  for (const l of me.likes || []) excludeSet.add(String(l));
+  for (const s of shownToday) excludeSet.add(String(s.shownUser));
+  const excludeObjectIds = Array.from(excludeSet).map(toObjectId).filter(Boolean);
+
+  // Mutual age-range filter: their age has to fit my preference, and my age
+  // has to fit theirs. Defaults are wide (18-100) so nobody who hasn't set a
+  // preference gets accidentally excluded during rollout.
+  const myAgeMin = me.ageRangePreference?.min ?? 18;
+  const myAgeMax = me.ageRangePreference?.max ?? 100;
+  const myInterestedIn = Array.isArray(me.interestedIn) ? me.interestedIn : [];
+
+  // Every $or lives as its own entry in this array — combining several $or
+  // objects with a plain object spread would silently clobber all but the
+  // last one, since they'd all collide on the same "$or" key.
+  const conditions = [
+    { _id: { $nin: excludeObjectIds } },
+    { age: { $gte: myAgeMin, $lte: myAgeMax } },
+    {
+      $or: [
+        { 'ageRangePreference.min': { $exists: false } },
+        {
+          'ageRangePreference.min': { $lte: me.age ?? myAgeMax },
+          'ageRangePreference.max': { $gte: me.age ?? myAgeMin },
+        },
+      ],
+    },
+    {
+      $or: [
+        { interestedIn: { $exists: false } },
+        { interestedIn: { $size: 0 } },
+        { interestedIn: me.gender },
+      ],
+    },
+    { $or: [{ suspendedUntil: null }, { suspendedUntil: { $lte: now } }] },
+  ];
+  if (myInterestedIn.length) {
+    conditions.push({ gender: { $in: myInterestedIn } });
   }
-  const excludeObjectIds = Array.from(excludeSet).map((s) => toObjectId(s)).filter(Boolean);
+  const finalMatch = { $and: conditions };
+  const projectStage = { $project: { ...SUGGESTION_PROJECTION, dist: 1 } };
 
-  // Robust parsing of client params
-  let lat = req.query.lat !== undefined ? parseFloat(req.query.lat) : null;
-  let lng = req.query.lng !== undefined ? parseFloat(req.query.lng) : null;
-  let distanceKm = req.query.distanceKm !== undefined ? parseFloat(req.query.distanceKm) : null;
+  const useDistance = Number.isFinite(me.maxDistanceKm) && me.maxDistanceKm > 0;
+  let candidates = [];
 
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-    lat = null;
-    lng = null;
-  }
-  if (!Number.isFinite(distanceKm)) distanceKm = null;
-
-  // If client did not pass coords, try user's saved CityIndex
-  if (lat == null || lng == null) {
+  if (useDistance) {
     const myCi = await CityIndex.findOne({ user: req.user._id }).lean();
-    if (myCi && Array.isArray(myCi.location?.coordinates) && myCi.location.coordinates.length === 2) {
-      lng = myCi.location.coordinates[0];
-      lat = myCi.location.coordinates[1];
-      if (distanceKm == null && typeof myCi.preferredSearchRadiusKm === 'number') {
-        distanceKm = myCi.preferredSearchRadiusKm;
-      }
-    }
-  }
+    const coords = myCi?.location?.coordinates;
 
-  if (distanceKm == null || !Number.isFinite(distanceKm)) distanceKm = 50;
-  distanceKm = Math.max(1, Math.min(500, distanceKm));
-  const meters = distanceKm * 1000;
-
-  if (Number.isFinite(lat) && Number.isFinite(lng)) {
-    const pipeline = [
-      {
-        $geoNear: {
-          near: { type: 'Point', coordinates: [lng, lat] },
-          distanceField: 'dist.calculated',
-          spherical: true,
-          maxDistance: meters,
-          key: 'location',
-          query: {
-            user: { $nin: excludeObjectIds },
+    if (Array.isArray(coords) && coords.length === 2) {
+      candidates = await CityIndex.aggregate([
+        {
+          $geoNear: {
+            near: { type: 'Point', coordinates: coords },
+            distanceField: 'dist.calculated',
+            spherical: true,
+            maxDistance: me.maxDistanceKm * 1000,
+            key: 'location',
+            query: { user: { $nin: excludeObjectIds } },
           },
         },
-      },
-      { $limit: Math.min(limit * 4, 200) },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'user',
-          foreignField: '_id',
-          as: 'userDoc',
-        },
-      },
-      { $unwind: '$userDoc' },
-      {
-        $match: {
-          $or: [
-            { 'userDoc.suspendedUntil': null },
-            { 'userDoc.suspendedUntil': { $lte: now } },
-          ],
-        },
-      },
-      {
-        $project: {
-          _id: '$userDoc._id',
-          name: '$userDoc.name',
-          displayName: '$userDoc.displayName',
-          age: '$userDoc.age',
-          gender: '$userDoc.gender',
-          bio: '$userDoc.bio',
-          quote: '$userDoc.quote',
-          profilePhotos: '$userDoc.profilePhotos',
-          favoriteBooks: '$userDoc.favoriteBooks',
-          favoriteSongs: '$userDoc.favoriteSongs',
-          preferences: '$userDoc.preferences',
-          answers: '$userDoc.answers',
-          dist: '$dist',
-        },
-      },
-      { $limit: limit },
-    ];
-
-    const results = await CityIndex.aggregate(pipeline);
-    return res.json(results);
+        { $limit: Math.min(limit * 10, 300) },
+        { $lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'userDoc' } },
+        { $unwind: '$userDoc' },
+        { $replaceRoot: { newRoot: { $mergeObjects: ['$userDoc', { dist: '$dist' }] } } },
+        { $match: finalMatch },
+        { $sample: { size: limit } },
+        projectStage,
+      ]);
+    }
+    // If a distance preference is set but there's no CityIndex location on
+    // file, fall through to the no-distance branch below instead of failing
+    // the request outright.
   }
 
-  const myCityIndex = await CityIndex.findOne({ user: req.user._id }).lean();
-  if (myCityIndex?.citySlug) {
-    const cityDocs = await CityIndex.find({
-      citySlug: myCityIndex.citySlug,
-      user: { $nin: excludeObjectIds }
-    })
-      .limit(limit * 4)
-      .lean();
-
-    const candidateUserIds = cityDocs.map(d => d.user).filter(Boolean);
-    const users = await User.find({
-      _id: { $in: candidateUserIds },
-      $or: [{ suspendedUntil: null }, { suspendedUntil: { $lte: now } }],
-    })
-      .select('-password')
-      .limit(limit)
-      .lean();
-
-    return res.json(users);
+  if (!useDistance || candidates.length === 0) {
+    candidates = await User.aggregate([
+      { $match: finalMatch },
+      { $sample: { size: limit } },
+      projectStage,
+    ]);
   }
 
-  const cityDocsAny = await CityIndex.find({
-    user: { $nin: excludeObjectIds }
-  })
-    .limit(limit * 4)
-    .lean();
-
-  if (cityDocsAny.length > 0) {
-    const candidateUserIds = cityDocsAny.map(d => d.user).filter(Boolean);
-    const users = await User.find({
-      _id: { $in: candidateUserIds },
-      $or: [{ suspendedUntil: null }, { suspendedUntil: { $lte: now } }],
-    })
-      .select('-password')
-      .limit(limit)
-      .lean();
-
-    return res.json(users);
+  // Record today's suggestions so nobody repeats within the same day,
+  // independent of whether they get liked or ignored.
+  if (candidates.length) {
+    const ops = candidates.map((c) => ({
+      updateOne: {
+        filter: { user: req.user._id, shownUser: c._id, date: today },
+        update: { $setOnInsert: { user: req.user._id, shownUser: c._id, date: today } },
+        upsert: true,
+      },
+    }));
+    try {
+      await Suggestion.bulkWrite(ops, { ordered: false });
+    } catch (err) {
+      getLogger(req).warn({ err }, 'match.suggestion_bookkeeping_failed');
+    }
   }
 
-  const users = await User.find({
-    _id: { $nin: excludeObjectIds },
-    $or: [{ suspendedUntil: null }, { suspendedUntil: { $lte: now } }],
-  })
-    .select('-password')
-    .limit(limit)
-    .lean();
-
-  return res.json(users);
+  return res.json(candidates);
 });
 
 /**

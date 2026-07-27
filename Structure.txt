@@ -1,0 +1,321 @@
+.
+├── .git
+│   ├── HEAD
+│   ├── config
+│   ├── description
+│   ├── hooks
+│   │   ├── applypatch-msg.sample
+│   │   ├── commit-msg.sample
+│   │   ├── fsmonitor-watchman.sample
+│   │   ├── post-update.sample
+│   │   ├── pre-applypatch.sample
+│   │   ├── pre-commit.sample
+│   │   ├── pre-merge-commit.sample
+│   │   ├── pre-push.sample
+│   │   ├── pre-rebase.sample
+│   │   ├── pre-receive.sample
+│   │   ├── prepare-commit-msg.sample
+│   │   ├── push-to-checkout.sample
+│   │   ├── sendemail-validate.sample
+│   │   └── update.sample
+│   ├── index
+│   ├── info
+│   │   └── exclude
+│   ├── logs
+│   │   ├── HEAD
+│   │   └── refs
+│   │       ├── heads
+│   │       │   └── main
+│   │       └── remotes
+│   │           └── origin
+│   │               └── HEAD
+│   ├── objects
+│   │   ├── info
+│   │   └── pack
+│   │       ├── pack-ae9402b4f22083fa5d108fd213200c92f9dc02ef.idx
+│   │       ├── pack-ae9402b4f22083fa5d108fd213200c92f9dc02ef.pack
+│   │       └── pack-ae9402b4f22083fa5d108fd213200c92f9dc02ef.rev
+│   ├── packed-refs
+│   └── refs
+│       ├── heads
+│       │   └── main
+│       ├── remotes
+│       │   └── origin
+│       │       └── HEAD
+│       └── tags
+├── .gitignore
+├── README.md
+├── Structure.txt
+├── backend
+│   ├── .env.example
+│   ├── config
+│   │   ├── authCookie.js
+│   │   ├── db.js
+│   │   └── plans.js
+│   ├── controllers
+│   │   ├── adminContentController.js
+│   │   ├── adminController.js
+│   │   ├── adminSupportController.js
+│   │   ├── authController.js
+│   │   ├── bookController.js
+│   │   ├── challengeController.js
+│   │   ├── chatController.js
+│   │   ├── clubController.js
+│   │   ├── contentController.js
+│   │   ├── fileController.js
+│   │   ├── goodreadsController.js
+│   │   ├── googleAuthController.js
+│   │   ├── googleBooksController.js
+│   │   ├── groupChatController.js
+│   │   ├── matchController.js
+│   │   ├── moderationController.js
+│   │   ├── notificationController.js
+│   │   ├── otpController.js
+│   │   ├── passwordController.js
+│   │   ├── profileController.js
+│   │   ├── readingGoalController.js
+│   │   ├── readingProgressController.js
+│   │   ├── reportController.js
+│   │   ├── reviewController.js
+│   │   ├── subscriptionController.js
+│   │   └── supportController.js
+│   ├── jobs
+│   │   ├── migrateChatsAndParticipants.js
+│   │   └── reconcileActiveCounts.js
+│   ├── middleware
+│   │   ├── authMiddleware.js
+│   │   ├── csrfMiddleware.js
+│   │   ├── errorMiddleware.js
+│   │   ├── httpEventLogger.js
+│   │   ├── rateLimiter.js
+│   │   ├── rbacMiddleware.js
+│   │   ├── requestContext.js
+│   │   └── uploadMiddleware.js
+│   ├── models
+│   │   ├── achievementModel.js
+│   │   ├── blogPostModel.js
+│   │   ├── bookClubModel.js
+│   │   ├── bookModel.js
+│   │   ├── careerOpeningModel.js
+│   │   ├── challengeModel.js
+│   │   ├── chatModel.js
+│   │   ├── cityIndexModel.js
+│   │   ├── clubMemberModel.js
+│   │   ├── groupChatModel.js
+│   │   ├── mediaModel.js
+│   │   ├── messageModel.js
+│   │   ├── notificationModel.js
+│   │   ├── otpModel.js
+│   │   ├── pressResourceModel.js
+│   │   ├── readingGoalModel.js
+│   │   ├── readingProgressModel.js
+│   │   ├── reportModel.js
+│   │   ├── reviewModel.js
+│   │   ├── suggestionModel.js
+│   │   ├── supportSubmissionModel.js
+│   │   └── userModel.js
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── render.yaml
+│   ├── routes
+│   │   ├── adminContentRoutes.js
+│   │   ├── adminRoutes.js
+│   │   ├── adminSupportRoutes.js
+│   │   ├── authRoutes.js
+│   │   ├── bookRoutes.js
+│   │   ├── challengeRoutes.js
+│   │   ├── chatRoutes.js
+│   │   ├── clubRoutes.js
+│   │   ├── contentRoutes.js
+│   │   ├── fileRoutes.js
+│   │   ├── goodreadsRoutes.js
+│   │   ├── googleAuthRoutes.js
+│   │   ├── googleBooksRoutes.js
+│   │   ├── groupChatRoutes.js
+│   │   ├── matchRoutes.js
+│   │   ├── notificationRoutes.js
+│   │   ├── otpRoutes.js
+│   │   ├── passwordRoutes.js
+│   │   ├── profileRoutes.js
+│   │   ├── readingGoalRoutes.js
+│   │   ├── readingProgressRoutes.js
+│   │   ├── reportRoutes.js
+│   │   ├── reviewRoutes.js
+│   │   ├── subscriptionRoutes.js
+│   │   └── supportRoutes.js
+│   ├── scripts
+│   │   ├── cleanupDummyChallenges.js
+│   │   ├── e2eSmoke.js
+│   │   ├── enforceGlobalIsbnUnique.js
+│   │   ├── fixProfileCompletion.js
+│   │   ├── migrateCanonicalIsbn.js
+│   │   └── promoteAdmin.js
+│   ├── server.js
+│   ├── services
+│   │   ├── achievementService.js
+│   │   ├── bookCatalogService.js
+│   │   ├── captchaService.js
+│   │   ├── chatService.js
+│   │   ├── goodreadsService.js
+│   │   ├── googleBooksService.js
+│   │   └── notificationService.js
+│   ├── tests
+│   │   ├── authMiddleware.test.js
+│   │   ├── bookAccess.test.js
+│   │   ├── bookModelIndexes.test.js
+│   │   ├── challengeModel.test.js
+│   │   ├── isbnUtils.test.js
+│   │   └── stompBroker.test.js
+│   └── utils
+│       ├── bookAccess.js
+│       ├── cloudinaryUpload.js
+│       ├── escapeRegex.js
+│       ├── generateResetToken.js
+│       ├── generateToken.js
+│       ├── isbn.js
+│       ├── logger.js
+│       ├── objectIdValidator.js
+│       ├── sendOtp.js
+│       ├── slugify.js
+│       ├── stomp.js
+│       ├── stompBroker.js
+│       └── userSerializer.js
+└── frontend
+    ├── .env.example
+    ├── docs
+    │   └── theme-audit-allowlist.md
+    ├── index.html
+    ├── package-lock.json
+    ├── package.json
+    ├── public
+    │   ├── logo.png
+    │   ├── robots.txt
+    │   └── sitemap.xml
+    ├── scripts
+    │   └── theme-audit.mjs
+    ├── src
+    │   ├── App.js
+    │   ├── api
+    │   │   ├── adminContentApi.js
+    │   │   ├── adminSupportApi.js
+    │   │   ├── authApi.js
+    │   │   ├── bookApi.js
+    │   │   ├── challengeApi.js
+    │   │   ├── chatApi.js
+    │   │   ├── clubApi.js
+    │   │   ├── contentApi.js
+    │   │   ├── goodreadsApi.js
+    │   │   ├── googleBooksApi.js
+    │   │   ├── groupChatApi.js
+    │   │   ├── httpClient.js
+    │   │   ├── httpClient.test.js
+    │   │   ├── matchApi.js
+    │   │   ├── notificationApi.js
+    │   │   ├── passwordApi.js
+    │   │   ├── profileApi.js
+    │   │   ├── readingGoalApi.js
+    │   │   ├── readingProgressApi.js
+    │   │   ├── reportApi.js
+    │   │   ├── subscriptionApi.js
+    │   │   └── supportApi.js
+    │   ├── components
+    │   │   ├── AdminGuard.js
+    │   │   ├── Avatar.js
+    │   │   ├── BookCard.css
+    │   │   ├── BookCard.js
+    │   │   ├── BookReviews.js
+    │   │   ├── Button.js
+    │   │   ├── Card.js
+    │   │   ├── ErrorBoundary.js
+    │   │   ├── Footer.js
+    │   │   ├── GoodReadsSearch.css
+    │   │   ├── GoodReadsSearch.js
+    │   │   ├── GoogleAuth.js
+    │   │   ├── GoogleBooksSearch.css
+    │   │   ├── GoogleBooksSearch.js
+    │   │   ├── LoadingSpinner.js
+    │   │   ├── LocationFilter.js
+    │   │   ├── LocationPicker.js
+    │   │   ├── Navbar.js
+    │   │   ├── NotificationCenter.js
+    │   │   ├── OtpDeliveryOption.js
+    │   │   ├── PageTransition.js
+    │   │   ├── ProfileWizard.js
+    │   │   ├── ReadingProgressCard.css
+    │   │   ├── ReadingProgressCard.js
+    │   │   ├── ReportButton.js
+    │   │   ├── ReportForm.js
+    │   │   ├── ReviewForm.js
+    │   │   ├── ScrollAnimation.js
+    │   │   ├── UpgradePrompt.js
+    │   │   ├── public
+    │   │   │   ├── PublicPageLayout.js
+    │   │   │   └── PublicSection.js
+    │   │   └── seo
+    │   │       └── SeoHead.js
+    │   ├── contexts
+    │   │   ├── AuthContext.js
+    │   │   ├── NotificationContext.js
+    │   │   └── ThemeContext.js
+    │   ├── index.js
+    │   ├── pages
+    │   │   ├── AboutPage.js
+    │   │   ├── Achievements.css
+    │   │   ├── Achievements.js
+    │   │   ├── AddReview.css
+    │   │   ├── AddReview.js
+    │   │   ├── AdminContent.js
+    │   │   ├── AdminReports.js
+    │   │   ├── AdminSupportInbox.js
+    │   │   ├── BlogPage.js
+    │   │   ├── BlogPostPage.js
+    │   │   ├── BookDetailsPage.css
+    │   │   ├── BookDetailsPage.js
+    │   │   ├── CareerDetailsPage.js
+    │   │   ├── CareersPage.js
+    │   │   ├── Challenges.css
+    │   │   ├── Challenges.js
+    │   │   ├── Chat.js
+    │   │   ├── Chats.js
+    │   │   ├── ClubCreationForm.css
+    │   │   ├── ClubCreationForm.js
+    │   │   ├── ClubDetails.css
+    │   │   ├── ClubDetails.js
+    │   │   ├── ClubList.css
+    │   │   ├── ClubList.js
+    │   │   ├── CommunityGuidelinesPage.js
+    │   │   ├── ContactPage.js
+    │   │   ├── CookiePolicyPage.js
+    │   │   ├── CreateBook.css
+    │   │   ├── CreateBook.js
+    │   │   ├── FaqPage.js
+    │   │   ├── FeedbackPage.js
+    │   │   ├── GroupChat.css
+    │   │   ├── GroupChat.js
+    │   │   ├── HelpCenterPage.js
+    │   │   ├── Home.css
+    │   │   ├── Home.js
+    │   │   ├── Login.js
+    │   │   ├── MatchSuggestions.js
+    │   │   ├── Matches.js
+    │   │   ├── PasswordReset.js
+    │   │   ├── PasswordResetRequest.js
+    │   │   ├── PressKitPage.js
+    │   │   ├── PrivacyPolicyPage.js
+    │   │   ├── ProfileSetup.js
+    │   │   ├── ProfileView.js
+    │   │   ├── PublicPages.css
+    │   │   ├── ReadingProgress.css
+    │   │   ├── ReadingProgress.js
+    │   │   ├── Register.js
+    │   │   ├── ReportUser.js
+    │   │   ├── SearchBooks.css
+    │   │   ├── SearchBooks.js
+    │   │   ├── TermsPage.js
+    │   │   └── publicConstants.js
+    │   ├── stompClient.js
+    │   └── styles.css
+    ├── vercel.json
+    └── vite.config.js
+
+39 directories, 280 files

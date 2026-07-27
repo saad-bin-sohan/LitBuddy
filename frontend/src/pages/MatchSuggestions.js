@@ -75,6 +75,16 @@ const MatchSuggestions = () => {
             {typeof user.dist === 'object' && user.dist.calculated && (
               <p>Distance: {(user.dist.calculated / 1000).toFixed(1)} km</p>
             )}
+            {user.bio && <p>{user.bio}</p>}
+            {Array.isArray(user.favoriteBooks) && user.favoriteBooks.length > 0 && (
+              <p><strong>Loves reading:</strong> {user.favoriteBooks.join(', ')}</p>
+            )}
+            {Array.isArray(user.preferences?.books) && user.preferences.books.length > 0 && (
+              <p><strong>Into:</strong> {user.preferences.books.join(', ')}</p>
+            )}
+            {Array.isArray(user.answers) && user.answers[0]?.answer && (
+              <p><em>"{user.answers[0].question}"</em> — {user.answers[0].answer}</p>
+            )}
             <div style={{ marginTop: 8 }}>
               <button className="btn btn-primary" onClick={() => handleLike(user._id)}>Like</button>
             </div>

@@ -64,10 +64,29 @@ exports.updateUserProfile = async (req, res) => {
       'favoriteSongs',
       'preferences',
       'answers',
+      // Matching-system refresh: gender is now editable (needed for Google
+      // sign-ups completing their profile, and for existing users migrating
+      // to the wider gender set), plus the new preference fields.
+      'gender',
+      'genderCustom',
+      'interestedIn',
+      'ageRangePreference',
+      'maxDistanceKm',
     ];
     const updates = {};
     for (const k of allowed) {
       if (k in req.body) updates[k] = req.body[k];
+    }
+
+    // Mongoose's per-field min/max validators can't express "min <= max"
+    // across two sibling fields, so that cross-field check happens here.
+    if (
+      updates.ageRangePreference &&
+      typeof updates.ageRangePreference.min === 'number' &&
+      typeof updates.ageRangePreference.max === 'number' &&
+      updates.ageRangePreference.min > updates.ageRangePreference.max
+    ) {
+      return res.status(400).json({ message: 'ageRangePreference.min cannot be greater than max' });
     }
 
     requestLogger.info(

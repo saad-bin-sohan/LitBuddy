@@ -10,6 +10,18 @@
  * of your app. A migration script would be recommended later to normalize existing records.
  */
 
+/**
+ * Matching-system refresh (2026) — run backend/scripts/migrateGenderValues.js
+ * once against production data before deploying this change:
+ *  - `gender` enum widened from ['Male','Female','Other'] to
+ *    ['Woman','Man','Non-binary','Self-described'] + new `genderCustom` field
+ *  - Added `interestedIn` — who this user wants to be shown (empty = no
+ *    preference set, treated as open to everyone, not "matches nobody")
+ *  - Added `ageRangePreference` — mutual age-range filter, defaults wide open
+ *  - Added `maxDistanceKm` — distance is opt-in now (null = no limit),
+ *    replacing the old always-on 50km default in matchController
+ */
+
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
@@ -44,9 +56,30 @@ const userSchema = mongoose.Schema(
     },
     gender: {
       type: String,
-      enum: ['Male', 'Female', 'Other'],
+      enum: ['Woman', 'Man', 'Non-binary', 'Self-described'],
       required: [function () { return !this.isGoogleUser; }, 'Please provide your gender'],
     },
+    // Free-text self-description, meaningful when gender === 'Self-described'.
+    genderCustom: { type: String, trim: true, maxlength: 40, default: '' },
+
+    // Who this user wants to be shown to. Empty array = no preference set yet,
+    // which is treated as "open to everyone" rather than "matches nobody" —
+    // that's deliberate so existing users aren't locked out mid-migration.
+    interestedIn: {
+      type: [{ type: String, enum: ['Woman', 'Man', 'Non-binary'] }],
+      default: [],
+    },
+
+    // Mutual age-range preference. Defaults are wide open (18-100) so nobody
+    // who hasn't set a real preference gets accidentally filtered out.
+    ageRangePreference: {
+      min: { type: Number, default: 18, min: 18 },
+      max: { type: Number, default: 100, min: 18 },
+    },
+
+    // Distance is opt-in now: null means no distance limit at all, replacing
+    // the old behaviour of always defaulting to a 50km radius.
+    maxDistanceKm: { type: Number, default: null, min: 1, max: 500 },
 
     // Google OAuth fields
     googleId: { type: String, unique: true, sparse: true },
