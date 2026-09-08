@@ -99,6 +99,7 @@
 .public-btn-primary:hover {
   background: var(--color-primary-hover);
   border-color: var(--color-primary-hover);
+  color: var(--color-btn-primary-text);
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
 }
@@ -111,6 +112,7 @@
 
 .public-btn-secondary:hover {
   border-color: var(--color-primary);
+  color: var(--color-text);
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
 }

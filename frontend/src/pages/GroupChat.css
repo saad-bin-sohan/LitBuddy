@@ -137,6 +137,7 @@
 
 .attachment-link:hover {
   background: var(--color-secondary);
+  color: var(--color-text);
 }
 
 .attachment-actions {
