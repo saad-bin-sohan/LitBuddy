@@ -40,7 +40,7 @@ function getWsTokenTtlSeconds() {
 // @route POST /api/auth/register
 // @access Public
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, phone, password, age, gender, acceptedTerms } = req.body;
+  const { name, email, phone, password, age, gender, genderCustom, acceptedTerms } = req.body;
 
   // required fields
   if (!name || !password || !age || !gender || acceptedTerms !== true) {
@@ -81,6 +81,10 @@ const registerUser = asyncHandler(async (req, res) => {
     password,
     age,
     gender,
+    // Only meaningful when gender === 'Self-described'; the schema default
+    // ('') covers every other case. Mirrors profileController's handling
+    // of the same field for profile edits.
+    genderCustom: genderCustom || '',
     // Ensure new users are readers by default; do not allow role/isAdmin in public registration
     role: 'reader',
     isAdmin: false,

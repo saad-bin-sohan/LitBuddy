@@ -4,15 +4,13 @@ import { updateProfile } from '../api/profileApi';
 import { AuthContext } from '../contexts/AuthContext';
 import LocationPicker from './LocationPicker';
 import { useNavigate } from 'react-router-dom';
+import { GENDER_OPTIONS, INTERESTED_IN_OPTIONS } from '../constants/gender';
 
 const PREDEFINED_QUESTIONS = [
   { id: 'q1', text: 'What book changed you the most?' },
   { id: 'q2', text: 'Your top comfort song?' },
   { id: 'q3', text: 'One quote you live by?' },
 ];
-
-const GENDER_OPTIONS = ['Woman', 'Man', 'Non-binary', 'Self-described'];
-const INTERESTED_IN_OPTIONS = ['Woman', 'Man', 'Non-binary'];
 
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {

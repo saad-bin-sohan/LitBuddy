@@ -7,6 +7,7 @@ import { AuthContext } from '../contexts/AuthContext';
 import { IS_GOOGLE_AUTH_ENABLED } from '../api/httpClient';
 import Button from '../components/Button';
 import GoogleAuth from '../components/GoogleAuth';
+import { GENDER_OPTIONS } from '../constants/gender';
 
 const Register = () => {
   const { setUser } = useContext(AuthContext);
@@ -17,6 +18,7 @@ const Register = () => {
     password: '',
     age: '',
     gender: '',
+    genderCustom: '',
     acceptedTerms: false
   });
   const [error, setError] = useState('');
@@ -40,7 +42,14 @@ const Register = () => {
     }
 
     try {
-      const data = await register(form);
+      const payload = {
+        ...form,
+        // Only meaningful for one option; matches the guard ProfileWizard
+        // applies on profile edits so a value typed earlier can't linger
+        // after the person switches away from 'Self-described'.
+        genderCustom: form.gender === 'Self-described' ? form.genderCustom : '',
+      };
+      const data = await register(payload);
       setUser(data.user);
     } catch (err) {
       setError(err.message);
@@ -213,13 +222,35 @@ const Register = () => {
                 required
               >
                 <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-                <option value="Prefer not to say">Prefer not to say</option>
+                {GENDER_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
+
+          {/* Self-described detail — only relevant for that one option.
+              Optional, same as its counterpart in the profile editor. */}
+          {form.gender === 'Self-described' && (
+            <div className="form-field">
+              <label htmlFor="genderCustom" className="form-label">
+                
+              </label>
+              <input
+                id="genderCustom"
+                name="genderCustom"
+                type="text"
+                placeholder="Describe your gender (optional)"
+                value={form.genderCustom}
+                onChange={handleChange}
+                className="form-input"
+                maxLength={40}
+                autoComplete="off"
+              />
+            </div>
+          )}
 
           {/* Terms and Conditions */}
           <div className="form-field checkbox-field">

@@ -10,13 +10,17 @@
  *      node backend/scripts/promoteAdmin.js --id 64a1b2c3d4e5f6a7b8c9d0e1
  *
  *  - Create & promote a new admin if email not found:
- *      node backend/scripts/promoteAdmin.js admin@example.com --create --name "Admin Name" --password "StrongP@ss1" --age 30 --gender Other
+ *      node backend/scripts/promoteAdmin.js admin@example.com --create --name "Admin Name" --password "StrongP@ss1" --age 30 --gender Man
  *
  * Notes:
  *  - This script reads backend/.env (so make sure MONGO_URI or similar is set there).
  *  - The script sets both isAdmin = true and role = 'admin'.
  *  - It uses the app's User model (so pre-save hooks like password hashing remain intact).
  *  - Remove or restrict this script after use.
+ *  - --gender accepts the current values (Woman/Man/Non-binary/Self-described)
+ *    or one of the pre-2026 values (Male/Female/Other), which are normalized
+ *    automatically — see backend/config/genderOptions.js. Anything else, or
+ *    no --gender flag at all, falls back to 'Self-described'.
  */
 
 const path = require('path');
@@ -28,13 +32,14 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 // Resolve the app model relative to this script (backend/models/userModel.js)
 const User = require('../models/userModel');
+const { GENDER_OPTIONS, LEGACY_GENDER_MAP } = require('../config/genderOptions');
 
 const argv = process.argv.slice(2);
 
 function usageAndExit(msg) {
   if (msg) console.error(msg);
   console.error('\nUsage: ');
-  console.error('  node backend/scripts/promoteAdmin.js <email> [--create] [--name "Full Name"] [--password "pass"] [--age 30] [--gender Other]');
+  console.error('  node backend/scripts/promoteAdmin.js <email> [--create] [--name "Full Name"] [--password "pass"] [--age 30] [--gender Man]');
   console.error('  node backend/scripts/promoteAdmin.js --id <userId> [--force]');
   process.exit(msg ? 1 : 0);
 }
@@ -47,7 +52,7 @@ let create = false;
 let name = null;
 let password = null;
 let age = 30;
-let gender = 'Other';
+let gender = 'Self-described';
 let force = false;
 
 for (let i = 0; i < argv.length; i++) {
@@ -95,6 +100,20 @@ function genPassword(len = 12) {
   return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
 }
 
+// Accepts a current GENDER_OPTIONS value as-is, transparently upgrades a
+// pre-2026 value (Male/Female/Other) via LEGACY_GENDER_MAP, and falls back
+// to 'Self-described' for anything else — this script is an interactive
+// CLI tool, so it stays forgiving of a mistyped or outdated flag rather
+// than crashing the way the User model's own enum validator would.
+function normalizeGender(value) {
+  if (GENDER_OPTIONS.includes(value)) return value;
+  if (value && LEGACY_GENDER_MAP[value]) return LEGACY_GENDER_MAP[value];
+  if (value) {
+    console.warn(`Warning: "${value}" isn't a recognized gender value; using 'Self-described' instead.`);
+  }
+  return 'Self-described';
+}
+
 async function promoteById(id) {
   const u = await User.findById(id);
   if (!u) {
@@ -136,7 +155,7 @@ async function promoteByEmail(em) {
     email: em,
     password: pwd,
     age: Math.max(18, age || 30),
-    gender: ['Male', 'Female', 'Other'].includes(gender) ? gender : 'Other',
+    gender: normalizeGender(gender),
     role: 'admin',
     isAdmin: true,
   };

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const User = require('../models/userModel');
+const { LEGACY_GENDER_MAP } = require('../config/genderOptions');
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/litbuddy', {
@@ -12,11 +13,11 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/litbuddy', 
 // current schema no longer lists them, so `find()` can still match on them —
 // only `save()` validates against the new enum, which is why this script
 // rewrites each value before anything else touches these documents.
-const GENDER_MIGRATION_MAP = {
-  Male: 'Man',
-  Female: 'Woman',
-  Other: 'Self-described',
-};
+//
+// The mapping itself now lives in backend/config/genderOptions.js (single
+// source of truth, also reused by scripts/promoteAdmin.js) — kept as a
+// local alias here so nothing else in this file has to change.
+const GENDER_MIGRATION_MAP = LEGACY_GENDER_MAP;
 
 async function migrateGenderValues() {
   try {

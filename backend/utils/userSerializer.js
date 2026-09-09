@@ -20,6 +20,7 @@ function sanitizeUserForResponse(user) {
     phone: u.phone,
     age: u.age,
     gender: u.gender,
+    genderCustom: u.genderCustom || '',
     bio: u.bio,
     favoriteBooks: u.favoriteBooks,
     favoriteSongs: u.favoriteSongs,

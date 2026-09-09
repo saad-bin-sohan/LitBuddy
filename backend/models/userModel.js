@@ -20,10 +20,18 @@
  *  - Added `ageRangePreference` — mutual age-range filter, defaults wide open
  *  - Added `maxDistanceKm` — distance is opt-in now (null = no limit),
  *    replacing the old always-on 50km default in matchController
+ *
+ * 2026-09 fix: the widened `gender` enum above was never mirrored into
+ * frontend/src/pages/Register.js, so every sign-up submitted a retired
+ * value (Male/Female/Other) and failed this validator. The enum and the
+ * interestedIn list are now sourced from backend/config/genderOptions.js
+ * (mirrored on the frontend at frontend/src/constants/gender.js) so the
+ * two can't drift apart silently again.
  */
 
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const { GENDER_OPTIONS, INTERESTED_IN_OPTIONS } = require('../config/genderOptions');
 
 const answerSchema = new mongoose.Schema(
   {
@@ -56,7 +64,7 @@ const userSchema = mongoose.Schema(
     },
     gender: {
       type: String,
-      enum: ['Woman', 'Man', 'Non-binary', 'Self-described'],
+      enum: GENDER_OPTIONS,
       required: [function () { return !this.isGoogleUser; }, 'Please provide your gender'],
     },
     // Free-text self-description, meaningful when gender === 'Self-described'.
@@ -66,7 +74,7 @@ const userSchema = mongoose.Schema(
     // which is treated as "open to everyone" rather than "matches nobody" —
     // that's deliberate so existing users aren't locked out mid-migration.
     interestedIn: {
-      type: [{ type: String, enum: ['Woman', 'Man', 'Non-binary'] }],
+      type: [{ type: String, enum: INTERESTED_IN_OPTIONS }],
       default: [],
     },
 
