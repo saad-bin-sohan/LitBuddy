@@ -5,24 +5,6 @@ import { NotificationContext } from '../contexts/NotificationContext';
 const NotificationCenter = () => {
   const { notifications = [], markRead, unreadCount } = useContext(NotificationContext);
   const [open, setOpen] = useState(false);
-  const [hovered, setHovered] = useState(false);
-
-  const buttonStyle = {
-    position: 'relative',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    background: hovered ? 'rgba(var(--color-border-rgb), 0.22)' : 'rgba(var(--color-border-rgb), 0.12)',
-    border: '1px solid rgba(var(--color-border-rgb), 0.3)',
-    color: 'inherit',
-    cursor: 'pointer',
-    transition: 'transform 140ms ease, background 200ms ease, box-shadow 200ms ease',
-    boxShadow: hovered ? '0 6px 18px rgba(0,0,0,0.12)' : '0 3px 10px rgba(0,0,0,0.12)',
-    transform: hovered ? 'translateY(-1px)' : 'translateY(0)'
-  };
 
   const badgeStyle = {
     position: 'absolute',
@@ -44,6 +26,9 @@ const NotificationCenter = () => {
     border: '1px solid rgba(var(--color-text-rgb), 0.4)'
   };
 
+  // Matches .profile-dropdown-menu's border / radius / shadow / open
+  // animation so the two dropdown-style panels in the navbar feel like
+  // one consistent system rather than two separately-styled ones.
   const panelStyle = {
     position: 'absolute',
     top: 'calc(100% + 10px)',
@@ -53,12 +38,13 @@ const NotificationCenter = () => {
     maxHeight: 'min(420px, calc(100dvh - 120px))',
     overflowY: 'auto',
     background: 'var(--color-surface-elevated, var(--color-surface))',
-    boxShadow: '0 12px 28px rgba(0,0,0,0.15)',
-    borderRadius: 14,
+    boxShadow: 'var(--shadow-2xl)',
+    borderRadius: 'var(--radius-xl)',
     padding: 12,
     zIndex: 1000,
-    border: '1px solid var(--color-border)',
-    boxSizing: 'border-box'
+    border: '1px solid var(--color-card-border)',
+    boxSizing: 'border-box',
+    animation: 'slideDown 0.2s var(--ease-standard)'
   };
 
   const itemStyle = {
@@ -71,16 +57,12 @@ const NotificationCenter = () => {
   return (
     <div style={{ position: 'relative', display: 'inline-block', marginLeft: 0, flexShrink: 0 }}>
       <button
+        className="nav-icon-btn"
         onClick={() => setOpen((s) => !s)}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        style={buttonStyle}
         title="Notifications"
         aria-label="Notifications"
       >
         <svg
-          width="22"
-          height="22"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"

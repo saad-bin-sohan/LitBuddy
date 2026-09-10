@@ -13,7 +13,7 @@
 
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FiLogOut, FiMessageSquare, FiMenu, FiSun, FiMoon, FiX, FiUser, FiSettings, FiBookOpen, FiUsers, FiSearch, FiAward, FiTrendingUp } from 'react-icons/fi';
+import { FiLogOut, FiMessageSquare, FiMenu, FiSun, FiMoon, FiX, FiUser, FiSettings, FiBookOpen, FiUsers, FiSearch, FiAward, FiTrendingUp, FiGrid } from 'react-icons/fi';
 import { AuthContext } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import NotificationCenter from './NotificationCenter';
@@ -73,57 +73,63 @@ const Navbar = () => {
   return (
     <header className="modern-navbar">
       <div className="nav-container">
-        {/* Brand Section */}
-        <div className="nav-brand">
-          <Link to="/" className="brand-link">
-            <div className="brand-logo">
-              <img src="/logo.png" alt="LitBuddy Logo" className="logo-image" />
-              <div className="logo-glow"></div>
-            </div>
-            <div className="brand-text">
-              <div className="brand-name">LitBuddy</div>
-              <div className="brand-tagline">Read • Connect • Chat</div>
-            </div>
-          </Link>
-        </div>
+        <div className="nav-left">
+          {/* Brand Section */}
+          <div className="nav-brand">
+            <Link to="/" className="brand-link">
+              <div className="brand-logo">
+                <img src="/logo.png" alt="LitBuddy Logo" className="logo-image" />
+                <div className="logo-glow"></div>
+              </div>
+              <div className="brand-text">
+                <div className="brand-name">LitBuddy</div>
+                <div className="brand-tagline">Read • Connect • Chat</div>
+              </div>
+            </Link>
+          </div>
 
-        {/* Desktop Navigation */}
-        <nav className="nav-menu" aria-label="Main navigation">
-          <Link 
-            to="/" 
-            className={`nav-link ${isActive('/') ? 'active' : ''}`}
-          >
-            <FiBookOpen className="nav-icon" />
-            <span>Home</span>
-          </Link>
-          <Link 
-            to="/suggestions" 
-            className={`nav-link ${isActive('/suggestions') ? 'active' : ''}`}
-          >
-            <FiSearch className="nav-icon" />
-            <span>Discover</span>
-          </Link>
-          <Link
-            to="/matches"
-            className={`nav-link ${isActive('/matches') ? 'active' : ''}`}
-          >
-            <FiUsers className="nav-icon" />
-            <span>Matches</span>
-          </Link>
-          <Link
-            to="/clubs"
-            className={`nav-link ${isActive('/clubs') ? 'active' : ''}`}
-          >
-            <FiUsers className="nav-icon" />
-            <span>Clubs</span>
-          </Link>
-        </nav>
+          {/* Desktop Navigation */}
+          <nav className="nav-menu" aria-label="Main navigation">
+            <Link
+              to="/"
+              className={`nav-link ${isActive('/') ? 'active' : ''}`}
+              title="Home"
+            >
+              <FiBookOpen className="nav-icon" />
+              <span className="nav-link-label">Home</span>
+            </Link>
+            <Link
+              to="/suggestions"
+              className={`nav-link ${isActive('/suggestions') ? 'active' : ''}`}
+              title="Discover"
+            >
+              <FiSearch className="nav-icon" />
+              <span className="nav-link-label">Discover</span>
+            </Link>
+            <Link
+              to="/matches"
+              className={`nav-link ${isActive('/matches') ? 'active' : ''}`}
+              title="Matches"
+            >
+              <FiUsers className="nav-icon" />
+              <span className="nav-link-label">Matches</span>
+            </Link>
+            <Link
+              to="/clubs"
+              className={`nav-link ${isActive('/clubs') ? 'active' : ''}`}
+              title="Clubs"
+            >
+              <FiGrid className="nav-icon" />
+              <span className="nav-link-label">Clubs</span>
+            </Link>
+          </nav>
+        </div>
 
         {/* Right Side Actions */}
         <div className="nav-actions">
           {/* Theme Toggle */}
           <button
-            className="theme-toggle"
+            className="nav-icon-btn theme-toggle"
             title="Toggle theme"
             onClick={toggleTheme}
             aria-label="Toggle theme"
@@ -143,27 +149,26 @@ const Navbar = () => {
               </div>
 
               {/* Chats Link */}
-              <Link to="/chats" className="nav-action-btn chats-btn" title="Chats" aria-label="Chats">
+              <Link to="/chats" className="nav-icon-btn nav-action-btn chats-btn" title="Chats" aria-label="Chats">
                 <FiMessageSquare />
-                <span className="action-label"></span>
               </Link>
 
-              {/* Reading Progress Link */}
-              <Link to="/reading-progress" className="nav-action-btn reading-btn" title="Reading Progress" aria-label="Reading Progress">
+              {/* Reading Progress Link — hidden below the Full tier (>=1440px);
+                  still reachable via Quick Links in the profile dropdown. */}
+              <Link to="/reading-progress" className="nav-icon-btn nav-action-btn reading-btn" title="Reading Progress" aria-label="Reading Progress">
                 <FiBookOpen />
-                <span className="action-label"></span>
               </Link>
 
-              {/* Challenges Link */}
-              <Link to="/challenges" className="nav-action-btn challenges-btn" title="Reading Challenges" aria-label="Reading Challenges">
+              {/* Challenges Link — hidden below the Full tier (>=1440px);
+                  still reachable via Quick Links in the profile dropdown. */}
+              <Link to="/challenges" className="nav-icon-btn nav-action-btn challenges-btn" title="Reading Challenges" aria-label="Reading Challenges">
                 <FiAward />
-                <span className="action-label"></span>
               </Link>
 
-              {/* Achievements Link */}
-              <Link to="/achievements" className="nav-action-btn achievements-btn" title="Achievements" aria-label="Achievements">
+              {/* Achievements Link — hidden below the Full tier (>=1440px);
+                  still reachable via Quick Links in the profile dropdown. */}
+              <Link to="/achievements" className="nav-icon-btn nav-action-btn achievements-btn" title="Achievements" aria-label="Achievements">
                 <FiTrendingUp />
-                <span className="action-label"></span>
               </Link>
 
               {/* Profile Dropdown */}
@@ -173,11 +178,12 @@ const Navbar = () => {
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
                   aria-label="Open profile menu"
                   aria-expanded={isProfileDropdownOpen}
+                  title={user.displayName || user.name}
                 >
                   <Avatar src={avatarSrc} name={user.displayName || user.name} size={40} />
                   <div className="profile-info">
                     <div className="profile-name">
-                      {user.displayName || user.name}
+                      <span className="profile-name-text">{user.displayName || user.name}</span>
                       {isAdmin && <span className="admin-badge">Admin</span>}
                     </div>
                     <div className="profile-status">
@@ -212,18 +218,50 @@ const Navbar = () => {
                         <FiUser />
                         <span>Profile</span>
                       </Link>
-                      
+
+                      <hr className="dropdown-divider" />
+                      <div className="dropdown-section-label">Quick Links</div>
+
+                      <Link
+                        to="/reading-progress"
+                        className="dropdown-item"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                      >
+                        <FiBookOpen />
+                        <span>Reading Progress</span>
+                      </Link>
+                      <Link
+                        to="/challenges"
+                        className="dropdown-item"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                      >
+                        <FiAward />
+                        <span>Reading Challenges</span>
+                      </Link>
+                      <Link
+                        to="/achievements"
+                        className="dropdown-item"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                      >
+                        <FiTrendingUp />
+                        <span>Achievements</span>
+                      </Link>
+
                       {isAdmin && (
-                        <Link 
-                          to="/admin/reports" 
-                          className="dropdown-item admin-item"
-                          onClick={() => setIsProfileDropdownOpen(false)}
-                        >
-                          <FiSettings />
-                          <span>Admin Dashboard</span>
-                        </Link>
+                        <>
+                          <hr className="dropdown-divider" />
+                          <Link 
+                            to="/admin/reports" 
+                            className="dropdown-item admin-item"
+                            onClick={() => setIsProfileDropdownOpen(false)}
+                          >
+                            <FiSettings />
+                            <span>Admin Dashboard</span>
+                          </Link>
+                        </>
                       )}
-                      
+
+                      <hr className="dropdown-divider" />
                       <button className="dropdown-item logout-item" onClick={handleLogout}>
                         <FiLogOut />
                         <span>Logout</span>
@@ -248,7 +286,7 @@ const Navbar = () => {
 
           {/* Mobile Menu Toggle */}
           <button 
-            className="mobile-menu-toggle"
+            className="nav-icon-btn mobile-menu-toggle"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle mobile menu"
             aria-expanded={isMobileMenuOpen}
@@ -282,7 +320,7 @@ const Navbar = () => {
               <span>Matches</span>
             </Link>
             <Link to="/clubs" className="mobile-nav-link">
-              <FiUsers />
+              <FiGrid />
               <span>Clubs</span>
             </Link>
             {user && (
