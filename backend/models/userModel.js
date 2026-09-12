@@ -27,11 +27,85 @@
  * interestedIn list are now sourced from backend/config/genderOptions.js
  * (mirrored on the frontend at frontend/src/constants/gender.js) so the
  * two can't drift apart silently again.
+ *
+ * 2026-09 fix: `email`, `phone`, `googleId` and `googleEmail` are
+ * `{ unique: true, sparse: true }` so that any number of users can leave
+ * them blank without colliding with one another. That relies on a
+ * MongoDB subtlety: a sparse index only excludes documents where the
+ * field is completely *absent* -- it does NOT exclude documents where
+ * the field is present with an empty string. registerUser() was writing
+ * `phone: ''`/`email: ''` (straight from an optional, blank form field)
+ * instead of omitting the key, so the first blank sign-up silently
+ * planted a `phone: ""` document, and the very next blank sign-up hit
+ * `E11000 duplicate key error ... dup key: { phone: "" }`. The
+ * `undefinedIfBlank` setter below normalizes blank/whitespace-only input
+ * to `undefined` at the schema level (verified against the exact
+ * mongoose@9.10.0 in package.json: this correctly makes Mongoose omit
+ * the key from the saved document entirely, for both `.create()`/
+ * `.save()` and any direct field assignment), so the sparse index never
+ * sees an indexable value for users who skip the field. The matching
+ * `stripBlankUniqueFields` query middleware gives the same protection to
+ * any current or future `findByIdAndUpdate`/`findOneAndUpdate`/
+ * `updateOne`/`updateMany` call, since Mongoose setters only run for
+ * document-style writes, not raw query updates. See
+ * backend/scripts/fixBlankUniqueFields.js for the one-time cleanup of
+ * documents that already have a stored empty string from before this
+ * fix, and backend/tests/userModel.uniqueFields.test.js for coverage.
  */
 
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { GENDER_OPTIONS, INTERESTED_IN_OPTIONS } = require('../config/genderOptions');
+
+/**
+ * Normalizes an optional unique-identifier field so "not provided" is
+ * always represented as `undefined` instead of an empty (or
+ * whitespace-only) string. See the file-level comment above for why this
+ * matters for sparse unique indexes. Non-blank values are trimmed and
+ * otherwise left untouched (no case-folding, so this does not change
+ * lookup/login semantics for any of these fields).
+ */
+function undefinedIfBlank(value) {
+  if (value === null || value === undefined) return undefined;
+  const trimmed = String(value).trim();
+  return trimmed === '' ? undefined : trimmed;
+}
+
+// Fields that are `{ unique: true, sparse: true }` on this schema and
+// therefore need the blank -> undefined normalization on every write
+// path (document saves via undefinedIfBlank above, and query-style
+// updates via stripBlankUniqueFields below).
+const SPARSE_UNIQUE_FIELDS = ['email', 'phone', 'googleId', 'googleEmail'];
+
+/**
+ * Applies the same blank -> "omit the field" normalization as
+ * `undefinedIfBlank`, but for query-style updates (`findByIdAndUpdate`,
+ * `findOneAndUpdate`, `updateOne`, `updateMany`), which bypass Mongoose
+ * document setters entirely because no document instance is constructed.
+ * Mutates `update` in place -- moving any blank value for a tracked
+ * field into `$unset` -- which is safe because Mongoose Query objects
+ * hand middleware a live reference via `getUpdate()`, not a copy.
+ */
+function stripBlankUniqueFields(update) {
+  if (!update || typeof update !== 'object') return update;
+
+  const targets = [update, update.$set].filter((t) => t && typeof t === 'object');
+  for (const target of targets) {
+    for (const field of SPARSE_UNIQUE_FIELDS) {
+      if (!Object.prototype.hasOwnProperty.call(target, field)) continue;
+      const raw = target[field];
+      const isBlank = raw === null || raw === undefined || String(raw).trim() === '';
+      if (isBlank) {
+        delete target[field];
+        update.$unset = update.$unset && typeof update.$unset === 'object' ? update.$unset : {};
+        update.$unset[field] = '';
+      } else {
+        target[field] = String(raw).trim();
+      }
+    }
+  }
+  return update;
+}
 
 const answerSchema = new mongoose.Schema(
   {
@@ -49,8 +123,8 @@ const userSchema = mongoose.Schema(
     displayName: { type: String, default: '' },
 
     // email optional (either email or phone must be provided at registration)
-    email: { type: String, unique: true, sparse: true },
-    phone: { type: String, unique: true, sparse: true },
+    email: { type: String, unique: true, sparse: true, set: undefinedIfBlank },
+    phone: { type: String, unique: true, sparse: true, set: undefinedIfBlank },
 
     password: {
       type: String,
@@ -90,8 +164,8 @@ const userSchema = mongoose.Schema(
     maxDistanceKm: { type: Number, default: null, min: 1, max: 500 },
 
     // Google OAuth fields
-    googleId: { type: String, unique: true, sparse: true },
-    googleEmail: { type: String, unique: true, sparse: true },
+    googleId: { type: String, unique: true, sparse: true, set: undefinedIfBlank },
+    googleEmail: { type: String, unique: true, sparse: true, set: undefinedIfBlank },
     googleProfilePicture: { type: String },
     isGoogleUser: { type: Boolean, default: false },
 
@@ -162,6 +236,21 @@ const userSchema = mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Give findByIdAndUpdate/findOneAndUpdate/updateOne/updateMany the same
+// blank -> omitted-field protection that the `set: undefinedIfBlank`
+// SchemaType option gives document saves (see stripBlankUniqueFields
+// above). No current controller updates these fields this way, but this
+// closes off the entire bug class for any future one that does.
+userSchema.pre('findOneAndUpdate', function () {
+  stripBlankUniqueFields(this.getUpdate());
+});
+userSchema.pre('updateOne', function () {
+  stripBlankUniqueFields(this.getUpdate());
+});
+userSchema.pre('updateMany', function () {
+  stripBlankUniqueFields(this.getUpdate());
+});
 
 // 2dsphere index for geo queries
 userSchema.index({ location: '2dsphere' });
@@ -271,4 +360,14 @@ userSchema.set('toObject', {
 });
 
 // Export model
-module.exports = mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
+
+// Exposed as static properties (not a separate export shape) purely so
+// backend/tests/userModel.uniqueFields.test.js can unit-test the real
+// normalization logic directly instead of a re-implementation that could
+// silently drift out of sync. Every existing `require('../models/userModel')`
+// call site keeps working unchanged, since `User` is still the model itself.
+User.undefinedIfBlank = undefinedIfBlank;
+User.stripBlankUniqueFields = stripBlankUniqueFields;
+
+module.exports = User;
