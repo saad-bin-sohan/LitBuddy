@@ -106,10 +106,15 @@ export async function apiFetch(path, options = {}) {
 }
 
 export async function apiJson(path, options = {}) {
-  const response = await apiFetch(path, options);
+  // `errorMessage` is an optional fallback used only when the server
+  // response has no `message` field of its own; it's not a fetch option,
+  // so it's destructured out before the rest of `options` is spread into
+  // the request.
+  const { errorMessage, ...fetchOptions } = options;
+  const response = await apiFetch(path, fetchOptions);
   const data = await parseJsonSafe(response);
   if (!response.ok) {
-    const error = new Error(data.message || 'Request failed');
+    const error = new Error(data.message || errorMessage || 'Request failed');
     error.status = response.status;
     error.body = data;
     throw error;

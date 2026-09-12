@@ -1,4 +1,14 @@
-import { API_URL } from './httpClient';
+// frontend/src/api/adminContentApi.js
+//
+// 2026-09 fix: the shared request() helper built its own raw fetch()
+// instead of going through the shared apiFetch() helper in ./httpClient,
+// so it never sent the 'X-Requested-With' header
+// backend/middleware/csrfMiddleware.js requires on mutating requests --
+// every create/update/delete call below (blog posts, careers, press
+// resources) was silently rejected with a 403 before reaching the
+// controller. Fixing this one shared helper fixes all of them.
+
+import { apiFetch } from './httpClient';
 
 async function parseJsonSafe(res) {
   try {
@@ -20,8 +30,7 @@ function toQuery(params = {}) {
 }
 
 async function request(path, options = {}) {
-  const res = await fetch(`${API_URL}${path}`, {
-    credentials: 'include',
+  const res = await apiFetch(path, {
     ...options,
     headers: {
       'Content-Type': 'application/json',

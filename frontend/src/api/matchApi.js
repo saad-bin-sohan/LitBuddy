@@ -1,22 +1,22 @@
 // frontend/src/api/matchApi.js
+//
+// 2026-09 fix: likeUser() built its own raw fetch() (POST) instead of
+// going through the shared apiJson() helper in ./httpClient, so it never
+// sent the 'X-Requested-With' header backend/middleware/csrfMiddleware.js
+// requires on mutating requests -- every "like" a user made was silently
+// rejected with a 403 before reaching the controller. Routed through
+// apiJson() here (and getSuggestions/getMatches migrated alongside it
+// for consistency, since they were duplicating a local parseJsonSafe
+// that ./httpClient already provides -- their GET requests were never
+// affected by CSRF either way).
 
-import { API_URL } from './httpClient';
-
-// Helper to parse JSON safely
-async function parseJsonSafe(res) {
-  try {
-    return await res.json();
-  } catch {
-    return {};
-  }
-}
+import { apiJson } from './httpClient';
 
 /**
  * Get suggestions with optional location filter.
  * Accepts an optional object: { lat, lng, distanceKm, limit }
  */
 export const getSuggestions = async ({ lat, lng, distanceKm, limit } = {}) => {
-  let url = `${API_URL}/match/suggestions`;
   const params = new URLSearchParams();
   if (typeof lat !== 'undefined' && typeof lng !== 'undefined') {
     params.append('lat', lat);
@@ -26,38 +26,16 @@ export const getSuggestions = async ({ lat, lng, distanceKm, limit } = {}) => {
   if (typeof limit !== 'undefined') params.append('limit', limit);
 
   const query = params.toString();
-  if (query) url += `?${query}`;
+  const path = query ? `/match/suggestions?${query}` : '/match/suggestions';
 
-  const res = await fetch(url, {
-    credentials: 'include', // Use cookies instead of Authorization header
-  });
-
-  const data = await parseJsonSafe(res);
-  if (!res.ok) {
-    const err = new Error(data.message || 'Failed to fetch suggestions');
-    err.status = res.status;
-    err.body = data;
-    throw err;
-  }
-  return data;
+  return apiJson(path, { errorMessage: 'Failed to fetch suggestions' });
 };
 
-export const likeUser = async (userId) => {
-  const res = await fetch(`${API_URL}/match/like/${userId}`, {
+export const likeUser = async (userId) =>
+  apiJson(`/match/like/${userId}`, {
     method: 'POST',
-    credentials: 'include', // Use cookies instead of Authorization header
+    errorMessage: 'Failed to like user',
   });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.message || 'Failed to like user');
-  }
-  return res.json();
-};
 
-export const getMatches = async () => {
-  const res = await fetch(`${API_URL}/match`, {
-    credentials: 'include', // Use cookies instead of Authorization header
-  });
-  if (!res.ok) throw new Error('Failed to fetch matches');
-  return res.json();
-};
+export const getMatches = async () =>
+  apiJson('/match', { errorMessage: 'Failed to fetch matches' });

@@ -1,84 +1,68 @@
-import { API_URL } from './httpClient';
+// frontend/src/api/bookApi.js
+//
+// 2026-09 fix: createBook/updateBook/updateBookVisibility/deleteBook each
+// built their own raw fetch() instead of going through the shared
+// apiJson() helper in ./httpClient, so none of them sent the
+// 'X-Requested-With' header backend/middleware/csrfMiddleware.js
+// requires on mutating requests -- adding, editing, hiding, and deleting
+// a book were all silently rejected with a 403 before reaching the
+// controller. searchBooks/getBookById/getMyBooks were GET-only and were
+// never affected by CSRF, but are migrated alongside the rest here too
+// so the whole file shares one consistent, safer request pattern
+// (apiJson never throws on an unparsable/empty body the way a bare
+// `res.json()` could).
+
+import { apiJson } from './httpClient';
 
 export const bookApi = {
   // Create a new book
   createBook: async (bookData) => {
-    const res = await fetch(`${API_URL}/books`, {
+    const data = await apiJson('/books', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(bookData),
-      credentials: 'include',
+      errorMessage: 'Failed to create book',
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to create book');
     return data.book || data;
   },
 
   // Search books
   searchBooks: async (params) => {
     const queryString = new URLSearchParams(params).toString();
-    const res = await fetch(`${API_URL}/books/search?${queryString}`, {
-      credentials: 'include',
+    return apiJson(`/books/search?${queryString}`, {
+      errorMessage: 'Failed to search books',
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to search books');
-    return data;
   },
 
   // Get book by ID
-  getBookById: async (bookId) => {
-    const res = await fetch(`${API_URL}/books/${bookId}`, {
-      credentials: 'include',
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to get book');
-    return data;
-  },
+  getBookById: async (bookId) =>
+    apiJson(`/books/${bookId}`, { errorMessage: 'Failed to get book' }),
 
   // Update book
-  updateBook: async (bookId, bookData) => {
-    const res = await fetch(`${API_URL}/books/${bookId}`, {
+  updateBook: async (bookId, bookData) =>
+    apiJson(`/books/${bookId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(bookData),
-      credentials: 'include',
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to update book');
-    return data;
-  },
+      errorMessage: 'Failed to update book',
+    }),
 
   // Update book visibility
-  updateBookVisibility: async (bookId, visibility) => {
-    const res = await fetch(`${API_URL}/books/${bookId}/visibility`, {
+  updateBookVisibility: async (bookId, visibility) =>
+    apiJson(`/books/${bookId}/visibility`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ visibility }),
-      credentials: 'include',
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to update book visibility');
-    return data;
-  },
+      errorMessage: 'Failed to update book visibility',
+    }),
 
   // Delete book
-  deleteBook: async (bookId) => {
-    const res = await fetch(`${API_URL}/books/${bookId}`, {
+  deleteBook: async (bookId) =>
+    apiJson(`/books/${bookId}`, {
       method: 'DELETE',
-      credentials: 'include',
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to delete book');
-    return data;
-  },
+      errorMessage: 'Failed to delete book',
+    }),
 
   // Get user's books
-  getMyBooks: async () => {
-    const res = await fetch(`${API_URL}/books`, {
-      credentials: 'include',
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to get books');
-    return data;
-  }
+  getMyBooks: async () => apiJson('/books', { errorMessage: 'Failed to get books' }),
 };

@@ -1,23 +1,22 @@
-import { API_URL } from './httpClient';
+// frontend/src/api/supportApi.js
+//
+// 2026-09 fix: the shared postSubmission() helper built its own raw
+// fetch() (POST) instead of going through the shared apiJson() helper in
+// ./httpClient, so neither sendContact nor sendFeedback (both of which
+// call postSubmission) sent the 'X-Requested-With' header
+// backend/middleware/csrfMiddleware.js requires on mutating requests --
+// submitting the contact form and the feedback form were both silently
+// rejected with a 403 before reaching the controller.
 
-async function parseJsonSafe(res) {
-  try {
-    return await res.json();
-  } catch {
-    return {};
-  }
-}
+import { apiJson } from './httpClient';
 
 async function postSubmission(path, payload) {
-  const res = await fetch(`${API_URL}${path}`, {
+  return apiJson(path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
-    credentials: 'include',
+    errorMessage: 'Failed to submit request',
   });
-  const data = await parseJsonSafe(res);
-  if (!res.ok) throw new Error(data.message || 'Failed to submit request');
-  return data;
 }
 
 export function sendContact(payload) {

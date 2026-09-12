@@ -1,56 +1,40 @@
-import { API_URL } from './httpClient';
+// frontend/src/api/goodreadsApi.js
+//
+// 2026-09 fix: importBook built its own raw fetch() (POST) instead of
+// going through the shared apiJson() helper in ./httpClient, so it never
+// sent the 'X-Requested-With' header backend/middleware/csrfMiddleware.js
+// requires on mutating requests -- importing a book from GoodReads was
+// silently rejected with a 403 before reaching the controller. The
+// search/lookup functions were GET-only and unaffected, but are migrated
+// alongside the rest for a single consistent pattern.
+
+import { apiJson } from './httpClient';
 
 export const goodreadsApi = {
   // Search books on GoodReads
-  searchBooks: async (query, page = 1) => {
-    const res = await fetch(`${API_URL}/goodreads/search?query=${encodeURIComponent(query)}&page=${page}`, {
-      credentials: 'include',
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to search GoodReads');
-    return data;
-  },
+  searchBooks: async (query, page = 1) =>
+    apiJson(`/goodreads/search?query=${encodeURIComponent(query)}&page=${page}`, {
+      errorMessage: 'Failed to search GoodReads',
+    }),
 
   // Get book details by GoodReads ID
-  getBookById: async (goodreadsId) => {
-    const res = await fetch(`${API_URL}/goodreads/book/${goodreadsId}`, {
-      credentials: 'include',
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to get book details');
-    return data;
-  },
+  getBookById: async (goodreadsId) =>
+    apiJson(`/goodreads/book/${goodreadsId}`, { errorMessage: 'Failed to get book details' }),
 
   // Get book details by ISBN
-  getBookByIsbn: async (isbn) => {
-    const res = await fetch(`${API_URL}/goodreads/book/isbn/${isbn}`, {
-      credentials: 'include',
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to get book by ISBN');
-    return data;
-  },
+  getBookByIsbn: async (isbn) =>
+    apiJson(`/goodreads/book/isbn/${isbn}`, { errorMessage: 'Failed to get book by ISBN' }),
 
   // Get author information
-  getAuthor: async (authorId) => {
-    const res = await fetch(`${API_URL}/goodreads/author/${authorId}`, {
-      credentials: 'include',
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to get author information');
-    return data;
-  },
+  getAuthor: async (authorId) =>
+    apiJson(`/goodreads/author/${authorId}`, { errorMessage: 'Failed to get author information' }),
 
   // Import book from GoodReads
-  importBook: async (importData) => {
-    const res = await fetch(`${API_URL}/goodreads/import`, {
+  importBook: async (importData) =>
+    apiJson('/goodreads/import', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(importData),
-      credentials: 'include',
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to import book');
-    return data;
-  }
+      errorMessage: 'Failed to import book',
+    }),
 };

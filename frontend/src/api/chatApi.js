@@ -1,30 +1,29 @@
 // frontend/src/api/chatApi.js
+//
+// 2026-09 fix: startChat/sendMessage/pauseChat/resumeChat each built
+// their own raw fetch() instead of going through the shared apiFetch()
+// helper in ./httpClient, so none of them sent the 'X-Requested-With'
+// header backend/middleware/csrfMiddleware.js requires on mutating
+// requests -- starting a chat, sending a message, and pausing/resuming a
+// chat were all silently rejected with a 403 before reaching the
+// controller. markAsRead already had the header added by hand (it was
+// the one function in this file fixed after the CSRF middleware shipped)
+// -- that manual fix is preserved here, now alongside the others.
+//
+// Each function's own response-shape/error-message behavior is kept
+// exactly as it was; only the transport (fetch -> apiFetch) changed.
+// getMyChats keeps its own AbortController timeout, sendMessage keeps
+// its FormData body (apiFetch never forces a Content-Type, so the
+// browser still sets the correct multipart boundary automatically).
 
-import { API_URL } from './httpClient';
-
-async function parseJsonSafe(res) {
-  try {
-    const text = await res.text();
-    if (!text) return {};
-    return JSON.parse(text);
-  } catch {
-    try {
-      return await res.json();
-    } catch {
-      return {};
-    }
-  }
-}
+import { apiFetch, parseJsonSafe } from './httpClient';
 
 /**
  * Start (or fetch existing) 1-1 chat with a user
  * POST /api/chat/:userId
  */
 export const startChat = async (userId) => {
-  const res = await fetch(`${API_URL}/chat/${userId}`, {
-    method: 'POST',
-    credentials: 'include', // Use cookies instead of Authorization header
-  });
+  const res = await apiFetch(`/chat/${userId}`, { method: 'POST' });
   const data = await parseJsonSafe(res);
   if (!res.ok) {
     const err = new Error(data.message || 'Failed to start chat');
@@ -43,15 +42,14 @@ export const getMyChats = async () => {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-    
-    const res = await fetch(`${API_URL}/chat`, {
+
+    const res = await apiFetch('/chat', {
       method: 'GET',
-      credentials: 'include', // Use cookies instead of Authorization header
       signal: controller.signal,
     });
-    
+
     clearTimeout(timeoutId);
-    
+
     const data = await parseJsonSafe(res);
     if (!res.ok) {
       const err = new Error(data.message || 'Failed to fetch chats');
@@ -84,9 +82,8 @@ export const sendMessage = async (chatId, text, files = []) => {
       formData.append('attachments', file);
     }
   }
-  const res = await fetch(`${API_URL}/chat/message/${chatId}`, {
+  const res = await apiFetch(`/chat/message/${chatId}`, {
     method: 'POST',
-    credentials: 'include', // Use cookies instead of Authorization header
     body: formData,
   });
   const data = await parseJsonSafe(res);
@@ -104,10 +101,7 @@ export const sendMessage = async (chatId, text, files = []) => {
  * PATCH /api/chat/:chatId/pause
  */
 export const pauseChat = async (chatId) => {
-  const res = await fetch(`${API_URL}/chat/${chatId}/pause`, {
-    method: 'PATCH',
-    credentials: 'include', // Use cookies instead of Authorization header
-  });
+  const res = await apiFetch(`/chat/${chatId}/pause`, { method: 'PATCH' });
   const data = await parseJsonSafe(res);
   if (!res.ok) {
     const err = new Error(data.message || 'Failed to pause chat');
@@ -123,10 +117,7 @@ export const pauseChat = async (chatId) => {
  * PATCH /api/chat/:chatId/resume
  */
 export const resumeChat = async (chatId) => {
-  const res = await fetch(`${API_URL}/chat/${chatId}/resume`, {
-    method: 'PATCH',
-    credentials: 'include', // Use cookies instead of Authorization header
-  });
+  const res = await apiFetch(`/chat/${chatId}/resume`, { method: 'PATCH' });
   const data = await parseJsonSafe(res);
   if (!res.ok) {
     const err = new Error(data.message || 'Failed to resume chat');
@@ -142,12 +133,8 @@ export const resumeChat = async (chatId) => {
  * GET /api/chat/:chatId
  * Your Chat page expects an array (messages), so we return `data`
  */
-// Add this function to your chatApi.js
 export const getChatMessages = async (chatId) => {
-  const res = await fetch(`${API_URL}/chat/${chatId}`, {
-    method: 'GET',
-    credentials: 'include',
-  });
+  const res = await apiFetch(`/chat/${chatId}`, { method: 'GET' });
   const data = await parseJsonSafe(res);
   if (!res.ok) {
     const err = new Error(data.message || 'Failed to fetch chat messages');
@@ -165,11 +152,7 @@ export const getChatMessages = async (chatId) => {
  */
 export const markAsRead = async (chatId) => {
   try {
-    const res = await fetch(`${API_URL}/chat/${chatId}/read`, {
-      method: 'PATCH',
-      credentials: 'include',
-      headers: { 'X-Requested-With': 'XMLHttpRequest' },
-    });
+    const res = await apiFetch(`/chat/${chatId}/read`, { method: 'PATCH' });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       const err = new Error(data.message || 'Failed to mark as read');

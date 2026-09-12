@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import AdminGuard from '../components/AdminGuard';
 import { getAllReports } from '../api/reportApi';
-import { API_URL, fileUrl } from '../api/httpClient';
+import { fileUrl, apiFetch } from '../api/httpClient';
 
 
 
@@ -13,9 +13,14 @@ import { API_URL, fileUrl } from '../api/httpClient';
  *
  * - Uses shared API runtime configuration from httpClient.
  * - Uses getAllReports helper for listing.
- * - Uses direct fetch() to admin endpoints (constructed from BACKEND_API).
+ * - Uses apiFetch() for the admin action endpoints below (suspend/
+ *   unsuspend/reset-reports) so they carry the 'X-Requested-With' header
+ *   backend/middleware/csrfMiddleware.js requires on mutating requests.
+ *   2026-09 fix: these previously used a raw fetch() built from
+ *   BACKEND_API directly, which omitted that header -- every suspend/
+ *   unsuspend/reset-reports action was silently rejected with a 403
+ *   before reaching the controller.
  */
-const BACKEND_API = API_URL;
 
 // Backend enum-ish options (match backend model)
 const STATUS_OPTIONS = ['Pending', 'Reviewed', 'Resolved'];
@@ -65,10 +70,9 @@ const AdminReports = () => {
 
     try {
       setActionLoadingId(userId);
-      const res = await fetch(`${BACKEND_API}/admin/users/${encodeURIComponent(userId)}/suspend`, {
+      const res = await apiFetch(`/admin/users/${encodeURIComponent(userId)}/suspend`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // Use cookies instead of Authorization header
         body: JSON.stringify({ days }),
       });
       if (!res.ok) {
@@ -90,9 +94,8 @@ const AdminReports = () => {
     if (!window.confirm('Unsuspend this user?')) return;
     try {
       setActionLoadingId(userId);
-      const res = await fetch(`${BACKEND_API}/admin/users/${encodeURIComponent(userId)}/unsuspend`, {
+      const res = await apiFetch(`/admin/users/${encodeURIComponent(userId)}/unsuspend`, {
         method: 'PATCH',
-        credentials: 'include', // Use cookies instead of Authorization header
       });
       if (!res.ok) {
         const t = await res.text();
@@ -113,9 +116,8 @@ const AdminReports = () => {
     if (!window.confirm('Reset report count for this user?')) return;
     try {
       setActionLoadingId(userId);
-      const res = await fetch(`${BACKEND_API}/admin/users/${encodeURIComponent(userId)}/reset-reports`, {
+      const res = await apiFetch(`/admin/users/${encodeURIComponent(userId)}/reset-reports`, {
         method: 'PATCH',
-        credentials: 'include', // Use cookies instead of Authorization header
       });
       if (!res.ok) {
         const t = await res.text();

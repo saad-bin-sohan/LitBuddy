@@ -1,7 +1,6 @@
 import React, { useState, useContext } from 'react';
-import axios from 'axios';
 import { AuthContext } from '../contexts/AuthContext';
-import { API_URL } from '../api/httpClient';
+import { apiJson } from '../api/httpClient';
 
 const ReviewForm = ({ bookId, onReviewAdded }) => {
   const { user } = useContext(AuthContext);
@@ -19,19 +18,22 @@ const ReviewForm = ({ bookId, onReviewAdded }) => {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_URL}/reviews`, {
-        bookId,
-        rating,
-        reviewText,
-        spoiler,
-      }, {
+      // 2026-09 fix: this used a raw axios.post() that never sent the
+      // 'X-Requested-With' header backend/middleware/csrfMiddleware.js
+      // requires on mutating requests -- submitting a review was
+      // silently rejected with a 403 before reaching the controller.
+      // apiJson() (used everywhere else in the app) sends it
+      // automatically.
+      const data = await apiJson('/reviews', {
+        method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        withCredentials: true
+        body: JSON.stringify({ bookId, rating, reviewText, spoiler }),
+        errorMessage: 'Failed to add review',
       });
 
-      onReviewAdded(response.data.review);
+      onReviewAdded(data.review);
       setRating(1);
       setReviewText('');
       setSpoiler(false);
@@ -42,6 +44,7 @@ const ReviewForm = ({ bookId, onReviewAdded }) => {
       setLoading(false);
     }
   };
+
 
   return (
     <form onSubmit={handleSubmit}>

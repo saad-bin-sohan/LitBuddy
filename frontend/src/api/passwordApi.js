@@ -1,43 +1,30 @@
 // frontend/src/api/passwordApi.js
+//
+// 2026-09 fix: both functions built their own raw fetch() (POST)
+// instead of going through the shared apiJson() helper in ./httpClient,
+// so neither sent the 'X-Requested-With' header
+// backend/middleware/csrfMiddleware.js requires on mutating requests --
+// requesting a password reset and submitting a new password were both
+// silently rejected with a 403 before reaching the controller (this is
+// a public, unauthenticated flow, but the CSRF check runs on method +
+// Origin, independent of whether the caller is logged in). apiJson()
+// also sends `credentials: 'include'` by default; that's harmless here
+// since these endpoints don't require a session cookie either way.
 
-import { API_URL } from './httpClient';
+import { apiJson } from './httpClient';
 
-async function parseJsonSafe(res) {
-  try {
-    return await res.json();
-  } catch {
-    return {};
-  }
-}
-
-export const requestPasswordReset = async ({ email, recaptchaToken } = {}) => {
-  const res = await fetch(`${API_URL}/password/request`, {
+export const requestPasswordReset = async ({ email, recaptchaToken } = {}) =>
+  apiJson('/password/request', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, recaptchaToken }),
+    errorMessage: 'Failed to request password reset',
   });
-  const data = await parseJsonSafe(res);
-  if (!res.ok) {
-    const err = new Error(data.message || 'Failed to request password reset');
-    err.status = res.status;
-    err.body = data;
-    throw err;
-  }
-  return data;
-};
 
-export const resetPassword = async ({ email, token, newPassword }) => {
-  const res = await fetch(`${API_URL}/password/reset`, {
+export const resetPassword = async ({ email, token, newPassword }) =>
+  apiJson('/password/reset', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, token, newPassword }),
+    errorMessage: 'Password reset failed',
   });
-  const data = await parseJsonSafe(res);
-  if (!res.ok) {
-    const err = new Error(data.message || 'Password reset failed');
-    err.status = res.status;
-    err.body = data;
-    throw err;
-  }
-  return data;
-};

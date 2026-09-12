@@ -1,26 +1,21 @@
 // frontend/src/api/notificationApi.js
-import { API_URL } from './httpClient';
+//
+// 2026-09 fix: markNotificationRead built its own raw fetch() (PATCH)
+// instead of going through the shared apiJson() helper in ./httpClient,
+// so it never sent the 'X-Requested-With' header
+// backend/middleware/csrfMiddleware.js requires on mutating requests --
+// marking a notification as read was silently rejected with a 403
+// before reaching the controller. fetchNotifications (GET) was never
+// affected by CSRF but is migrated alongside it for consistency.
 
-async function parseJsonSafe(res) {
-  try { return await res.json(); } catch { return {}; }
-}
+import { apiJson } from './httpClient';
 
-export const fetchNotifications = async () => {
-  const res = await fetch(`${API_URL}/notifications`, {
-    credentials: 'include', // Use cookies instead of Authorization header
-  });
-  const data = await parseJsonSafe(res);
-  if (!res.ok) throw new Error(data.message || 'Failed to fetch notifications');
-  return data;
-};
+export const fetchNotifications = async () =>
+  apiJson('/notifications', { errorMessage: 'Failed to fetch notifications' });
 
-export const markNotificationRead = async (id) => {
-  const res = await fetch(`${API_URL}/notifications/${id}/read`, {
+export const markNotificationRead = async (id) =>
+  apiJson(`/notifications/${id}/read`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include', // Use cookies instead of Authorization header
+    errorMessage: 'Failed to mark read',
   });
-  const data = await parseJsonSafe(res);
-  if (!res.ok) throw new Error(data.message || 'Failed to mark read');
-  return data;
-};

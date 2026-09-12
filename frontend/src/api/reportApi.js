@@ -3,8 +3,21 @@
  * reportApi.js
  * - Exposes submitReport (supports FormData or plain object and upload progress),
  *   getAllReports, getReport, updateReportStatus, addModeratorNote.
+ *
+ * 2026-09 fix: every request in this file was built by hand (raw fetch()
+ * or raw XMLHttpRequest) instead of going through the shared apiFetch()/
+ * apiJson() helpers in ./httpClient, so none of them sent the
+ * 'X-Requested-With' header backend/middleware/csrfMiddleware.js
+ * requires on mutating requests. Submitting a report, and the admin
+ * actions (updateReportStatus/addModeratorNote), were all silently
+ * rejected with a 403 before reaching the controller. The XHR upload
+ * path in submitReport is kept (it's the only way to get real upload
+ * progress) but now explicitly sets the same header via
+ * xhr.setRequestHeader(); the plain fetch/GET paths are routed through
+ * apiFetch()/apiJson() so they get it automatically, along with
+ * `credentials: 'include'` and safer JSON parsing.
  */
-import { API_URL } from './httpClient';
+import { apiUrl, apiFetch, apiJson } from './httpClient';
 
 /**
  * Helper: build query string from params object (ignores undefined/null/empty)
@@ -42,7 +55,7 @@ export const submitReport = async (data, options = {}) => {
     });
   }
 
-  const endpoint = `${API_URL.replace(/\/$/, '')}/report`;
+  const endpoint = apiUrl('/report');
 
   // If caller requested progress, use XHR
   if (typeof onProgress === 'function') {
@@ -51,6 +64,9 @@ export const submitReport = async (data, options = {}) => {
       xhr.open('POST', endpoint, true);
       // Remove Authorization header - use cookies instead
       xhr.withCredentials = true; // Send cookies
+      // Required by backend/middleware/csrfMiddleware.js on every
+      // mutating request; must be set after open() and before send().
+      xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
       if (signal) {
         const onAbort = () => {
@@ -93,12 +109,11 @@ export const submitReport = async (data, options = {}) => {
   }
 
   // Fallback: fetch (no upload progress)
-  const res = await fetch(endpoint, {
+  const res = await apiFetch('/report', {
     method: 'POST',
     headers: {
       Accept: 'application/json',
     },
-    credentials: 'include', // Use cookies instead of Authorization header
     body: formData,
     signal,
   });
@@ -116,19 +131,11 @@ export const submitReport = async (data, options = {}) => {
 /**
  * getAllReports
  */
-export const getAllReports = async (params = {}) => {
-  const res = await fetch(`${API_URL}/report${qs(params)}`, {
+export const getAllReports = async (params = {}) =>
+  apiJson(`/report${qs(params)}`, {
     headers: { Accept: 'application/json' },
-    credentials: 'include', // Use cookies instead of Authorization header
+    errorMessage: 'Failed to fetch reports',
   });
-  if (!res.ok) {
-    const text = await res.text();
-    let body;
-    try { body = JSON.parse(text || '{}'); } catch (e) { body = { message: text }; }
-    throw new Error(body.message || 'Failed to fetch reports');
-  }
-  return res.json();
-};
 
 /**
  * getReport
@@ -136,18 +143,10 @@ export const getAllReports = async (params = {}) => {
 export const getReport = async (id) => {
   if (!id) throw new Error('Report id required');
 
-  const res = await fetch(`${API_URL}/report/${encodeURIComponent(id)}`, {
+  return apiJson(`/report/${encodeURIComponent(id)}`, {
     headers: { Accept: 'application/json' },
-    credentials: 'include', // Use cookies instead of Authorization header
+    errorMessage: 'Failed to fetch report',
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    let body;
-    try { body = JSON.parse(text || '{}'); } catch (e) { body = { message: text }; }
-    throw new Error(body.message || 'Failed to fetch report');
-  }
-  return res.json();
 };
 
 /**
@@ -156,37 +155,21 @@ export const getReport = async (id) => {
 export const updateReportStatus = async (reportId, payload = {}) => {
   if (!reportId) throw new Error('reportId required');
 
-  const res = await fetch(`${API_URL}/admin/reports/${encodeURIComponent(reportId)}`, {
+  return apiJson(`/admin/reports/${encodeURIComponent(reportId)}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include', // Use cookies instead of Authorization header
     body: JSON.stringify(payload),
+    errorMessage: 'Failed to update report status',
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    let body;
-    try { body = JSON.parse(text || '{}'); } catch (e) { body = { message: text }; }
-    throw new Error(body.message || 'Failed to update report status');
-  }
-  return res.json();
 };
 
 export const addModeratorNote = async (reportId, note) => {
   if (!reportId || !note) throw new Error('reportId and note required');
 
-  const res = await fetch(`${API_URL}/admin/reports/${encodeURIComponent(reportId)}/notes`, {
+  return apiJson(`/admin/reports/${encodeURIComponent(reportId)}/notes`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include', // Use cookies instead of Authorization header
     body: JSON.stringify({ note }),
+    errorMessage: 'Failed to add moderator note',
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    let body;
-    try { body = JSON.parse(text || '{}'); } catch (e) { body = { message: text }; }
-    throw new Error(body.message || 'Failed to add moderator note');
-  }
-  return res.json();
 };
