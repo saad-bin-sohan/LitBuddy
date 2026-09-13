@@ -8,7 +8,16 @@ const ProfileView = () => {
 
   if (!user) return <p>Loading profile...</p>;
 
-  const loc = user.location || {};
+  // 2026-09 fix: this used to be `user.location || {}`. The API returns
+  // `location: null` for a user with no CityIndex document (see
+  // profileController.js's serializeOwnerLocation), but `{}` is truthy in
+  // JS -- so `loc` was never actually falsy by the time the `loc ? (...)
+  // : (<p>No location set yet.</p>)` check below ran, and the "No location
+  // set yet." message could never render. Users with no location saved
+  // just saw "City: -", "Country: -", "Coordinates: -, -" instead. Keeping
+  // `loc` as the real `null` lets that ternary do what it was written to
+  // do.
+  const loc = user.location || null;
 
   return (
     <div style={{ maxWidth: 800, margin: 'auto' }}>

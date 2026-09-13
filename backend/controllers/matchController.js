@@ -47,6 +47,21 @@ function startOfTodayUTC() {
  * @access  Private
  * Query params (optional):
  *    limit -> number of results (default 5, max 50)
+ *    lat, lng -> ad-hoc search origin for this request only, overriding the
+ *                caller's saved CityIndex location. Both must be present
+ *                and valid to take effect. Sent by LocationFilter.js on the
+ *                Discover/Suggestions page.
+ *    distanceKm -> ad-hoc search radius for this request only, overriding
+ *                  the caller's saved User.maxDistanceKm preference. Can be
+ *                  supplied with or without lat/lng (see below).
+ *
+ * 2026-09 fix: this handler only ever read `req.query.limit` -- lat, lng,
+ * and distanceKm were parsed and sent by the frontend (LocationFilter.js /
+ * matchApi.js::getSuggestions) but silently ignored here, so the "Location
+ * Filter" control on the suggestions page had no effect on the results no
+ * matter what a user entered. It's wired up below as a per-request
+ * override; nothing here is persisted to the user's profile (persisting a
+ * location happens exclusively through PUT /api/profile).
  *
  * Distance is an opt-in filter now (User.maxDistanceKm), not the primary sort
  * — it only applies if the user has explicitly set a preference. Eligibility
@@ -121,21 +136,50 @@ const getDailySuggestions = asyncHandler(async (req, res) => {
   const finalMatch = { $and: conditions };
   const projectStage = { $project: { ...SUGGESTION_PROJECTION, dist: 1 } };
 
-  const useDistance = Number.isFinite(me.maxDistanceKm) && me.maxDistanceKm > 0;
+  // Ad-hoc location override from the query string (see the route's JSDoc
+  // above). Both lat and lng must be present and valid to count as a
+  // coordinate override; distanceKm can be supplied independently.
+  const queryLat = Number(req.query.lat);
+  const queryLng = Number(req.query.lng);
+  const queryDistanceKm = Number(req.query.distanceKm);
+
+  const hasQueryCoords =
+    Number.isFinite(queryLat) &&
+    Number.isFinite(queryLng) &&
+    queryLat >= -90 &&
+    queryLat <= 90 &&
+    queryLng >= -180 &&
+    queryLng <= 180;
+  const hasQueryDistance = Number.isFinite(queryDistanceKm) && queryDistanceKm > 0;
+  const hasSavedDistancePref = Number.isFinite(me.maxDistanceKm) && me.maxDistanceKm > 0;
+
+  // An ad-hoc coordinate pair or an ad-hoc distance both signal "filter by
+  // distance for this request", even for a user who has never set a
+  // maxDistanceKm preference on their own profile.
+  const useDistance = hasQueryCoords || hasQueryDistance || hasSavedDistancePref;
   let candidates = [];
 
   if (useDistance) {
-    const myCi = await CityIndex.findOne({ user: req.user._id }).lean();
-    const coords = myCi?.location?.coordinates;
+    let coords = hasQueryCoords ? [queryLng, queryLat] : null;
+    if (!coords) {
+      const myCi = await CityIndex.findOne({ user: req.user._id }).lean();
+      coords = myCi?.location?.coordinates;
+    }
 
     if (Array.isArray(coords) && coords.length === 2) {
+      const maxDistanceKm = hasQueryDistance
+        ? queryDistanceKm
+        : hasSavedDistancePref
+          ? me.maxDistanceKm
+          : 50; // LocationFilter.js's own default radius when only ad-hoc coords are given
+
       candidates = await CityIndex.aggregate([
         {
           $geoNear: {
             near: { type: 'Point', coordinates: coords },
             distanceField: 'dist.calculated',
             spherical: true,
-            maxDistance: me.maxDistanceKm * 1000,
+            maxDistance: maxDistanceKm * 1000,
             key: 'location',
             query: { user: { $nin: excludeObjectIds } },
           },
@@ -149,9 +193,10 @@ const getDailySuggestions = asyncHandler(async (req, res) => {
         projectStage,
       ]);
     }
-    // If a distance preference is set but there's no CityIndex location on
-    // file, fall through to the no-distance branch below instead of failing
-    // the request outright.
+    // If distance filtering was requested (saved preference or ad-hoc query
+    // params) but there's no usable coordinate pair to search from, fall
+    // through to the no-distance branch below instead of failing the
+    // request outright.
   }
 
   if (!useDistance || candidates.length === 0) {
