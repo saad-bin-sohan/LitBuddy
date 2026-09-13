@@ -1,15 +1,71 @@
 // backend/controllers/profileController.js
+//
+// 2026-09 fix: PUT /api/profile (Step 6/6 "Review & Submit" during sign-up)
+// returned a 500 "Server error" for any user who reached that step without
+// ever setting a location -- i.e. anyone who didn't grant geolocation or
+// type a city, which the wizard fully allows (LocationPicker.js's own copy:
+// "you can skip this and add it later"). The Render logs showed a raw
+// MongoServerError -- "Can't extract geo keys ... Point must only contain
+// numeric elements, instead got type missing" -- thrown out of the
+// CityIndex upsert a few lines below `User.findByIdAndUpdate` in this same
+// function.
+//
+// Full root-cause writeup (verified against the exact pinned mongoose@9.2.2
+// in package-lock.json, not just from memory) lives in the file-level
+// comment at the top of backend/models/cityIndexModel.js, which now also
+// exports the `buildLocationUpdate` helper this file delegates to instead
+// of re-deriving the same "is this a valid point?" decision inline. That
+// change also fixes a second, latent issue: the previous code passed a
+// bare object (no `$set`) to `findOneAndUpdate`, and relied on
+// `setDefaultsOnInsert` to fill in defaults -- which is exactly the
+// mechanism that manufactured the broken GeoJSON object in the first
+// place. The new version builds one explicit, always-internally-consistent
+// `$set` document and never lets a partial/invalid one reach MongoDB.
+//
+// This function also now treats the CityIndex write as best-effort, the
+// same way the Cloudinary photo upload a few lines above already does: if
+// it fails for some other reason in the future (a transient DB blip, say),
+// the user's core profile fields -- already saved via User.findByIdAndUpdate
+// by that point -- are not thrown away along with a misleading "nothing
+// was saved" error message.
 
 const User = require('../models/userModel');
 const CityIndex = require('../models/cityIndexModel');
-const slugify = require('../utils/slugify');
 const { getLogger, summarizeObject } = require('../utils/logger');
 const { uploadBase64ToCloudinary } = require('../utils/cloudinaryUpload');
 
-function sanitizeRadius(val, def = 25) {
-  const n = Number(val);
-  if (!Number.isFinite(n)) return def;
-  return Math.max(1, Math.min(500, n));
+/**
+ * Shapes a lean CityIndex document into the `location` object returned to
+ * the profile's own owner (includes lat/lng). Shared by getMyProfile and
+ * updateUserProfile so the two response shapes can never drift apart.
+ */
+function serializeOwnerLocation(ci) {
+  if (!ci) return null;
+  return {
+    lat: ci.lat ?? (ci.location?.coordinates?.[1] ?? null),
+    lng: ci.lng ?? (ci.location?.coordinates?.[0] ?? null),
+    cityName: ci.cityName || '',
+    admin1: ci.admin1 || '',
+    countryCode: ci.countryCode || '',
+    countryName: ci.countryName || '',
+    citySlug: ci.citySlug || '',
+    preferredSearchRadiusKm: ci.preferredSearchRadiusKm ?? CityIndex.DEFAULT_RADIUS_KM,
+  };
+}
+
+/**
+ * Shapes a lean CityIndex document into the public-facing `location` object
+ * returned from getPublicProfile (no exact coordinates -- city/country only).
+ */
+function serializePublicLocation(ci) {
+  if (!ci) return null;
+  return {
+    cityName: ci.cityName || '',
+    admin1: ci.admin1 || '',
+    countryCode: ci.countryCode || '',
+    countryName: ci.countryName || '',
+    citySlug: ci.citySlug || '',
+  };
 }
 
 exports.getMyProfile = async (req, res) => {
@@ -20,20 +76,7 @@ exports.getMyProfile = async (req, res) => {
 
     const ci = await CityIndex.findOne({ user: user._id }).lean();
 
-    const location = ci
-      ? {
-          lat: ci.lat ?? (ci.location?.coordinates?.[1] ?? null),
-          lng: ci.lng ?? (ci.location?.coordinates?.[0] ?? null),
-          cityName: ci.cityName || '',
-          admin1: ci.admin1 || '',
-          countryCode: ci.countryCode || '',
-          countryName: ci.countryName || '',
-          citySlug: ci.citySlug || '',
-          preferredSearchRadiusKm: ci.preferredSearchRadiusKm ?? 25,
-        }
-      : null;
-
-    return res.json({ ...user.toObject(), location });
+    return res.json({ ...user.toObject(), location: serializeOwnerLocation(ci) });
   } catch (err) {
     requestLogger.error(
       {
@@ -45,8 +88,6 @@ exports.getMyProfile = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
-// backend/controllers/profileController.js
 
 exports.updateUserProfile = async (req, res) => {
   const requestLogger = getLogger(req);
@@ -149,85 +190,59 @@ exports.updateUserProfile = async (req, res) => {
       'profile.user_updated'
     );
 
-    // Handle location upsert if present
+    // Handle the location side-write if the client sent one. This is
+    // intentionally best-effort: the User fields above are already saved,
+    // so a problem here should never make the whole request look like it
+    // failed (mirrors the Cloudinary try/catch above). Under normal
+    // operation CityIndex.buildLocationUpdate() never produces anything
+    // MongoDB would reject; the try/catch exists for genuinely unexpected
+    // failures (e.g. a transient DB error), not as the primary defense.
+    let ci = null;
     if (req.body.location) {
-      const {
-        lat,
-        lng,
-        cityName,
-        admin1,
-        countryCode,
-        countryName,
-        preferredSearchRadiusKm,
-      } = req.body.location || {};
+      try {
+        const existingCi = await CityIndex.findOne({ user: user._id }).lean();
+        const locationUpdate = CityIndex.buildLocationUpdate(req.body.location, {
+          hasExisting: !!existingCi,
+        });
 
-      const validLatLng =
-        typeof lat === 'number' &&
-        typeof lng === 'number' &&
-        lat >= -90 &&
-        lat <= 90 &&
-        lng >= -180 &&
-        lng <= 180;
+        if (!locationUpdate) {
+          ci = existingCi; // nothing to change -- e.g. brand-new user, no coordinates given
+          requestLogger.info({ userId }, 'profile.location_skipped_no_coordinates');
+        } else {
+          ci = await CityIndex.findOneAndUpdate(
+            { user: user._id },
+            { $set: locationUpdate.set },
+            {
+              new: true,
+              upsert: locationUpdate.upsert,
+              setDefaultsOnInsert: true,
+              runValidators: true,
+              context: 'query',
+            }
+          ).lean();
 
-      const citySlug =
-        cityName && countryCode
-          ? `${slugify(cityName)}-${String(countryCode).toLowerCase()}`
-          : undefined;
-
-      const upsertDoc = {
-        user: user._id,
-        cityName: cityName || '',
-        admin1: admin1 || '',
-        countryCode: (countryCode || '').toUpperCase(),
-        countryName: countryName || '',
-        citySlug,
-      };
-
-      if (validLatLng) {
-        upsertDoc.lat = lat;
-        upsertDoc.lng = lng;
-        upsertDoc.location = { type: 'Point', coordinates: [lng, lat] };
+          requestLogger.info(
+            {
+              userId,
+              hasValidCoordinates: !!locationUpdate.set.location,
+              upserted: locationUpdate.upsert,
+              citySlug: locationUpdate.set.citySlug ?? null,
+              preferredSearchRadiusKm: locationUpdate.set.preferredSearchRadiusKm ?? null,
+            },
+            'profile.location_upserted'
+          );
+        }
+      } catch (err) {
+        requestLogger.error({ err, userId }, 'profile.location_update_failed');
+        // Fall back to whatever location was already on file (possibly
+        // null) rather than letting this abort the whole profile save.
+        ci = await CityIndex.findOne({ user: user._id }).lean().catch(() => null);
       }
-
-      if (preferredSearchRadiusKm != null) {
-        upsertDoc.preferredSearchRadiusKm = sanitizeRadius(
-          preferredSearchRadiusKm
-        );
-      }
-
-      await CityIndex.findOneAndUpdate(
-        { user: user._id },
-        upsertDoc,
-        { new: true, upsert: true, setDefaultsOnInsert: true }
-      );
-
-      requestLogger.info(
-        {
-          userId,
-          hasValidCoordinates: validLatLng,
-          citySlug,
-          preferredSearchRadiusKm:
-            upsertDoc.preferredSearchRadiusKm == null ? null : upsertDoc.preferredSearchRadiusKm,
-        },
-        'profile.location_upserted'
-      );
+    } else {
+      ci = await CityIndex.findOne({ user: user._id }).lean();
     }
 
-    const ci = await CityIndex.findOne({ user: user._id }).lean();
-    const location = ci
-      ? {
-          lat: ci.lat ?? (ci.location?.coordinates?.[1] ?? null),
-          lng: ci.lng ?? (ci.location?.coordinates?.[0] ?? null),
-          cityName: ci.cityName || '',
-          admin1: ci.admin1 || '',
-          countryCode: ci.countryCode || '',
-          countryName: ci.countryName || '',
-          citySlug: ci.citySlug || '',
-          preferredSearchRadiusKm: ci.preferredSearchRadiusKm ?? 25,
-        }
-      : null;
-
-    res.json({ ...user.toObject(), location });
+    res.json({ ...user.toObject(), location: serializeOwnerLocation(ci) });
   } catch (err) {
     requestLogger.error(
       {
@@ -251,17 +266,8 @@ exports.getPublicProfile = async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     const ci = await CityIndex.findOne({ user: user._id }).lean();
-    const locationPublic = ci
-      ? {
-          cityName: ci.cityName || '',
-          admin1: ci.admin1 || '',
-          countryCode: ci.countryCode || '',
-          countryName: ci.countryName || '',
-          citySlug: ci.citySlug || '',
-        }
-      : null;
 
-    res.json({ ...user.toObject(), location: locationPublic });
+    res.json({ ...user.toObject(), location: serializePublicLocation(ci) });
   } catch (err) {
     requestLogger.error(
       {
