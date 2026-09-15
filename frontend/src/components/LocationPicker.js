@@ -122,7 +122,7 @@ const LocationPicker = ({ value = {}, onChange = () => {}, onPersist }) => {
         Use your device location or enter city + country. You can save this location to your profile so future matches use it automatically.
       </p>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         <button className="btn btn-secondary" type="button" onClick={handleUseMyLocation} disabled={geoBusy}>
           {geoBusy ? 'Locating…' : 'Use my current location'}
         </button>
@@ -135,10 +135,12 @@ const LocationPicker = ({ value = {}, onChange = () => {}, onPersist }) => {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gap: 8, gridTemplateColumns: '1fr 1fr', marginBottom: 8 }}>
-        <div>
-          <label>Latitude</label>
+      <div className="form-row">
+        <div className="form-group">
+          <label className="form-label" htmlFor="location-picker-lat">Latitude</label>
           <input
+            id="location-picker-lat"
+            className="form-input"
             type="number"
             step="any"
             value={lat}
@@ -146,9 +148,11 @@ const LocationPicker = ({ value = {}, onChange = () => {}, onPersist }) => {
             placeholder="23.7724"
           />
         </div>
-        <div>
-          <label>Longitude</label>
+        <div className="form-group">
+          <label className="form-label" htmlFor="location-picker-lng">Longitude</label>
           <input
+            id="location-picker-lng"
+            className="form-input"
             type="number"
             step="any"
             value={lng}
@@ -158,31 +162,62 @@ const LocationPicker = ({ value = {}, onChange = () => {}, onPersist }) => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gap: 8, gridTemplateColumns: '1fr 1fr', marginBottom: 8 }}>
-        <div>
-          <label>City</label>
-          <input value={cityName} onChange={(e) => { setCityName(e.target.value); emitChange({ cityName: e.target.value }); }} placeholder="Dhaka" />
+      <div className="form-row">
+        <div className="form-group">
+          <label className="form-label" htmlFor="location-picker-city">City</label>
+          <input
+            id="location-picker-city"
+            className="form-input"
+            value={cityName}
+            onChange={(e) => { setCityName(e.target.value); emitChange({ cityName: e.target.value }); }}
+            placeholder="Dhaka"
+          />
         </div>
-        <div>
-          <label>State / Region (optional)</label>
-          <input value={admin1} onChange={(e) => { setAdmin1(e.target.value); emitChange({ admin1: e.target.value }); }} placeholder="Dhaka Division" />
+        <div className="form-group">
+          <label className="form-label" htmlFor="location-picker-admin1">
+            State / Region <span className="optional-text">(optional)</span>
+          </label>
+          <input
+            id="location-picker-admin1"
+            className="form-input"
+            value={admin1}
+            onChange={(e) => { setAdmin1(e.target.value); emitChange({ admin1: e.target.value }); }}
+            placeholder="Dhaka Division"
+          />
         </div>
       </div>
 
-      <div style={{ display: 'grid', gap: 8, gridTemplateColumns: '1fr 1fr', marginBottom: 8 }}>
-        <div>
-          <label>Country name</label>
-          <input value={countryName} onChange={(e) => { setCountryName(e.target.value); emitChange({ countryName: e.target.value }); }} placeholder="Bangladesh" />
+      <div className="form-row">
+        <div className="form-group">
+          <label className="form-label" htmlFor="location-picker-country-name">Country name</label>
+          <input
+            id="location-picker-country-name"
+            className="form-input"
+            value={countryName}
+            onChange={(e) => { setCountryName(e.target.value); emitChange({ countryName: e.target.value }); }}
+            placeholder="Bangladesh"
+          />
         </div>
-        <div>
-          <label>Country code (2 letters)</label>
-          <input maxLength={2} value={countryCode} onChange={(e) => { setCountryCode(e.target.value.toUpperCase()); emitChange({ countryCode: e.target.value.toUpperCase() }); }} placeholder="BD" />
+        <div className="form-group">
+          <label className="form-label" htmlFor="location-picker-country-code">Country code (2 letters)</label>
+          <input
+            id="location-picker-country-code"
+            className="form-input"
+            maxLength={2}
+            value={countryCode}
+            onChange={(e) => { setCountryCode(e.target.value.toUpperCase()); emitChange({ countryCode: e.target.value.toUpperCase() }); }}
+            placeholder="BD"
+          />
         </div>
       </div>
 
-      <div style={{ marginBottom: 8 }}>
-        <label>Default search radius (km): {preferredSearchRadiusKm}</label>
+      <div className="form-group">
+        <label className="form-label" htmlFor="location-picker-radius">
+          Default search radius (km): {preferredSearchRadiusKm}
+        </label>
         <input
+          id="location-picker-radius"
+          className="form-range"
           type="range"
           min={1}
           max={500}
@@ -191,7 +226,7 @@ const LocationPicker = ({ value = {}, onChange = () => {}, onPersist }) => {
         />
       </div>
 
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <button className="btn btn-primary" type="button" onClick={handlePersist} disabled={saving}>
           {saving ? 'Saving…' : 'Save location to profile'}
         </button>

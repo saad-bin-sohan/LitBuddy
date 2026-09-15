@@ -47,36 +47,45 @@ const ReviewForm = ({ bookId, onReviewAdded }) => {
 
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form className="card" onSubmit={handleSubmit}>
       <h3>Add a Review</h3>
-      <label>
-        Rating:
-        <select value={rating} onChange={(e) => setRating(Number(e.target.value))}>
+      <div className="form-group">
+        <label className="form-label" htmlFor="review-form-rating">Rating</label>
+        <select
+          id="review-form-rating"
+          className="form-select"
+          value={rating}
+          onChange={(e) => setRating(Number(e.target.value))}
+        >
           {[1, 2, 3, 4, 5].map((num) => (
             <option key={num} value={num}>{num}</option>
           ))}
         </select>
-      </label>
-      <br />
-      <label>
-        Review:
+      </div>
+      <div className="form-group">
+        <label className="form-label" htmlFor="review-form-text">Review</label>
         <textarea
+          id="review-form-text"
+          className="form-input"
           value={reviewText}
           onChange={(e) => setReviewText(e.target.value)}
+          style={{ minHeight: '100px', resize: 'vertical' }}
           required
         />
-      </label>
-      <br />
-      <label>
-        <input
-          type="checkbox"
-          checked={spoiler}
-          onChange={(e) => setSpoiler(e.target.checked)}
-        />
-        Contains Spoilers
-      </label>
-      <br />
-      <button type="submit" disabled={loading}>
+      </div>
+      <div className="form-group">
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            className="checkbox-input"
+            checked={spoiler}
+            onChange={(e) => setSpoiler(e.target.checked)}
+          />
+          <span className="checkbox-custom"></span>
+          <span className="checkbox-text">Contains Spoilers</span>
+        </label>
+      </div>
+      <button className="btn btn-primary" type="submit" disabled={loading}>
         {loading ? 'Submitting...' : 'Submit Review'}
       </button>
     </form>

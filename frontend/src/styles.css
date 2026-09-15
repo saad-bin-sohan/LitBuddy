@@ -366,6 +366,20 @@ body {
   font-size: var(--font-size-sm);
 }
 
+/* Success counterpart to .auth-error above -- same layout, success tokens. */
+.auth-success {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin: var(--space-16) var(--space-24) 0;
+  padding: var(--space-12) var(--space-16);
+  background: rgba(var(--color-success-rgb), 0.1);
+  border: 1px solid rgba(var(--color-success-rgb), 0.2);
+  border-radius: var(--radius-base);
+  color: var(--color-success);
+  font-size: var(--font-size-sm);
+}
+
 .error-icon {
   width: 16px;
   height: 16px;
@@ -428,6 +442,81 @@ body {
 .form-input::placeholder {
   color: var(--color-text-secondary);
   opacity: 0.7;
+}
+
+/* Range slider (e.g. LocationPicker's "Default search radius").
+   No input[type="range"] styling existed anywhere in the codebase
+   before this, so sliders fell back to the bare OS-native control.
+   Track/thumb pseudo-elements must be declared separately per
+   browser engine (they don't fall back to each other), so both the
+   -webkit- and -moz- variants are defined with matching values. */
+.form-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 22px;
+  background: transparent;
+  cursor: pointer;
+  margin: var(--space-8) 0;
+}
+
+.form-range:focus {
+  outline: none;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-secondary);
+}
+
+.form-range::-moz-range-track {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-secondary);
+}
+
+.form-range::-moz-range-progress {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+}
+
+.form-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -6px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  border: 2px solid var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+.form-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  border: 2px solid var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+.form-range:hover::-webkit-slider-thumb,
+.form-range:focus-visible::-webkit-slider-thumb {
+  transform: scale(1.12);
+  box-shadow: 0 0 0 4px rgba(var(--color-primary-rgb), 0.15);
+}
+
+.form-range:hover::-moz-range-thumb,
+.form-range:focus-visible::-moz-range-thumb {
+  transform: scale(1.12);
+  box-shadow: 0 0 0 4px rgba(var(--color-primary-rgb), 0.15);
 }
 
 .password-input-container {
@@ -520,6 +609,20 @@ body {
 
 .checkbox-text {
   flex: 1;
+}
+
+/* Wrapping row of checkbox "chips" -- reuses .checkbox-label/.checkbox-custom
+   as-is, but sizes each label to its own content instead of the single
+   full-width row .checkbox-label is normally used for (e.g. the terms
+   checkbox above), so several can sit side by side and wrap naturally. */
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
+}
+
+.checkbox-group .checkbox-label {
+  flex: 0 1 auto;
 }
 
 .link-primary {
@@ -980,6 +1083,36 @@ select.form-control {
 
 .form-group {
   margin-bottom: var(--space-16);
+}
+
+/* Wizard step progress (e.g. ProfileWizard's 6-step onboarding).
+   Replaces a plain, unstyled "Step X / Y" text line with a small
+   label plus a slim on-brand progress bar. */
+.wizard-progress {
+  margin-bottom: var(--space-20);
+}
+
+.wizard-progress-label {
+  display: block;
+  margin-bottom: var(--space-8);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.wizard-progress-track {
+  width: 100%;
+  height: var(--space-8);
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.wizard-progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  transition: width var(--duration-normal) var(--ease-standard);
 }
 
 .card__body {
@@ -2748,6 +2881,97 @@ h3{ font-size: var(--font-size-lg); font-weight: var(--font-weight-medium); colo
 .btn-muted {
   background: var(--color-background); 
   color: var(--color-text-secondary);
+}
+
+/* Button variants below (.btn-secondary, .btn-outline, .btn-success,
+   .btn-warning, .btn-sm) are referenced across many components
+   (LocationFilter, LocationPicker, ReadingProgressCard, BookCard,
+   ClubList, ClubDetails, AdminReports, Button.js) but previously had
+   no base-state rule here -- only their [data-theme="dark"] :hover
+   override existed further down this file, so every one of them was
+   silently rendering as a bare .btn. Defined once here so every
+   consumer gets consistent, theme-aware styling. */
+.btn-secondary {
+  background: var(--color-secondary);
+  color: var(--color-text);
+  border: 1px solid transparent;
+}
+.btn-secondary:hover {
+  background: var(--color-secondary-hover);
+  box-shadow: var(--shadow-sm);
+}
+.btn-secondary:active {
+  background: var(--color-secondary-active);
+  box-shadow: none;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+.btn-outline:hover {
+  background: rgba(var(--color-primary-rgb), var(--status-bg-opacity, 0.15));
+  border-color: var(--color-primary-hover);
+  color: var(--color-primary-hover);
+}
+.btn-outline:active {
+  background: rgba(var(--color-primary-rgb), var(--status-border-opacity, 0.25));
+}
+
+.btn-success {
+  background: var(--color-success);
+  color: var(--color-btn-primary-text);
+  border: 1px solid var(--color-success);
+}
+.btn-success:hover {
+  box-shadow: var(--shadow-sm);
+  filter: brightness(0.94);
+}
+.btn-success:active {
+  box-shadow: none;
+  filter: brightness(0.88);
+}
+
+.btn-warning {
+  background: var(--color-warning);
+  color: var(--color-btn-primary-text);
+  border: 1px solid var(--color-warning);
+}
+.btn-warning:hover {
+  box-shadow: var(--shadow-sm);
+  filter: brightness(0.94);
+}
+.btn-warning:active {
+  box-shadow: none;
+  filter: brightness(0.88);
+}
+
+/* .btn-danger: used for destructive actions (remove from reading list,
+   delete book, remove club member) in ReadingProgressCard.js,
+   BookCard.js and ClubDetails.js. Found via an exhaustive sweep of every
+   btn-* class referenced in the app, after the initial audit above --
+   same missing-variant problem as .btn-warning/.btn-success, just not
+   surfaced by the two screenshots. Distinct from .btn-warning: reserved
+   for actions that are final/destructive rather than merely serious. */
+.btn-danger {
+  background: var(--color-error);
+  color: var(--color-btn-primary-text);
+  border: 1px solid var(--color-error);
+}
+.btn-danger:hover {
+  box-shadow: var(--shadow-sm);
+  filter: brightness(0.94);
+}
+.btn-danger:active {
+  box-shadow: none;
+  filter: brightness(0.88);
+}
+
+.btn-sm {
+  min-height: 32px;
+  padding: var(--space-6) var(--space-12);
+  font-size: var(--font-size-sm);
 }
 
 /* inputs */

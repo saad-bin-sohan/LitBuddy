@@ -205,24 +205,30 @@ const AdminReports = () => {
       <div style={{ padding: 24 }}>
         <h2>Admin — Reports</h2>
 
-        <div style={{ marginTop: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
-          <label>
-            Status:
-            <select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })} style={{ marginLeft: 8 }}>
+        <div style={{ marginTop: 12, display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label" htmlFor="admin-reports-status">Status</label>
+            <select
+              id="admin-reports-status"
+              className="form-select"
+              value={filters.status}
+              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+            >
               <option value="">Any</option>
               {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
-          </label>
+          </div>
 
-          <label>
-            Category:
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label" htmlFor="admin-reports-category">Category</label>
             <input
+              id="admin-reports-category"
+              className="form-input"
               value={filters.category}
               onChange={(e) => setFilters({ ...filters, category: e.target.value })}
               placeholder="e.g. Harassment"
-              style={{ marginLeft: 8 }}
             />
-          </label>
+          </div>
 
           <button className="btn" onClick={() => fetchReports(1)}>Refresh</button>
         </div>
@@ -230,7 +236,7 @@ const AdminReports = () => {
         {loading ? (
           <p>Loading...</p>
         ) : error ? (
-          <p style={{ color: 'red' }}>{error}</p>
+          <p style={{ color: 'var(--color-error)' }}>{error}</p>
         ) : reports.length === 0 ? (
           <p style={{ marginTop: 12 }}>No reports found.</p>
         ) : (

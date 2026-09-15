@@ -58,7 +58,7 @@ const LocationFilter = ({ onApply, initialDistance = 50 }) => {
         Set a distance (km). If you leave coordinates empty, we’ll use your saved location.
       </p>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         <button className="btn btn-secondary" type="button" onClick={handleUseMyLocation}>
           Use my location
         </button>
@@ -67,28 +67,38 @@ const LocationFilter = ({ onApply, initialDistance = 50 }) => {
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-        <input
-          type="number"
-          step="any"
-          placeholder="Latitude"
-          value={lat}
-          onChange={(e) => setLat(e.target.value)}
-          style={{ width: '50%' }}
-        />
-        <input
-          type="number"
-          step="any"
-          placeholder="Longitude"
-          value={lng}
-          onChange={(e) => setLng(e.target.value)}
-          style={{ width: '50%' }}
-        />
+      <div className="form-row">
+        <div className="form-group">
+          <label className="form-label" htmlFor="location-filter-lat">Latitude</label>
+          <input
+            id="location-filter-lat"
+            className="form-input"
+            type="number"
+            step="any"
+            placeholder="e.g. 23.7104"
+            value={lat}
+            onChange={(e) => setLat(e.target.value)}
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label" htmlFor="location-filter-lng">Longitude</label>
+          <input
+            id="location-filter-lng"
+            className="form-input"
+            type="number"
+            step="any"
+            placeholder="e.g. 90.4074"
+            value={lng}
+            onChange={(e) => setLng(e.target.value)}
+          />
+        </div>
       </div>
 
-      <div style={{ marginBottom: 8 }}>
-        <label>Distance (km)</label>
+      <div className="form-group">
+        <label className="form-label" htmlFor="location-filter-distance">Distance (km)</label>
         <input
+          id="location-filter-distance"
+          className="form-input"
           type="number"
           min="1"
           step="1"

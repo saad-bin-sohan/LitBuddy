@@ -22,81 +22,56 @@ function fileToDataUrl(file) {
 }
 
 const StepIndicator = ({ step, total }) => (
-  <div style={{ marginBottom: 12 }}>
-    Step {step} / {total}
+  <div className="wizard-progress">
+    <span className="wizard-progress-label">Step {step} / {total}</span>
+    <div className="wizard-progress-track">
+      <div className="wizard-progress-fill" style={{ width: `${(step / total) * 100}%` }} />
+    </div>
   </div>
 );
 
 const Step1 = ({ form, handleBasicChange }) => (
-  <div style={{
-    border: '1px solid var(--color-border)',
-    borderRadius: '8px',
-    padding: '20px',
-    marginBottom: '20px',
-    backgroundColor: 'var(--color-surface)',
-    boxShadow: 'var(--shadow-sm)'
-  }}>
-    <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Basic Info</h3>
-    <div style={{ marginBottom: '15px' }}>
-      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Display Name</label>
-      <input 
-        name="displayName" 
-        value={form.displayName} 
+  <div className="card">
+    <h3>Basic Info</h3>
+    <div className="form-group">
+      <label className="form-label" htmlFor="wizard-displayName">Display Name</label>
+      <input
+        id="wizard-displayName"
+        className="form-input"
+        name="displayName"
+        value={form.displayName}
         onChange={handleBasicChange}
-        style={{
-          width: '100%',
-          padding: '10px',
-          border: '1px solid var(--color-border)',
-          borderRadius: '4px',
-          fontSize: '16px'
-        }}
       />
     </div>
-    <div style={{ marginBottom: '15px' }}>
-      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Bio</label>
-      <textarea 
-        name="bio" 
-        value={form.bio} 
+    <div className="form-group">
+      <label className="form-label" htmlFor="wizard-bio">Bio</label>
+      <textarea
+        id="wizard-bio"
+        className="form-input"
+        name="bio"
+        value={form.bio}
         onChange={handleBasicChange}
-        style={{
-          width: '100%',
-          padding: '10px',
-          border: '1px solid var(--color-border)',
-          borderRadius: '4px',
-          fontSize: '16px',
-          minHeight: '100px',
-          resize: 'vertical'
-        }}
+        style={{ minHeight: '100px', resize: 'vertical' }}
       />
     </div>
-    <div style={{ marginBottom: '15px' }}>
-      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Favorite Quote</label>
-      <input 
-        name="quote" 
-        value={form.quote} 
+    <div className="form-group">
+      <label className="form-label" htmlFor="wizard-quote">Favorite Quote</label>
+      <input
+        id="wizard-quote"
+        className="form-input"
+        name="quote"
+        value={form.quote}
         onChange={handleBasicChange}
-        style={{
-          width: '100%',
-          padding: '10px',
-          border: '1px solid var(--color-border)',
-          borderRadius: '4px',
-          fontSize: '16px'
-        }}
       />
     </div>
-    <div style={{ marginBottom: '15px' }}>
-      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Gender</label>
+    <div className="form-group">
+      <label className="form-label" htmlFor="wizard-gender">Gender</label>
       <select
+        id="wizard-gender"
+        className="form-select"
         name="gender"
         value={form.gender}
         onChange={handleBasicChange}
-        style={{
-          width: '100%',
-          padding: '10px',
-          border: '1px solid var(--color-border)',
-          borderRadius: '4px',
-          fontSize: '16px'
-        }}
       >
         <option value="">Select...</option>
         {GENDER_OPTIONS.map((g) => (
@@ -108,20 +83,15 @@ const Step1 = ({ form, handleBasicChange }) => (
       </p>
     </div>
     {form.gender === 'Self-described' && (
-      <div style={{ marginBottom: '15px' }}>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Describe your gender</label>
+      <div className="form-group">
+        <label className="form-label" htmlFor="wizard-genderCustom">Describe your gender</label>
         <input
+          id="wizard-genderCustom"
+          className="form-input"
           name="genderCustom"
           value={form.genderCustom}
           onChange={handleBasicChange}
           maxLength={40}
-          style={{
-            width: '100%',
-            padding: '10px',
-            border: '1px solid var(--color-border)',
-            borderRadius: '4px',
-            fontSize: '16px'
-          }}
         />
       </div>
     )}
@@ -129,15 +99,8 @@ const Step1 = ({ form, handleBasicChange }) => (
 );
 
 const Step2 = ({ form, handleLocationChange, persistLocationNow }) => (
-  <div style={{
-    border: '1px solid var(--color-border)',
-    borderRadius: '8px',
-    padding: '20px',
-    marginBottom: '20px',
-    backgroundColor: 'var(--color-surface)',
-    boxShadow: 'var(--shadow-sm)'
-  }}>
-    <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Location</h3>
+  <div className="card">
+    <h3>Location</h3>
     <LocationPicker
       value={form.location}
       onChange={handleLocationChange}
@@ -150,40 +113,28 @@ const Step2 = ({ form, handleLocationChange, persistLocationNow }) => (
 );
 
 const Step3 = ({ form, handlePhotoSelected, removePhoto }) => (
-  <div style={{
-    border: '1px solid var(--color-border)',
-    borderRadius: '8px',
-    padding: '20px',
-    marginBottom: '20px',
-    backgroundColor: 'var(--color-surface)',
-    boxShadow: 'var(--shadow-sm)'
-  }}>
-    <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Upload Photos (up to 6)</h3>
-    <input 
-      type="file" 
-      accept="image/*" 
-      onChange={handlePhotoSelected} 
-      multiple 
-      style={{
-        width: '100%',
-        padding: '10px',
-        border: '1px solid var(--color-border)',
-        borderRadius: '4px',
-        fontSize: '16px'
-      }}
+  <div className="card">
+    <h3>Upload Photos (up to 6)</h3>
+    <input
+      className="form-input"
+      type="file"
+      accept="image/*"
+      onChange={handlePhotoSelected}
+      multiple
     />
     <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
       {form.profilePhotos.map((src, i) => (
         <div key={i} style={{ position: 'relative' }}>
           <img src={src} alt={`p${i}`} style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 8 }} />
-          <button 
-            type="button" 
-            onClick={() => removePhoto(i)} 
-            style={{ 
-              position: 'absolute', 
-              top: 4, 
+          <button
+            type="button"
+            onClick={() => removePhoto(i)}
+            aria-label={`Remove photo ${i + 1}`}
+            style={{
+              position: 'absolute',
+              top: 4,
               right: 4,
-              background: 'red',
+              background: 'var(--color-error)',
               color: 'white',
               border: 'none',
               borderRadius: '50%',
@@ -201,43 +152,26 @@ const Step3 = ({ form, handlePhotoSelected, removePhoto }) => (
 );
 
 const Step4 = ({ form, handleFavoritesChange }) => (
-  <div style={{
-    border: '1px solid var(--color-border)',
-    borderRadius: '8px',
-    padding: '20px',
-    marginBottom: '20px',
-    backgroundColor: 'var(--color-surface)',
-    boxShadow: 'var(--shadow-sm)'
-  }}>
-    <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Favorites</h3>
-    <div style={{ marginBottom: '15px' }}>
-      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Favorite Books (comma-separated)</label>
-      <input 
-        name="favoriteBooks" 
-        value={form.favoriteBooks} 
+  <div className="card">
+    <h3>Favorites</h3>
+    <div className="form-group">
+      <label className="form-label" htmlFor="wizard-favoriteBooks">Favorite Books (comma-separated)</label>
+      <input
+        id="wizard-favoriteBooks"
+        className="form-input"
+        name="favoriteBooks"
+        value={form.favoriteBooks}
         onChange={handleFavoritesChange}
-        style={{
-          width: '100%',
-          padding: '10px',
-          border: '1px solid var(--color-border)',
-          borderRadius: '4px',
-          fontSize: '16px'
-        }}
       />
     </div>
-    <div style={{ marginBottom: '15px' }}>
-      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Favorite Songs (comma-separated)</label>
-      <input 
-        name="favoriteSongs" 
-        value={form.favoriteSongs} 
+    <div className="form-group">
+      <label className="form-label" htmlFor="wizard-favoriteSongs">Favorite Songs (comma-separated)</label>
+      <input
+        id="wizard-favoriteSongs"
+        className="form-input"
+        name="favoriteSongs"
+        value={form.favoriteSongs}
         onChange={handleFavoritesChange}
-        style={{
-          width: '100%',
-          padding: '10px',
-          border: '1px solid var(--color-border)',
-          borderRadius: '4px',
-          fontSize: '16px'
-        }}
       />
     </div>
   </div>
@@ -252,40 +186,41 @@ const Step5 = ({
   toggleDistanceLimit,
   handleMaxDistanceChange,
 }) => (
-  <div style={{
-    border: '1px solid var(--color-border)',
-    borderRadius: '8px',
-    padding: '20px',
-    marginBottom: '20px',
-    backgroundColor: 'var(--color-surface)',
-    boxShadow: 'var(--shadow-sm)'
-  }}>
-    <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Preferences & Questions</h3>
+  <div className="card">
+    <h3>Preferences & Questions</h3>
     <div style={{ marginBottom: '12px' }}>
       <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Book Preferences</p>
-      {['Fiction','Non-fiction','Sci-fi','Romance','Mystery','Poetry'].map((t) => (
-        <label key={t} style={{ marginRight: 8, display: 'inline-block', marginBottom: '8px' }}>
-          <input 
-            type="checkbox"
-            checked={form.preferences.books?.includes(t)}
-            onChange={() => togglePreference('books', t)}
-            style={{ marginRight: '5px' }}
-          /> {t}
-        </label>
-      ))}
+      <div className="checkbox-group">
+        {['Fiction', 'Non-fiction', 'Sci-fi', 'Romance', 'Mystery', 'Poetry'].map((t) => (
+          <label key={t} className="checkbox-label">
+            <input
+              type="checkbox"
+              className="checkbox-input"
+              checked={form.preferences.books?.includes(t)}
+              onChange={() => togglePreference('books', t)}
+            />
+            <span className="checkbox-custom"></span>
+            <span className="checkbox-text">{t}</span>
+          </label>
+        ))}
+      </div>
     </div>
     <div style={{ marginBottom: '12px' }}>
       <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Music Preferences</p>
-      {['Pop','Rock','Classical','Jazz','Electronic','Indie'].map((t) => (
-        <label key={t} style={{ marginRight: 8, display: 'inline-block', marginBottom: '8px' }}>
-          <input 
-            type="checkbox"
-            checked={form.preferences.music?.includes(t)}
-            onChange={() => togglePreference('music', t)}
-            style={{ marginRight: '5px' }}
-          /> {t}
-        </label>
-      ))}
+      <div className="checkbox-group">
+        {['Pop', 'Rock', 'Classical', 'Jazz', 'Electronic', 'Indie'].map((t) => (
+          <label key={t} className="checkbox-label">
+            <input
+              type="checkbox"
+              className="checkbox-input"
+              checked={form.preferences.music?.includes(t)}
+              onChange={() => togglePreference('music', t)}
+            />
+            <span className="checkbox-custom"></span>
+            <span className="checkbox-text">{t}</span>
+          </label>
+        ))}
+      </div>
     </div>
 
     <div style={{ borderTop: '1px solid var(--color-border)', margin: '16px 0', paddingTop: '16px' }}>
@@ -293,63 +228,71 @@ const Step5 = ({
 
       <div style={{ marginBottom: '12px' }}>
         <p style={{ marginBottom: '8px' }}>Interested in</p>
-        {INTERESTED_IN_OPTIONS.map((t) => (
-          <label key={t} style={{ marginRight: 8, display: 'inline-block', marginBottom: '8px' }}>
-            <input
-              type="checkbox"
-              checked={form.interestedIn?.includes(t)}
-              onChange={() => toggleInterestedIn(t)}
-              style={{ marginRight: '5px' }}
-            /> {t}
-          </label>
-        ))}
-        <p style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+        <div className="checkbox-group">
+          {INTERESTED_IN_OPTIONS.map((t) => (
+            <label key={t} className="checkbox-label">
+              <input
+                type="checkbox"
+                className="checkbox-input"
+                checked={form.interestedIn?.includes(t)}
+                onChange={() => toggleInterestedIn(t)}
+              />
+              <span className="checkbox-custom"></span>
+              <span className="checkbox-text">{t}</span>
+            </label>
+          ))}
+        </div>
+        <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 8 }}>
           Leave all unchecked to be shown everyone.
         </p>
       </div>
 
-      <div style={{ marginBottom: '12px' }}>
+      <div className="form-group">
         <p style={{ marginBottom: '8px' }}>Age range</p>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <input
+            className="form-input"
             type="number"
             min={18}
             max={100}
             value={form.ageRangePreference.min}
             onChange={(e) => handleAgeRangeChange('min', e.target.value)}
-            style={{ width: 80, padding: '10px', border: '1px solid var(--color-border)', borderRadius: '4px', fontSize: '16px' }}
+            style={{ width: 80 }}
           />
           <span>to</span>
           <input
+            className="form-input"
             type="number"
             min={18}
             max={100}
             value={form.ageRangePreference.max}
             onChange={(e) => handleAgeRangeChange('max', e.target.value)}
-            style={{ width: 80, padding: '10px', border: '1px solid var(--color-border)', borderRadius: '4px', fontSize: '16px' }}
+            style={{ width: 80 }}
           />
         </div>
       </div>
 
-      <div style={{ marginBottom: '12px' }}>
+      <div className="form-group">
         <p style={{ marginBottom: '8px' }}>Maximum distance</p>
-        <label style={{ display: 'block', marginBottom: '8px' }}>
+        <label className="checkbox-label" style={{ marginBottom: '8px' }}>
           <input
             type="checkbox"
+            className="checkbox-input"
             checked={form.maxDistanceKm !== null}
             onChange={toggleDistanceLimit}
-            style={{ marginRight: '5px' }}
           />
-          Limit suggestions by distance
+          <span className="checkbox-custom"></span>
+          <span className="checkbox-text">Limit suggestions by distance</span>
         </label>
         {form.maxDistanceKm !== null && (
           <input
+            className="form-input"
             type="number"
             min={1}
             max={500}
             value={form.maxDistanceKm}
             onChange={handleMaxDistanceChange}
-            style={{ width: 120, padding: '10px', border: '1px solid var(--color-border)', borderRadius: '4px', fontSize: '16px' }}
+            style={{ width: 120 }}
           />
         )}
         <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 4 }}>
@@ -361,18 +304,13 @@ const Step5 = ({
     <div style={{ borderTop: '1px solid var(--color-border)', margin: '16px 0', paddingTop: '16px' }}>
       <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Short Questions</p>
       {form.answers.map((a, i) => (
-        <div key={a.questionId} style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>{a.question}</label>
-          <input 
-            value={a.answer || ''} 
+        <div key={a.questionId} className="form-group">
+          <label className="form-label" htmlFor={`wizard-answer-${a.questionId}`}>{a.question}</label>
+          <input
+            id={`wizard-answer-${a.questionId}`}
+            className="form-input"
+            value={a.answer || ''}
             onChange={(e) => handleAnswerChange(i, e.target.value)}
-            style={{
-              width: '100%',
-              padding: '10px',
-              border: '1px solid var(--color-border)',
-              borderRadius: '4px',
-              fontSize: '16px'
-            }}
           />
         </div>
       ))}
@@ -381,15 +319,8 @@ const Step5 = ({
 );
 
 const Step6 = ({ form }) => (
-  <div style={{
-    border: '1px solid var(--color-border)',
-    borderRadius: '8px',
-    padding: '20px',
-    marginBottom: '20px',
-    backgroundColor: 'var(--color-surface)',
-    boxShadow: 'var(--shadow-sm)'
-  }}>
-    <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Review & Submit</h3>
+  <div className="card">
+    <h3>Review & Submit</h3>
     <p><strong>Display Name:</strong> {form.displayName}</p>
     <p><strong>Bio:</strong> {form.bio}</p>
     <p><strong>Quote:</strong> {form.quote}</p>
@@ -679,8 +610,8 @@ const ProfileWizard = () => {
   return (
     <div style={{ maxWidth: 900, margin: 'auto' }}>
       <StepIndicator step={step} total={totalSteps} />
-      {message && <p style={{ color: 'green' }}>{message}</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {message && <p style={{ color: 'var(--color-success)' }}>{message}</p>}
+      {error && <p style={{ color: 'var(--color-error)' }}>{error}</p>}
 
       {step === 1 && <Step1 form={form} handleBasicChange={handleBasicChange} />}
       {step === 2 && <Step2 form={form} handleLocationChange={handleLocationChange} persistLocationNow={persistLocationNow} />}
@@ -699,51 +630,31 @@ const ProfileWizard = () => {
       )}
       {step === 6 && <Step6 form={form} />}
 
-      <div style={{ marginTop: 16 }}>
+      <div style={{ marginTop: 16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {step > 1 && (
-          <button 
-            onClick={() => setStep(step - 1)} 
-            style={{ 
-              marginRight: 8,
-              padding: '10px 20px',
-              border: '1px solid var(--color-border)',
-              borderRadius: '4px',
-              backgroundColor: 'var(--color-secondary)',
-              cursor: 'pointer'
-            }}
+          <button
+            className="btn btn-secondary"
+            type="button"
+            onClick={() => setStep(step - 1)}
           >
             Back
           </button>
         )}
         {step < totalSteps && (
-          <button 
+          <button
+            className="btn btn-primary"
+            type="button"
             onClick={() => canNext() ? setStep(step + 1) : setError('Please fill required fields')}
-            style={{
-              padding: '10px 20px',
-              border: '1px solid var(--color-primary)',
-              borderRadius: '4px',
-              backgroundColor: 'var(--color-primary)',
-              color: 'white',
-              cursor: 'pointer'
-            }}
           >
             Next
           </button>
         )}
         {step === totalSteps && (
-          <button 
-            onClick={handleSave} 
+          <button
+            className="btn btn-primary"
+            type="button"
+            onClick={handleSave}
             disabled={saving}
-            style={{
-              padding: '12px 24px',
-              border: '1px solid var(--color-success)',
-              borderRadius: '4px',
-              backgroundColor: 'var(--color-success)',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: '16px',
-              fontWeight: 'bold'
-            }}
           >
             {saving ? 'Saving...' : 'Save Profile'}
           </button>
